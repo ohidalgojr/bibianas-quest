@@ -1,0 +1,23 @@
+# Godot: cache de importacao e saidas de build
+.godot/
+/android/
+/build/
+*.translation
+
+# GUT: instalado por tools/setup na versao de tools/versions.env (ADR-0003)
+/addons/gut/
+
+# Relatorios gerados (simulador, testes)
+/reports/
+
+# Pacotes de transporte do historico (git bundle)
+*.bundle
+
+# Obsidian: estado local do aplicativo
+.obsidian/
+.trash/
+
+# Sistema operacional e editores
+.DS_Store
+Thumbs.db
+*.tmp
