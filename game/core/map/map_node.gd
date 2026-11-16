@@ -16,6 +16,10 @@ var column: int = 0
 var kind: Kind = Kind.BATTLE
 ## Ids dos destinos na camada seguinte, em ordem crescente de coluna.
 var next_ids: PackedInt32Array = PackedInt32Array()
+## Inimigo e nível dos nós de luta, atribuídos pela Descida (ADR-0011). Vazio e 0 nos
+## demais nós e nos mapas gerados fora de uma Descida.
+var enemy_id: String = ""
+var level: int = 0
 
 
 func _init(node_id: int = 0, node_layer: int = 0, node_column: int = 0, node_kind: Kind = Kind.BATTLE) -> void:

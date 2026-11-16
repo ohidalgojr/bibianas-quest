@@ -8,6 +8,6 @@ extends RefCounted
 ## novas sem aviso.
 ##
 ## Histórico: 0, nenhuma regra; 1, gerador de mapa (TASK-003, ADR-0007); 2, combate e moeda
-## (TASK-004, ADR-0008).
+## (TASK-004, ADR-0008); 3, Descida e peso de evento 0 no protótipo (TASK-007, ADR-0011).
 
-const RULES_VERSION: int = 2
+const RULES_VERSION: int = 3

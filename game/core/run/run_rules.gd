@@ -1,0 +1,93 @@
+class_name RunRules
+extends RefCounted
+## Fórmulas e números da Descida (GDD §9, §12 e §15). Leituras no ADR-0011. Mudar
+## qualquer número daqui exige ADR e subir [constant CoreVersion.RULES_VERSION].
+
+## GDD §9: delta de Poder = 0,15 × N × m_tipo.
+const POWER_PER_LEVEL: float = 0.15
+const STARTING_POWER: float = 1.0
+## GDD §15: moedas por inimigo = round(6 × N × U(0,8; 1,2) × m_tipo).
+const GOLD_PER_LEVEL: float = 6.0
+const GOLD_VARIANCE_LOW: float = 0.8
+const GOLD_VARIANCE_HIGH: float = 1.2
+## GDD §9 e §15: m_tipo por tipo de inimigo.
+const TYPE_MULTIPLIERS: Dictionary = {
+	"common": 1.0,
+	"elite": 1.5,
+	"mini_boss": 2.5,
+	"roaming_boss": 3.0,
+	"boss": 4.0,
+}
+## GDD §15: baús dão de 1 a 3 vezes o ouro de uma batalha comum.
+const CHEST_MIN_TIMES: int = 1
+const CHEST_MAX_TIMES: int = 3
+
+## GDD §12: 6 Brasas por fogueira; Descansar custa 3 e recupera 40% de HP e MP.
+const EMBERS: int = 6
+const REST_COST: int = 3
+const REST_PERCENT: int = 40
+## GDD §12 diz "1 a 2 Brasas"; o protótipo usa 2 (ADR-0011).
+const CAMPFIRE_SKILL_COST: int = 2
+
+## GDD §15: 2 equipamentos e 2 consumíveis (o especial fica fora, ADR-0011).
+const SHOP_EQUIPMENT: int = 2
+const SHOP_CONSUMABLES: int = 2
+## GDD §15: atualizar custa 15 na primeira vez e mais 10 a cada nova vez no mesmo nó.
+const REROLL_FIRST: int = 15
+const REROLL_STEP: int = 10
+## GDD §10: até 8 consumíveis.
+const MAX_CONSUMABLES: int = 8
+## ADR-0011: a Descida começa com 2 Poções Turvas.
+const STARTING_ITEMS: Dictionary = {"murky_potion": 2}
+
+## ADR-0011: elite um nível acima da camada; eventos fora do protótipo.
+const ELITE_LEVEL_BONUS: int = 1
+const PROTOTYPE_EVENT_WEIGHT: int = 0
+
+
+static func type_multiplier(enemy_type: String) -> float:
+	return float(TYPE_MULTIPLIERS.get(enemy_type, 1.0))
+
+
+static func power_gain(level: int, enemy_type: String) -> float:
+	return POWER_PER_LEVEL * level * type_multiplier(enemy_type)
+
+
+## Sorteia o U(0,8; 1,2) no fluxo de loot.
+static func gold_drop(level: int, enemy_type: String, loot: Pcg32) -> int:
+	var variance: float = loot.draw_float_range(GOLD_VARIANCE_LOW, GOLD_VARIANCE_HIGH)
+	return gold_for(level, enemy_type, variance)
+
+
+static func gold_for(level: int, enemy_type: String, variance: float) -> int:
+	return roundi(GOLD_PER_LEVEL * level * variance * type_multiplier(enemy_type))
+
+
+## Ouro de baú: o de uma batalha comum do nível, vezes 1 a 3 (ADR-0011).
+static func chest_gold(level: int, loot: Pcg32) -> int:
+	var base: int = gold_drop(level, "common", loot)
+	return base * loot.draw_int(CHEST_MIN_TIMES, CHEST_MAX_TIMES)
+
+
+## Nível dos inimigos de uma camada (1 a N), interpolado entre o mínimo e o máximo do
+## cenário (ADR-0011). O chefe fica no máximo.
+static func layer_level(layer: int, layers: int, min_level: int, max_level: int) -> int:
+	if layer > layers:
+		return max_level
+	return min_level + roundi(float(max_level - min_level) * float(layer - 1) / float(layers))
+
+
+static func reroll_cost(rerolls_done: int) -> int:
+	return REROLL_FIRST + REROLL_STEP * rerolls_done
+
+
+## Tipo de inimigo de um nó de luta, para m_tipo e para o grupo de inimigos.
+static func enemy_type_for(kind: MapNode.Kind) -> String:
+	match kind:
+		MapNode.Kind.ELITE:
+			return "elite"
+		MapNode.Kind.MINI_BOSS:
+			return "mini_boss"
+		MapNode.Kind.BOSS:
+			return "boss"
+	return "common"
