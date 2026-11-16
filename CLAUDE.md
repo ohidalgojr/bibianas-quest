@@ -28,9 +28,13 @@ Leia nesta ordem antes de qualquer trabalho:
 | Instalar o GUT fixado | `powershell -ExecutionPolicy Bypass -File tools\setup.ps1` | `bash tools/setup.sh` |
 | Observador: roda a suíte a cada mudança (ADR-0005) | `powershell -ExecutionPolicy Bypass -File tools\watch_tests.ps1` | não há |
 
+### MCP (Claude Code)
+
+`.mcp.json` liga os servidores `godot` e `blender`. Detalhes, requisitos e como ligar o addon do Blender em `docs/MCP.md`. No Claude Code com terminal, `tools\run_tests.ps1` roda a suíte direto (o observador abaixo é para quando não há terminal).
+
 ### Ciclo de teste do agente (ADR-0005)
 
-O agente não tem Godot nem terminal na máquina do Orlando. Quem roda a suíte é o observador (`tools\watch_tests.ps1`), numa janela que o Orlando deixa aberta. Depois de gravar arquivos em `game/` ou `tests/`:
+Só vale quando o agente não tem terminal (projeto do claude.ai). No Claude Code, rode `tools\run_tests.ps1` direto e leia a saída. Sem terminal, quem roda a suíte é o observador (`tools\watch_tests.ps1`), numa janela que o Orlando deixa aberta. Depois de gravar arquivos em `game/` ou `tests/`:
 
 1. Confira que o observador está vivo: `reports/watcher.alive` com hora recente. Se não estiver, peça ao Orlando para abri-lo. Não presuma que os testes passam.
 2. Espere `reports/last_run.status` com `state=done` e `started` posterior à gravação.
