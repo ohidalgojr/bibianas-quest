@@ -8,7 +8,11 @@ Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-001 a 008 commitadas; 
 2. **Harness atual: Claude Code (aplicativo desktop), com terminal.** Rode a suíte direto: `powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1` (precisa de `GODOT_BIN`, já definido, e de `addons/gut/`; em worktree nova rode `tools\setup.ps1`). O observador (ADR-0005) só é necessário em ambientes sem terminal, como o projeto do claude.ai usado antes.
 3. MCP do Godot e do Blender em `.mcp.json` (ver `docs/MCP.md`). O addon do Blender já foi instalado e ativado no Blender 5.3 do Orlando; falta conectar na aba BlenderMCP (`N`) a cada sessão. Os servidores só aparecem depois de reiniciar a sessão e aprová-los. Aprovação local: `.claude/settings.local.json` com `"enabledMcpjsonServers": ["godot", "blender"]` (fora do Git; copiar para cada checkout ou worktree). Testados em 2026-11-16: os dois respondem ao handshake MCP e o `blender` conecta no addon em `localhost:9876`. O pacote `blender-mcp` virou wrapper de `mcp-for-blender`; continua funcionando na versão fixada.
 4. Uma tarefa por vez. O Orlando liberou seguir as tarefas do roteiro (2026-11-16), parando ao fim de cada uma para o resumo.
-5. Git: remoto `origin` (GitHub `ohidalgojr/bibianas-quest`). Trabalhe em branch, nunca direto em `main`.
+5. Git: remoto `origin` (GitHub `ohidalgojr/bibianas-quest`). A `main` tem tudo até a TASK-009 (mesclada em 2026-11-16 por avanço rápido, histórico linear; os branches das sessões anteriores foram removidos). Regra do projeto: uma tarefa por vez, um commit por tarefa.
+
+## Como jogar
+
+Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e aperte **F5**. A cena principal abre o `GameScreen`: "Nova Descida" gera o mapa do cenário 1 (cerca de 1,5 s) e leva a mapa, lutas, loja e fogueira provisórias, e fim; "Luta de teste (depuração)" abre o seletor de inimigo, nível e Poder. Se aparecer só uma tela escura com "regras vN", o Godot abriu uma cópia antiga do projeto (outra pasta ou worktree): confira que o caminho aberto é o da raiz do repositório atual.
 
 ## Feito
 
@@ -50,12 +54,11 @@ Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-001 a 008 commitadas; 
 ## Pendências do Orlando
 
 1. Conectar o addon do Blender (aba BlenderMCP, tecla `N`) quando for usar o Blender.
-2. Revisar e mesclar a branch `claude/godot-blender-setup-0792cc` (TASK-004 e MCP). Depois da mesclagem, a pasta principal ainda tem cópias não commitadas desses mesmos arquivos: descartar com `git restore .` e `git clean -fd game tests docs` antes de puxar.
-7. **Jogar uma Descida (TASK-009):** F5 e "Nova Descida", para ver se o mapa se lê bem e se o fluxo anda.
-6. **Decidir os dois pontos do ADR-0012:** o custo da checagem de mapa no celular (a thread já existe; falta medir no celular e decidir o save) e as mortes por moeda acima da meta (31% e 35%, contra 25%; recomendação: esperar o teste de sensação).
-3. Responder as duas perguntas do ADR-0008 (PRE como bônus sobre 90; Veterano com redução de 65% ou de 80%) e a do ADR-0010 (o que mostrar quando o jogador escolhe Coroa e o lance dá sucesso).
-5. **Teste de sensação da TASK-006:** abrir o projeto, F5, jogar algumas lutas (o Coveiro inclusive) e anotar no fim de `docs/tasks/TASK-006-combate-jogavel.md` se a moeda dá tensão e se o aviso de um turno basta.
-4. Revisão cruzada do Gemini, TASK-001 a 009.
+2. **Jogar uma Descida (TASK-009):** F5 no Godot e "Nova Descida" (ver "Como jogar"), para ver se o mapa se lê bem e se o fluxo anda.
+3. **Teste de sensação da TASK-006:** jogar algumas lutas (o Coveiro inclusive) e anotar no fim de `docs/tasks/TASK-006-combate-jogavel.md` se a moeda dá tensão e se o aviso de um turno basta.
+4. Responder as perguntas dos ADRs: ADR-0008 (PRE como bônus sobre 90; Veterano com redução de 65% ou de 80%) e ADR-0010 (o que mostrar quando o jogador escolhe Coroa e o lance dá sucesso).
+5. **Decidir os dois pontos do ADR-0012:** o custo da checagem de mapa no celular (a thread já existe; falta medir no celular e decidir o save) e as mortes por moeda acima da meta (31% e 35%, contra 25%; recomendação: esperar o teste de sensação).
+6. Revisão cruzada do Gemini, TASK-001 a 009.
 
 ## Falta (ordem combinada; o roteiro completo e as mudanças propostas estão em `docs/ROADMAP-MVP.md`)
 
