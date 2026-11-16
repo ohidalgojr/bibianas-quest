@@ -10,6 +10,7 @@ func before_each() -> void:
 	_game.map_check_runs = 0
 	_game.use_thread = false
 	_game.time_scale = 0.0
+	_game.save_enabled = false
 	add_child_autofree(_game)
 
 

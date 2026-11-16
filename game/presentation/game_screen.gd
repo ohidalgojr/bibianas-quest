@@ -20,6 +20,9 @@ var run: RunState
 ## Ecos acumulados e Descidas jogadas desde que o jogo abriu. O save é da TASK-012.
 var echoes: int = 0
 var runs_played: int = 0
+## Save em disco (TASK-012, ADR-0017). Os testes desligam ou apontam para uma pasta de teste.
+var save_enabled: bool = true
+var save_dir: String = "user://"
 
 var _thread: Thread
 var _content: Control
@@ -36,6 +39,10 @@ func _ready() -> void:
 	theme.default_font_size = 20
 	if data == null:
 		data = DataLoader.load_all()
+	if save_enabled:
+		var meta: Dictionary = _store().load_meta()
+		echoes = int(meta["echoes"])
+		runs_played = int(meta["runs_played"])
 	show_home()
 
 
@@ -60,6 +67,8 @@ func show_home() -> void:
 		return
 	box.add_child(_label("Ecos: %d    Descidas: %d" % [echoes, runs_played]))
 	box.add_child(_label(_class_text()))
+	if save_enabled and _store().has_run():
+		box.add_child(_button("Continuar Descida", resume_run))
 	box.add_child(_button("Nova Descida", func() -> void: new_run()))
 	box.add_child(_button("Luta de teste (depuração)", _show_test_fight))
 
@@ -70,6 +79,21 @@ func _class_text() -> String:
 	return "Classe: %s (%s). HP %d, MP %d, FOR %d, DEF %d." % [
 		str(data.classes[CLASS_ID]["name"]), RunState.PLAYER_NAME, stats.max_hp, stats.max_mp, stats.strength,
 		stats.defense]
+
+
+func _store() -> SaveStore:
+	return SaveStore.new(save_dir)
+
+
+## Retoma a Descida salva; se o save não serve mais, apaga e volta ao menu.
+func resume_run() -> void:
+	var loaded: RunState = _store().load_run(data)
+	if loaded == null:
+		_store().clear_run()
+		show_home()
+		return
+	run = loaded
+	_after_action()
 
 
 ## Começa uma Descida. Sem semente, usa o relógio; a semente aparece na espera e no fim.
@@ -94,6 +118,9 @@ func _create_run(run_seed: int) -> RunState:
 func _after_action() -> void:
 	match run.phase:
 		RunState.Phase.CHOOSING:
+			# Auto-save a cada nó resolvido, com a Bibiana no mapa (ADR-0017).
+			if save_enabled:
+				_store().save_run(run)
 			_show_map()
 		RunState.Phase.FIGHT:
 			_show_fight()
@@ -180,6 +207,9 @@ func _show_result() -> void:
 	var earned: int = run.echoes_earned()
 	echoes += earned
 	runs_played += 1
+	if save_enabled:
+		_store().clear_run()
+		_store().save_meta(echoes, runs_played)
 	var title: String = "Vitória! O chefe caiu." if victory else "A Bibiana caiu."
 	var box: VBoxContainer = _page(title, "Semente %d." % run.streams.run_seed)
 	if not victory:
