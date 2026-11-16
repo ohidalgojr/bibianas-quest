@@ -2,22 +2,28 @@ class_name EnemyMove
 extends RefCounted
 ## Um movimento do ciclo de um inimigo (GDD §6 "IA dos inimigos" e §7).
 
-enum Kind { ATTACK, STRONG, HEAVY, CRUEL, MORTAL, HEAL }
+enum Kind { ATTACK, STRONG, HEAVY, CRUEL, MORTAL, HEAL, DEBUFF }
 ## Ícone mostrado sobre a cabeça do inimigo um turno antes (GDD §6).
-enum Intent { ATTACK, STRONG, COIN, HEAL }
+enum Intent { ATTACK, STRONG, COIN, HEAL, DEBUFF }
 
 var id: String = "attack"
 var kind: Kind = Kind.ATTACK
 var power: float = 1.0
 var heal_percent: int = 0
+## Golpe de debuff (ADR-0020): efeito aplicado se o golpe acertar, com esta chance em %.
+var effect: CombatEffect.Kind = CombatEffect.Kind.POISON
+var effect_chance: int = 0
 
 
-static func make(move_id: String, move_kind: Kind, move_power: float = 1.0, heal: int = 0) -> EnemyMove:
+static func make(move_id: String, move_kind: Kind, move_power: float = 1.0, heal: int = 0,
+		move_effect: CombatEffect.Kind = CombatEffect.Kind.POISON, move_effect_chance: int = 0) -> EnemyMove:
 	var move: EnemyMove = EnemyMove.new()
 	move.id = move_id
 	move.kind = move_kind
 	move.power = move_power
 	move.heal_percent = heal
+	move.effect = move_effect
+	move.effect_chance = move_effect_chance
 	return move
 
 
@@ -33,6 +39,8 @@ func intent() -> Intent:
 			return Intent.COIN
 		Kind.HEAL:
 			return Intent.HEAL
+		Kind.DEBUFF:
+			return Intent.DEBUFF
 	return Intent.ATTACK
 
 

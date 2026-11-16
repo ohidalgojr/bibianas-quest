@@ -10,12 +10,19 @@ const MOVE_NAMES: Dictionary = {
 	EnemyMove.Kind.CRUEL: "Golpe Cruel",
 	EnemyMove.Kind.MORTAL: "Golpe Mortal",
 	EnemyMove.Kind.HEAL: "Cura",
+	EnemyMove.Kind.DEBUFF: "Debilitar",
+}
+## Nome de golpes de debuff por id (ADR-0020).
+const MOVE_ID_NAMES: Dictionary = {
+	"rot": "Toque Podre",
+	"curse": "Maldição do Coveiro",
 }
 const INTENT_ICONS: Dictionary = {
 	EnemyMove.Intent.ATTACK: "ATAQUE",
 	EnemyMove.Intent.STRONG: "FORTE",
 	EnemyMove.Intent.COIN: "MOEDA",
 	EnemyMove.Intent.HEAL: "CURA",
+	EnemyMove.Intent.DEBUFF: "DEBILITA",
 }
 const EFFECT_NAMES: Dictionary = {
 	"defending": "Defendendo",
@@ -23,6 +30,8 @@ const EFFECT_NAMES: Dictionary = {
 	"armor_down": "Guarda aberta",
 	"slowed": "Lentidão",
 	"stunned": "Atordoado",
+	"poison": "Veneno",
+	"weakened": "Fraqueza",
 }
 const PLAYER_ACTIONS: Dictionary = {
 	"attack": "Ataque",
@@ -38,7 +47,9 @@ const OUTCOMES: Dictionary = {
 }
 
 
-static func move_name(kind: EnemyMove.Kind) -> String:
+static func move_name(kind: EnemyMove.Kind, move_id: String = "") -> String:
+	if MOVE_ID_NAMES.has(move_id):
+		return str(MOVE_ID_NAMES[move_id])
 	return str(MOVE_NAMES.get(kind, "Golpe"))
 
 
@@ -77,6 +88,10 @@ static func landed_side(called: int, success: bool) -> int:
 	if success:
 		return called
 	return CoinRules.TAILS if called == CoinRules.HEADS else CoinRules.HEADS
+
+
+static func effect_label(kind: CombatEffect.Kind) -> String:
+	return effect_name(CombatEffect.LABELS[kind])
 
 
 static func coin_result(called: int, success: bool) -> String:

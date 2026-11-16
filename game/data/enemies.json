@@ -64,13 +64,15 @@
 				{"below_hp_percent": 100, "moves": [
 					{"id": "attack", "kind": "attack"},
 					{"id": "shovel", "kind": "cruel"},
+					{"id": "rot", "kind": "debuff", "power": 0.9, "effect": "poison", "effect_chance": 60},
 					{"id": "sweep", "kind": "strong", "power": 1.4},
 					{"id": "attack", "kind": "attack"}
 				]},
 				{"below_hp_percent": 50, "moves": [
 					{"id": "grave", "kind": "mortal"},
+					{"id": "curse", "kind": "debuff", "power": 0.9, "effect": "weakened", "effect_chance": 70},
 					{"id": "attack", "kind": "attack"},
-					{"id": "shovel", "kind": "cruel"},
+					{"id": "rot", "kind": "debuff", "power": 0.9, "effect": "poison", "effect_chance": 60},
 					{"id": "sweep", "kind": "strong", "power": 1.4}
 				]}
 			]

@@ -26,6 +26,8 @@ var coin_call: int = CoinRules.HEADS
 
 ## Id do golpe -> tipo, para nomear golpes a partir dos eventos.
 var _move_kinds: Dictionary = {}
+## Id do golpe -> golpe, para o aviso mostrar efeito e chance (ADR-0020).
+var _moves: Dictionary = {}
 
 
 func _init(game_data: GameData, fight_enemy: String, fight_level: int, fight_power: float, fight_seed: int,
@@ -62,6 +64,7 @@ func _learn_moves(enemy: Combatant) -> void:
 	for phase: EnemyPhase in enemy.phases:
 		for move: EnemyMove in phase.moves:
 			_move_kinds[move.id] = move.kind
+			_moves[move.id] = move
 
 
 ## Eventos já emitidos. Na Descida a luta começa no [RunState]; aqui só se lê o histórico.
@@ -153,16 +156,21 @@ func move_kind(move_id: String) -> EnemyMove.Kind:
 ## o detalhe. No golpe de moeda, o detalhe traz a chance real de Cara (GDD §7).
 func intent_view(move_id: String) -> Dictionary:
 	var kind: EnemyMove.Kind = move_kind(move_id)
-	var move: EnemyMove = EnemyMove.make(move_id, kind)
+	var move: EnemyMove = _moves.get(move_id, EnemyMove.make(move_id, kind))
 	var view: Dictionary = {
 		"icon": CombatTexts.intent_icon(move.intent()),
-		"name": CombatTexts.move_name(kind),
+		"name": CombatTexts.move_name(kind, move_id),
 		"dangerous": move.is_dangerous(),
 		"coin": move.is_coin(),
+		"debuff": kind == EnemyMove.Kind.DEBUFF,
 		"detail": "",
 	}
 	if move.is_coin():
 		view["detail"] = "Escolha Cara ou Coroa. Chance de acertar: %d%%. %s" % [coin_chance(), CombatTexts.coin_stakes(kind)]
+	elif kind == EnemyMove.Kind.DEBUFF:
+		view["detail"] = "Se acertar: %s com %d%% de chance (%d%% se você Defender)." % [
+			CombatTexts.effect_label(move.effect), move.effect_chance,
+			roundi(move.effect_chance * CombatEffect.DEFEND_CHANCE_FACTOR)]
 	elif kind == EnemyMove.Kind.STRONG:
 		view["detail"] = "Defender reduz o dano."
 	return view
@@ -188,7 +196,7 @@ func describe(event: CombatEvent) -> String:
 		CombatEvent.Type.STARTED:
 			return "A luta começa: %s, nível %d. Semente %d." % [enemy_name(), level, run_seed]
 		CombatEvent.Type.INTENT:
-			return "%s prepara: %s." % [enemy_name(), CombatTexts.move_name(move_kind(event.label))]
+			return "%s prepara: %s." % [enemy_name(), CombatTexts.move_name(move_kind(event.label), event.label)]
 		CombatEvent.Type.ACTION:
 			return "%s usa %s." % [who, _action_name(event)]
 		CombatEvent.Type.MISS:
@@ -197,6 +205,8 @@ func describe(event: CombatEvent) -> String:
 			var line: String = "%s sofre %d de dano" % [who, event.value]
 			if event.label == "reflect":
 				line += " (reflexo da Muralha)"
+			elif event.label == "poison":
+				line += " (veneno)"
 			if event.flag:
 				return line + ", crítico!"
 			return line + "."
@@ -236,7 +246,7 @@ func _side_name(side: int) -> String:
 
 func _action_name(event: CombatEvent) -> String:
 	if event.side == Combatant.ENEMY:
-		return CombatTexts.move_name(move_kind(event.label))
+		return CombatTexts.move_name(move_kind(event.label), event.label)
 	if CombatTexts.PLAYER_ACTIONS.has(event.label):
 		return str(CombatTexts.PLAYER_ACTIONS[event.label])
 	for skill: CombatSkill in skills:

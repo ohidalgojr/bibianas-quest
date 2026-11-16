@@ -10,7 +10,8 @@ const DOCUMENTS: PackedStringArray = ["classes", "skills", "enemies", "items", "
 const STAT_KEYS: PackedStringArray = ["hp", "mp", "strength", "mind", "defense", "resistance",
 	"speed", "precision", "evasion", "crit", "luck"]
 const ENEMY_TYPES: PackedStringArray = ["common", "elite", "mini_boss", "boss"]
-const MOVE_KINDS: PackedStringArray = ["attack", "strong", "heavy", "cruel", "mortal", "heal"]
+const MOVE_KINDS: PackedStringArray = ["attack", "strong", "heavy", "cruel", "mortal", "heal", "debuff"]
+const DEBUFF_EFFECT_IDS: PackedStringArray = ["poison", "weakened"]
 const ELEMENTS: PackedStringArray = ["physical", "fire", "lightning", "holy", "shadow"]
 const ITEM_SLOTS: PackedStringArray = ["consumable", "weapon", "offhand", "armor", "head", "relic"]
 const RARITIES: PackedStringArray = ["worn", "common", "uncommon", "rare", "cursed", "soul", "rival"]
@@ -246,6 +247,10 @@ func _check_move(entry: Variant, path: String) -> String:
 		_error(path, "power precisa ser número positivo")
 	if kind == "heal":
 		_check_range(_int_field(move, "heal_percent", path), 1, 100, path, "heal_percent")
+	if kind == "debuff":
+		var effect: String = _string_field(move, "effect", path)
+		_check_choice(effect, DEBUFF_EFFECT_IDS, path, "effect")
+		_check_range(_int_field(move, "effect_chance", path), 1, 100, path, "effect_chance")
 	return kind
 
 

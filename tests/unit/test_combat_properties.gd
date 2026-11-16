@@ -57,7 +57,7 @@ func test_audit_catches_each_kind_of_violation() -> void:
 	]
 	var found: String = " | ".join(CombatFixtures.audit(combat))
 	assert_string_contains(found, "sem turno do jogador")
-	assert_string_contains(found, "dois golpes de moeda")
+	assert_string_contains(found, "golpes de moeda com menos de")
 	assert_string_contains(found, "mesmo golpe forte")
 	assert_string_contains(found, "golpe mortal fora de chefe")
 	assert_string_contains(found, "morte imediata")

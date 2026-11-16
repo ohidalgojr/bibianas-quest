@@ -124,16 +124,13 @@ static func audit(combat: Combat) -> PackedStringArray:
 	var found: PackedStringArray = PackedStringArray()
 	var max_hp: int = combat.player.stats.max_hp
 	var warned: bool = false
-	var phase: int = 0
-	var final_phase: int = combat.enemy.phases.size() - 1
+	var since_coin: int = Combat.COIN_GAP
 	var previous: CombatEvent = null
 	for index: int in combat.history.size():
 		var event: CombatEvent = combat.history[index]
 		match event.type:
 			CombatEvent.Type.INTENT:
 				warned = false
-			CombatEvent.Type.PHASE:
-				phase = event.value
 			CombatEvent.Type.TURN:
 				if event.side == Combatant.PLAYER:
 					warned = true
@@ -143,11 +140,14 @@ static func audit(combat: Combat) -> PackedStringArray:
 					if dangerous and not warned:
 						found.append("#%d golpe perigoso %s sem turno do jogador depois do aviso" % [index, event.label])
 					if previous != null:
-						var in_last_phase: bool = combat.enemy.is_boss and final_phase > 0 and phase == final_phase
-						if event.value == EnemyMove.Intent.COIN and previous.value == EnemyMove.Intent.COIN and not in_last_phase:
-							found.append("#%d dois golpes de moeda seguidos" % index)
 						if dangerous and previous.label == event.label:
 							found.append("#%d mesmo golpe forte duas vezes: %s" % [index, event.label])
+					if event.value == EnemyMove.Intent.COIN:
+						if since_coin < Combat.COIN_GAP:
+							found.append("#%d golpes de moeda com menos de %d golpes entre eles" % [index, Combat.COIN_GAP])
+						since_coin = 0
+					else:
+						since_coin += 1
 					if event.label == "grave" and not combat.enemy.is_boss:
 						found.append("#%d golpe mortal fora de chefe" % index)
 					previous = event

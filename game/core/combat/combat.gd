@@ -15,6 +15,9 @@ const CHARGE_TO_ACT: int = 100
 ## decora (GDD §6; valor no ADR-0008).
 const VARIATION_PERCENT: int = 25
 const MAX_STEPS: int = 10000
+## GDD §7 (ADR-0020): golpes de moeda do inimigo precisam de ao menos este número de
+## golpes de outro tipo entre eles. Vale para todos, chefes inclusive.
+const COIN_GAP: int = 2
 
 var player: Combatant
 var enemy: Combatant
@@ -29,6 +32,8 @@ var _rng: Pcg32
 var _coin_rng: Pcg32
 var _coin: CoinState
 var _awaiting_player: bool = false
+## Golpes do inimigo desde o último golpe de moeda; começa liberado.
+var _since_coin: int = COIN_GAP
 var _started: bool = false
 
 
@@ -154,11 +159,17 @@ func _advance() -> void:
 		if _player_goes_first(player.charge, enemy.charge):
 			player.charge -= CHARGE_TO_ACT
 			_tick_effects(player)
+			_check_end()
+			if outcome != Outcome.ONGOING:
+				return
 			_awaiting_player = true
 			_emit(CombatEvent.Type.TURN, Combatant.PLAYER)
 			return
 		enemy.charge -= CHARGE_TO_ACT
 		_tick_effects(enemy)
+		_check_end()
+		if outcome != Outcome.ONGOING:
+			return
 		_enemy_turn()
 
 
@@ -179,12 +190,25 @@ func _ticks_to_act(charge: int, speed: int) -> int:
 func _tick_effects(unit: Combatant) -> void:
 	var kept: Array[CombatEffect] = []
 	for effect: CombatEffect in unit.effects:
+		if effect.kind == CombatEffect.Kind.POISON:
+			_poison_damage(unit)
 		effect.turns_left -= 1
 		if effect.turns_left > 0:
 			kept.append(effect)
 		else:
 			_emit(CombatEvent.Type.EFFECT_OFF, unit.side, effect.label())
 	unit.effects = kept
+
+
+## Veneno: 5% do HP máximo por turno, sem passar pela defesa; a regra de nunca matar de
+## uma vez com mais de 60% de vida vale para a Bibiana (GDD §7 e §11).
+func _poison_damage(unit: Combatant) -> void:
+	var damage: int = maxi(1, roundi(unit.stats.max_hp * CombatEffect.POISON_PERCENT / 100.0))
+	if unit.side == Combatant.PLAYER:
+		damage = CombatFormulas.cap_lethal(damage, unit.hp, unit.stats.max_hp)
+	damage = mini(damage, unit.hp)
+	unit.hp -= damage
+	_emit(CombatEvent.Type.DAMAGE, unit.side, "poison", damage, false, unit.hp)
 
 
 func _enemy_turn() -> void:
@@ -204,11 +228,24 @@ func _enemy_turn() -> void:
 			var success: bool = _flip_coin(move.id)
 			mult = CombatFormulas.coin_damage_multiplier(move.kind, success,
 				player.has_effect(CombatEffect.Kind.DEFENDING), player.veteran)
-		_strike(enemy, player, move.power, CombatFormulas.Element.PHYSICAL, mult, move.id)
+		var dealt: int = _strike(enemy, player, move.power, CombatFormulas.Element.PHYSICAL, mult, move.id)
+		if move.kind == EnemyMove.Kind.DEBUFF and dealt > 0 and player.is_alive():
+			_try_debuff(move)
+	_since_coin = 0 if move.is_coin() else _since_coin + 1
 	enemy.last_move = move
 	_check_end()
 	if outcome == Outcome.ONGOING:
 		_choose_intent()
+
+
+## Debuff do golpe (ADR-0020): a chance do golpe sorteia no fluxo de combate, não no da
+## moeda; Defender corta a chance pela metade.
+func _try_debuff(move: EnemyMove) -> void:
+	var chance: int = move.effect_chance
+	if player.has_effect(CombatEffect.Kind.DEFENDING):
+		chance = roundi(chance * CombatEffect.DEFEND_CHANCE_FACTOR)
+	if _rng.draw_percent(chance):
+		_apply_effect(player, move.effect, CombatEffect.debuff_turns(move.effect))
 
 
 func _choose_intent() -> void:
@@ -226,7 +263,8 @@ func _choose_intent() -> void:
 
 
 ## Regras de justiça da IA (GDD §6 e §7): nunca o mesmo ataque forte duas vezes
-## seguidas; nunca dois golpes de moeda seguidos, exceto na fase final de chefes; Golpe
+## seguidas; ao menos [constant COIN_GAP] golpes entre dois golpes de moeda, em todos os
+## inimigos; Golpe
 ## Mortal só em chefes; golpe perigoso só se o jogador tiver um turno para ver o aviso.
 func _move_allowed(move: EnemyMove) -> bool:
 	var last: EnemyMove = enemy.last_move
@@ -234,7 +272,7 @@ func _move_allowed(move: EnemyMove) -> bool:
 		return false
 	if last != null and move.is_dangerous() and last.id == move.id:
 		return false
-	if last != null and move.is_coin() and last.is_coin() and not enemy.in_final_phase():
+	if move.is_coin() and _since_coin < COIN_GAP:
 		return false
 	if move.is_dangerous() and preview_turn_order(1)[0] == Combatant.ENEMY:
 		return false
@@ -290,7 +328,7 @@ func _strike(attacker: Combatant, defender: Combatant, power: float, element: Co
 	var critical: bool = _rng.draw_percent(attacker.stats.crit)
 	var variance: float = _rng.draw_float_range(CombatFormulas.VARIANCE_LOW, CombatFormulas.VARIANCE_HIGH)
 	var physical: bool = element == CombatFormulas.Element.PHYSICAL
-	var attack: float = float(attacker.stats.strength if physical else attacker.stats.mind)
+	var attack: float = attacker.effective_strength() if physical else attacker.effective_mind()
 	var guard: float = defender.effective_defense() if physical else defender.effective_resistance()
 	var raw: float = CombatFormulas.raw_damage(attack, power, guard, variance,
 		CombatFormulas.CRIT_MULTIPLIER if critical else 1.0, defender.element_multiplier(element), 1.0)

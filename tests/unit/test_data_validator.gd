@@ -174,3 +174,17 @@ func test_invalid_data_leaves_catalog_empty() -> void:
 	var data: GameData = GameData.from_documents(docs)
 	assert_false(data.is_valid())
 	assert_eq(data.enemies.size(), 0)
+
+
+## ADR-0020: golpe de debuff precisa de efeito conhecido e chance entre 1 e 100.
+func test_debuff_move_needs_effect_and_chance() -> void:
+	var docs: Dictionary = _docs()
+	var move: Dictionary = _enemy(docs, "gravedigger")["phases"][0]["moves"][2]
+	assert_eq(move["id"], "rot")
+	move["effect_chance"] = 0
+	_assert_rejects(docs, "effect_chance")
+	move["effect_chance"] = 60
+	move["effect"] = "inexistente"
+	_assert_rejects(docs, "effect")
+	move["effect"] = "poison"
+	assert_eq(DataValidator.validate(docs).size(), 0)

@@ -25,6 +25,7 @@ const COLOR_ENEMY: Color = Color(0.6, 0.3, 0.28)
 const COLOR_BOSS: Color = Color(0.45, 0.15, 0.2)
 const COLOR_DANGER: Color = Color(0.85, 0.35, 0.2)
 const COLOR_COIN: Color = Color(0.9, 0.75, 0.25)
+const COLOR_DEBUFF: Color = Color(0.6, 0.4, 0.8)
 const COLOR_CALM: Color = Color(0.4, 0.42, 0.46)
 
 ## Multiplicador das pausas: 1 normal, 0,5 na velocidade 2x, 0 nos testes.
@@ -220,6 +221,8 @@ func _show_intent(move_id: String) -> void:
 	_intent_detail.text = str(view["detail"])
 	if bool(view["coin"]):
 		_intent_panel.self_modulate = COLOR_COIN
+	elif bool(view["debuff"]):
+		_intent_panel.self_modulate = COLOR_DEBUFF
 	elif bool(view["dangerous"]):
 		_intent_panel.self_modulate = COLOR_DANGER
 	else:

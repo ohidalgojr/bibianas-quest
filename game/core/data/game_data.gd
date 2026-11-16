@@ -11,6 +11,12 @@ const MOVE_KINDS: Dictionary = {
 	"cruel": EnemyMove.Kind.CRUEL,
 	"mortal": EnemyMove.Kind.MORTAL,
 	"heal": EnemyMove.Kind.HEAL,
+	"debuff": EnemyMove.Kind.DEBUFF,
+}
+## Efeitos de golpe de debuff (ADR-0020).
+const DEBUFF_EFFECTS: Dictionary = {
+	"poison": CombatEffect.Kind.POISON,
+	"weakened": CombatEffect.Kind.WEAKENED,
 }
 const ELEMENTS: Dictionary = {
 	"physical": CombatFormulas.Element.PHYSICAL,
@@ -116,8 +122,9 @@ func make_enemy(enemy_id: String, level: int) -> Combatant:
 	for phase: Dictionary in entry["phases"]:
 		var moves: Array[EnemyMove] = []
 		for move: Dictionary in phase["moves"]:
+			var effect: CombatEffect.Kind = DEBUFF_EFFECTS.get(str(move.get("effect", "poison")), CombatEffect.Kind.POISON)
 			moves.append(EnemyMove.make(str(move["id"]), MOVE_KINDS[str(move["kind"])],
-				float(move.get("power", 1.0)), int(move.get("heal_percent", 0))))
+				float(move.get("power", 1.0)), int(move.get("heal_percent", 0)), effect, int(move.get("effect_chance", 0))))
 		phases.append(EnemyPhase.make(int(phase["below_hp_percent"]), moves))
 	var boss: bool = str(entry["type"]) == "boss"
 	var unit: Combatant = Combatant.enemy(str(entry["name"]), enemy_stats(enemy_id, level), phases, boss)

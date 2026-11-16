@@ -82,6 +82,21 @@ func effective_defense() -> float:
 	return value
 
 
+## FOR com Fraqueza (GDD §11).
+func effective_strength() -> float:
+	return _weakened(stats.strength)
+
+
+func effective_mind() -> float:
+	return _weakened(stats.mind)
+
+
+func _weakened(value: int) -> float:
+	if has_effect(CombatEffect.Kind.WEAKENED):
+		return value * (1.0 - CombatEffect.WEAK_ATTACK)
+	return float(value)
+
+
 func effective_resistance() -> float:
 	return float(stats.resistance)
 

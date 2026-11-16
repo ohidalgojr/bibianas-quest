@@ -215,7 +215,8 @@ HP, MP, FOR, MEN, DEF, RES, VEL, PRE, ESQ, CRIT e SORTE. Equipamentos e Poder al
 ### IA dos inimigos
 
 - Cada inimigo tem de 3 a 5 movimentos em um ciclo com variação: o padrão pode ser aprendido, mas não decorado.
-- Nunca o mesmo ataque forte duas vezes seguidas e nunca dois golpes de moeda em turnos consecutivos (exceto na fase final de chefes).
+- Nunca o mesmo ataque forte duas vezes seguidas. Entre dois golpes de moeda do inimigo há sempre ao menos 2 golpes de outro tipo, em todos os inimigos, chefes inclusive (ADR-0020).
+- **Golpes de debuff:** causam dano e, se acertarem, aplicam um debuff (Veneno ou Fraqueza, seção 11) com a chance do próprio golpe, sorteada à parte da moeda. O aviso do turno anterior mostra o ícone DEBILITA, o efeito e a chance. Defender corta a chance pela metade. Assim o risco do chefe não depende só da moeda.
 - Chefes têm 2 a 3 fases, que mudam o ciclo de ataques e o tipo de moeda.
 
 ### Fim do combate
@@ -266,6 +267,7 @@ A moeda é a assinatura do jogo: decide momentos de risco, é sempre avisada ant
 
 ### Limites de justiça
 
+- Golpes de moeda do inimigo nunca ficam colados: ao menos 2 golpes de outro tipo entre eles (seção 6).
 - Todo golpe de moeda é avisado com ícone no turno anterior. Sem exceção, exceto eventos marcados como emboscada, e mesmo esses mostram um aviso de uma tela antes.
 - Nunca há morte imediata com a vida acima de 60%.
 - A telemetria acompanha a parcela de mortes causadas por moeda (meta em torno de 25% ou menos, seção 23).
