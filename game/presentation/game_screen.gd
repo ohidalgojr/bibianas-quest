@@ -6,6 +6,7 @@ extends Control
 
 signal run_ended(victory: bool)
 
+const CLASS_ID: String = "warrior"
 const COLOR_BG: Color = Color(0.07, 0.08, 0.1)
 
 var data: GameData
@@ -16,6 +17,9 @@ var use_thread: bool = true
 ## Repassado à tela de combate: 0 deixa a animação instantânea.
 var time_scale: float = 1.0
 var run: RunState
+## Ecos acumulados e Descidas jogadas desde que o jogo abriu. O save é da TASK-012.
+var echoes: int = 0
+var runs_played: int = 0
 
 var _thread: Thread
 var _content: Control
@@ -54,8 +58,18 @@ func show_home() -> void:
 	if not data.is_valid():
 		box.add_child(_label("Dados inválidos. Veja o console."))
 		return
+	box.add_child(_label("Ecos: %d    Descidas: %d" % [echoes, runs_played]))
+	box.add_child(_label(_class_text()))
 	box.add_child(_button("Nova Descida", func() -> void: new_run()))
 	box.add_child(_button("Luta de teste (depuração)", _show_test_fight))
+
+
+## Escolha de classe do MVP: só o Guerreiro (roteiro da TASK-011).
+func _class_text() -> String:
+	var stats: Stats = data.class_stats(CLASS_ID)
+	return "Classe: %s (%s). HP %d, MP %d, FOR %d, DEF %d." % [
+		str(data.classes[CLASS_ID]["name"]), RunState.PLAYER_NAME, stats.max_hp, stats.max_mp, stats.strength,
+		stats.defense]
 
 
 ## Começa uma Descida. Sem semente, usa o relógio; a semente aparece na espera e no fim.
@@ -73,7 +87,7 @@ func new_run(run_seed: int = -1) -> void:
 
 
 func _create_run(run_seed: int) -> RunState:
-	return RunState.new(data, run_seed, "warrior", [], map_check_runs)
+	return RunState.new(data, run_seed, CLASS_ID, [], map_check_runs)
 
 
 ## Mostra a tela certa para a fase atual da Descida.
@@ -159,13 +173,22 @@ func _open_panel() -> RunPanelScreen:
 	return screen
 
 
+## Tela de fim (GDD §26, "morte que ensina"): o que aconteceu, quem derrotou a Bibiana,
+## os Ecos creditados e "Outra Descida".
 func _show_result() -> void:
 	var victory: bool = run.phase == RunState.Phase.VICTORY
+	var earned: int = run.echoes_earned()
+	echoes += earned
+	runs_played += 1
 	var title: String = "Vitória! O chefe caiu." if victory else "A Bibiana caiu."
-	var summary: String = "Semente %d. Poder %.2f, ouro %d, %d nós." % [
-		run.streams.run_seed, run.power, run.gold, run.nodes_cleared]
-	var box: VBoxContainer = _page(title, summary)
-	box.add_child(_button("Nova Descida", func() -> void: new_run()))
+	var box: VBoxContainer = _page(title, "Semente %d." % run.streams.run_seed)
+	if not victory:
+		var killer: String = str(data.enemies[run.defeated_by_id]["name"]) if data.enemies.has(run.defeated_by_id) else "?"
+		box.add_child(_label("Derrotada por %s, nível %d." % [killer, run.defeated_by_level]))
+	box.add_child(_label("Poder %.2f, ouro %d, %d nós, %d chefe(s)." % [
+		run.power, run.gold, run.nodes_cleared, run.bosses_defeated()]))
+	box.add_child(_label("Ecos ganhos: +%d (total %d). Nenhuma Descida se perde." % [earned, echoes]))
+	box.add_child(_button("Outra Descida", func() -> void: new_run()))
 	box.add_child(_button("Início", show_home))
 	run_ended.emit(victory)
 

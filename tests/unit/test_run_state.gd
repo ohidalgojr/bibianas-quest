@@ -271,3 +271,27 @@ func test_two_scenarios_move_to_the_next_map() -> void:
 	assert_eq(run.scenario_index, 1)
 	assert_ne(run.map, first_map)
 	assert_eq(run.current_node_id, run.map.start_id)
+
+
+## ADR-0016: a derrota guarda quem matou a Bibiana e os Ecos só valem no fim.
+func test_defeat_records_killer_and_echoes_only_when_over() -> void:
+	var run: RunState = RunState.new(DataLoader.load_all(), 8)
+	var option: MapNode = run.options()[0]
+	option.kind = MapNode.Kind.BATTLE
+	option.enemy_id = "giant_rat"
+	option.level = 3
+	run.choose_node(option.id)
+	assert_eq(run.echoes_earned(), 0, "Descida em andamento não credita")
+	run.combat.player.hp = 1
+	run.combat.enemy.stats.strength = 200
+	var guard: int = 0
+	while run.combat.outcome == Combat.Outcome.ONGOING and guard < 100:
+		guard += 1
+		run.combat.act(Combat.Action.DEFEND)
+	run.finish_fight()
+	assert_eq(run.phase, RunState.Phase.DEFEAT)
+	assert_eq(run.defeated_by_id, "giant_rat")
+	assert_eq(run.defeated_by_level, 3)
+	assert_eq(run.bosses_defeated(), 0)
+	assert_eq(run.echoes_earned(), RunRules.echoes(run.nodes_cleared, 0))
+	assert_gt(run.echoes_earned(), 0, "morrer também credita Ecos")

@@ -62,3 +62,10 @@ func test_enemy_type_for_node_kind() -> void:
 	assert_eq(RunRules.enemy_type_for(MapNode.Kind.AMBUSH), "common")
 	assert_eq(RunRules.enemy_type_for(MapNode.Kind.ELITE), "elite")
 	assert_eq(RunRules.enemy_type_for(MapNode.Kind.BOSS), "boss")
+
+
+## ADR-0016: Ecos pela profundidade e pelos chefes, sempre creditados.
+func test_echoes_by_depth_and_bosses() -> void:
+	assert_eq(RunRules.echoes(0, 0), 0)
+	assert_eq(RunRules.echoes(6, 0), 6 * RunRules.ECHOES_PER_NODE)
+	assert_eq(RunRules.echoes(10, 2), 10 * RunRules.ECHOES_PER_NODE + 2 * RunRules.ECHOES_PER_BOSS)

@@ -40,9 +40,19 @@ const MAX_CONSUMABLES: int = 8
 ## ADR-0011: a Descida começa com 2 Poções Turvas.
 const STARTING_ITEMS: Dictionary = {"murky_potion": 2}
 
+## GDD §4 e §26: Ecos creditados pela profundidade e pelos chefes (ADR-0016). O GDD não
+## dá os números; estes são do protótipo.
+const ECHOES_PER_NODE: int = 1
+const ECHOES_PER_BOSS: int = 5
+
 ## ADR-0011: elite um nível acima da camada; eventos fora do protótipo.
 const ELITE_LEVEL_BONUS: int = 1
 const PROTOTYPE_EVENT_WEIGHT: int = 0
+
+
+## Ecos de uma Descida terminada: sempre creditados, mesmo na morte (GDD §26).
+static func echoes(nodes_cleared: int, bosses_defeated: int) -> int:
+	return ECHOES_PER_NODE * nodes_cleared + ECHOES_PER_BOSS * bosses_defeated
 
 
 static func type_multiplier(enemy_type: String) -> float:

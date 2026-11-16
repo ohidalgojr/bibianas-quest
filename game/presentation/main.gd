@@ -1,6 +1,6 @@
 extends Control
-## Cena inicial. Na Fase 1 abre o fluxo provisório da Descida (TASK-009, ADR-0013); o
-## menu de verdade entra na TASK-011.
+## Cena inicial: abre o fluxo da Descida (GameScreen: menu, Descida, fim; TASK-009 e
+## TASK-011).
 
 @onready var _title: Label = $Title
 

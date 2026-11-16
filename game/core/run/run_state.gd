@@ -33,6 +33,9 @@ var shop_offer: Array[String] = []
 var shop_rerolls: int = 0
 var combat: Combat
 var nodes_cleared: int = 0
+## Quem derrotou a Bibiana (id do inimigo e nível), para a tela de morte (GDD §26).
+var defeated_by_id: String = ""
+var defeated_by_level: int = 0
 var history: Array[RunEvent] = []
 ## Simulações da checagem de vencibilidade de cada mapa (GDD §5; 0 desliga).
 var winnability_runs: int = 0
@@ -109,6 +112,18 @@ func player_stats() -> Stats:
 	stats.max_hp = maxi(stats.max_hp, 1)
 	stats.speed = maxi(stats.speed, 1)
 	return stats
+
+
+## Chefes derrotados até agora: os cenários já vencidos, mais o último se a Descida foi vencida.
+func bosses_defeated() -> int:
+	return scenario_index + (1 if phase == Phase.VICTORY else 0)
+
+
+## Ecos desta Descida; só valem depois do fim (ADR-0016).
+func echoes_earned() -> int:
+	if not is_over():
+		return 0
+	return RunRules.echoes(nodes_cleared, bosses_defeated())
 
 
 func consumable_count(item_id: String) -> int:
@@ -190,6 +205,8 @@ func finish_fight() -> bool:
 	nodes_cleared += 1
 	match outcome:
 		Combat.Outcome.DEFEAT:
+			defeated_by_id = node.enemy_id
+			defeated_by_level = node.level
 			_end(false)
 		Combat.Outcome.FLED:
 			phase = Phase.CHOOSING
