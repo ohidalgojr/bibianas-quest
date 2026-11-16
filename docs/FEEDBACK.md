@@ -18,7 +18,7 @@ Registro cru do que o Orlando sentiu jogando, em ordem. Cada item tem um id, o q
 
 ### F-003: matar inimigos não dá senso de progressão
 
-- **Status:** aberto.
+- **Status:** em andamento. A TASK-017 (ADR-0021) entregou o retorno visual: a recompensa lista quem caiu e cada atributo antes e depois, o mapa mostra FOR, DEF, VEL e inimigos derrotados, e a luta ganhou números de dano e animação de abate. **Achado:** com o Poder subindo 0,15 por nível de inimigo, uma luta comum no começo muda só 1 ou 2 de HP e nada nos demais atributos. O retorno agora aparece, mas é pequeno. A causa é a economia (GDD §9), não a tela. Decisão do Orlando pendente: drops de equipamento dos inimigos, marcos por camada ou mudar a curva do Poder (qualquer um exige ADR e nova calibração).
 - **Hoje:** a vitória só rende Poder (invisível durante o mapa, sem barra), ouro e a loja; o único retorno é um texto na tela de recompensa. Não há dropes, nível visível, nem sensação de a Bibiana ficar mais forte entre uma luta e outra.
 - **Direções a avaliar (propostas, não decididas):** mostrar o Poder como progresso da Descida (barra e ganho de atributos explícito, "FOR 14 → 16"); drops de itens e equipamentos dos inimigos, com a raridade do GDD §10; marcos por camada; efeito e texto de abate; a Bibiana ganhando algo permanente por inimigo-tipo (códice, §11). Pede conversa com o Orlando antes de virar tarefa, porque mexe no laço central do jogo.
 

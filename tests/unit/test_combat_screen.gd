@@ -75,3 +75,16 @@ func test_coin_uses_auto_call_without_time() -> void:
 	_screen.auto_call = CoinRules.TAILS
 	var picked: int = await _screen._ask_call(55)
 	assert_eq(picked, CoinRules.TAILS)
+
+
+## ADR-0021: o abate do inimigo apaga a forma dele na tela e a vitória mostra o resultado.
+func test_enemy_fades_when_defeated_and_resets_on_next_fight() -> void:
+	_screen.start_fight("giant_rat", 1, 1.0, 5)
+	var guard: int = 0
+	while not _screen.session.is_over() and guard < 100:
+		guard += 1
+		_button("attack").pressed.emit()
+	if _screen.session.combat.outcome == Combat.Outcome.VICTORY:
+		assert_lt(_screen._enemy_shape.modulate.a, 1.0, "o inimigo derrotado some")
+	_screen.start_fight("giant_rat", 1, 1.0, 6)
+	assert_eq(_screen._enemy_shape.modulate.a, 1.0, "a próxima luta começa com o inimigo visível")

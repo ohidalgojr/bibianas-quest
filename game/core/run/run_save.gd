@@ -30,6 +30,7 @@ static func to_dict(run: RunState) -> Dictionary:
 		"buffs": run.buffs,
 		"embers": run.embers,
 		"nodes_cleared": run.nodes_cleared,
+		"enemies_defeated": run.enemies_defeated,
 		"streams": run.streams.snapshot(),
 		"coin": {"losses_in_row": run.coin.losses_in_row, "flips": run.coin.flips, "heads": run.coin.heads},
 	}
@@ -63,6 +64,7 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	run.mp = int(saved["mp"])
 	run.embers = int(saved["embers"])
 	run.nodes_cleared = int(saved["nodes_cleared"])
+	run.enemies_defeated = int(saved.get("enemies_defeated", 0))
 	run.consumables = _int_dictionary(saved["consumables"])
 	run.buffs = _int_dictionary(saved["buffs"])
 	run.equipment = {}

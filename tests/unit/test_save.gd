@@ -55,7 +55,7 @@ func test_roundtrip_keeps_state_and_future() -> void:
 	assert_eq(loaded.map.signature(), run.map.signature())
 	assert_eq(loaded.current_node_id, run.current_node_id)
 	assert_almost_eq(loaded.power, run.power, 0.0001)
-	for field: String in ["gold", "hp", "mp", "embers", "nodes_cleared", "scenario_index"]:
+	for field: String in ["gold", "hp", "mp", "embers", "nodes_cleared", "scenario_index", "enemies_defeated"]:
 		assert_eq(loaded.get(field), run.get(field), field)
 	assert_eq(loaded.consumables, run.consumables)
 	assert_eq(loaded.equipment, run.equipment)

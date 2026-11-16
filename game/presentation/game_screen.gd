@@ -254,8 +254,8 @@ func _show_result() -> void:
 	if not victory:
 		var killer: String = str(data.enemies[run.defeated_by_id]["name"]) if data.enemies.has(run.defeated_by_id) else "?"
 		box.add_child(_label("Derrotada por %s, nível %d." % [killer, run.defeated_by_level]))
-	box.add_child(_label("Poder %.2f, ouro %d, %d nós, %d chefe(s)." % [
-		run.power, run.gold, run.nodes_cleared, run.bosses_defeated()]))
+	box.add_child(_label("Poder %.2f, ouro %d, %d nós, %d inimigos derrotados, %d chefe(s)." % [
+		run.power, run.gold, run.nodes_cleared, run.enemies_defeated, run.bosses_defeated()]))
 	box.add_child(_label("Ecos ganhos: +%d (total %d). Nenhuma Descida se perde." % [earned, echoes]))
 	box.add_child(_button("Outra Descida", func() -> void: new_run()))
 	box.add_child(_button("Início", show_home))

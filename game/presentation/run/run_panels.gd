@@ -8,6 +8,12 @@ const STAT_LABELS: Dictionary = {
 	"hp": "HP", "mp": "MP", "strength": "FOR", "mind": "MEN", "defense": "DEF", "resistance": "RES",
 	"speed": "VEL", "accuracy": "PRE", "evasion": "ESQ", "crit": "CRIT", "luck": "SORTE",
 }
+## Campo de [Stats] e rótulo, na ordem em que a recompensa lista as mudanças.
+const STAT_FIELDS: Array[Array] = [
+	["max_hp", "HP"], ["max_mp", "MP"], ["strength", "FOR"], ["mind", "MEN"], ["defense", "DEF"],
+	["resistance", "RES"], ["speed", "VEL"], ["precision", "PRE"], ["evasion", "ESQ"], ["crit", "CRIT"],
+	["luck", "SORTE"],
+]
 const SLOT_NAMES: Dictionary = {"weapon": "Arma", "armor": "Armadura", "consumable": "Consumível"}
 
 var run: RunState
@@ -19,28 +25,33 @@ func _init(run_state: RunState) -> void:
 
 # --- Recompensa (GDD §9 e §15) ------------------------------------------------------
 
-## O que a última luta rendeu, lido dos eventos depois do último fim de luta.
+## O que a última vitória rendeu (ADR-0021), lido do [member RunState.last_reward]: quem
+## caiu, Poder, ouro e cada atributo que mudou, no formato "FOR 14 → 15".
 func reward_view() -> Dictionary:
-	var power: float = 0.0
-	var gold: int = 0
-	var max_hp: int = run.player_stats().max_hp
-	for index: int in range(run.history.size() - 1, -1, -1):
-		var event: RunEvent = run.history[index]
-		if event.type == RunEvent.Type.FIGHT_ENDED:
-			break
-		if event.type == RunEvent.Type.POWER:
-			power += event.amount
-		elif event.type == RunEvent.Type.GOLD:
-			gold += event.value
-	return {
-		"title": "Vitória!",
-		"power": power,
-		"gold": gold,
-		"lines": [
-			"Poder +%.2f (agora %.2f). HP máximo %d." % [power, run.power, max_hp],
-			"Ouro +%d (total %d)." % [gold, run.gold],
-		],
-	}
+	var reward: Dictionary = run.last_reward
+	var lines: Array[String] = []
+	var power: float = float(reward.get("power", 0.0))
+	var gold: int = int(reward.get("gold", 0))
+	if not reward.is_empty():
+		var enemy_name: String = str(run.data.enemies[reward["enemy_id"]]["name"])
+		lines.append("%s (nível %d) foi derrotado. Inimigos derrotados: %d." % [
+			enemy_name, int(reward["level"]), run.enemies_defeated])
+		lines.append("Poder %.2f → %.2f" % [run.power - power, run.power])
+		lines.append_array(stat_changes(reward["before"], reward["after"]))
+	lines.append("Ouro +%d (total %d)." % [gold, run.gold])
+	return {"title": "Vitória!", "power": power, "gold": gold, "lines": lines}
+
+
+## Uma linha por atributo que mudou entre [param before] e [param after].
+static func stat_changes(before: Stats, after: Stats) -> Array[String]:
+	var found: Array[String] = []
+	for entry: Array in STAT_FIELDS:
+		var field: String = str(entry[0])
+		var old_value: int = int(before.get(field))
+		var new_value: int = int(after.get(field))
+		if old_value != new_value:
+			found.append("%s %d → %d" % [str(entry[1]), old_value, new_value])
+	return found
 
 
 # --- Loja (GDD §15) ------------------------------------------------------------------

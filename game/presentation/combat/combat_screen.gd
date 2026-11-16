@@ -48,6 +48,7 @@ var _seed_counter: int = 0
 
 var _timeline: HBoxContainer
 var _enemy_shape: ColorRect
+var _player_shape: ColorRect
 var _enemy_name: Label
 var _enemy_hp_bar: ProgressBar
 var _enemy_hp_label: Label
@@ -128,6 +129,7 @@ func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 	var level: int = session.level
 	_enemy_name.text = "%s  (nível %d)" % [session.enemy_name(), level]
 	_enemy_shape.color = COLOR_BOSS if session.is_boss() else COLOR_ENEMY
+	_enemy_shape.modulate = Color.WHITE
 	_enemy_shape.custom_minimum_size = Vector2(150, 150) if session.is_boss() else Vector2(110, 110)
 	_enemy_hp_bar.max_value = session.combat.enemy.stats.max_hp
 	_player_hp_bar.max_value = session.combat.player.stats.max_hp
@@ -196,10 +198,16 @@ func _apply(event: CombatEvent) -> void:
 				_intent_detail.text = ""
 				_intent_panel.self_modulate = COLOR_CALM
 		CombatEvent.Type.DAMAGE:
-			if event.side == Combatant.PLAYER:
-				_player_hp = event.extra
-			else:
+			var on_enemy: bool = event.side != Combatant.PLAYER
+			if on_enemy:
 				_enemy_hp = event.extra
+			else:
+				_player_hp = event.extra
+			_pop_text("-%d%s" % [event.value, "!" if event.flag else ""], COLOR_COIN if event.flag else COLOR_DANGER, on_enemy)
+			if on_enemy and event.extra <= 0:
+				_play_defeat()
+		CombatEvent.Type.MISS:
+			_pop_text("Errou", COLOR_CALM, event.side != Combatant.PLAYER)
 		CombatEvent.Type.HEAL:
 			if event.side == Combatant.PLAYER:
 				_player_hp += event.value
@@ -213,6 +221,38 @@ func _apply(event: CombatEvent) -> void:
 		CombatEvent.Type.STUN_SKIP:
 			_effects[event.side].erase("stunned")
 	_refresh_bars()
+
+
+## Número que sobe do alvo e some (ADR-0021). Sem tempo (testes), não desenha.
+func _pop_text(text: String, color: Color, on_enemy: bool) -> void:
+	if time_scale <= 0.0 or not is_inside_tree():
+		return
+	var target: Control = _enemy_shape if on_enemy else _player_shape
+	var label: Label = Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 30)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 6)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.z_index = 50
+	add_child(label)
+	label.position = target.global_position - global_position + Vector2(target.size.x * 0.3, -10)
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y - 70.0, 0.9 * time_scale)
+	tween.tween_property(label, "modulate:a", 0.0, 0.9 * time_scale).set_delay(0.3 * time_scale)
+	tween.chain().tween_callback(label.queue_free)
+
+
+## Abate do inimigo (ADR-0021): clareia, some e mostra "Derrotado!". Sem tempo, só some.
+func _play_defeat() -> void:
+	if time_scale <= 0.0 or not is_inside_tree():
+		_enemy_shape.modulate = Color(1, 1, 1, 0.25)
+		return
+	_pop_text("Derrotado!", COLOR_COIN, true)
+	var tween: Tween = create_tween()
+	tween.tween_property(_enemy_shape, "modulate", Color(3, 3, 3, 1), 0.12 * time_scale)
+	tween.tween_property(_enemy_shape, "modulate", Color(1, 1, 1, 0.0), 0.5 * time_scale)
 
 
 func _show_intent(move_id: String) -> void:
@@ -449,10 +489,10 @@ func _build() -> void:
 	var player_row: HBoxContainer = HBoxContainer.new()
 	player_row.add_theme_constant_override("separation", 12)
 	column.add_child(player_row)
-	var player_shape: ColorRect = ColorRect.new()
-	player_shape.color = COLOR_PLAYER
-	player_shape.custom_minimum_size = Vector2(80, 80)
-	player_row.add_child(player_shape)
+	_player_shape = ColorRect.new()
+	_player_shape.color = COLOR_PLAYER
+	_player_shape.custom_minimum_size = Vector2(80, 80)
+	player_row.add_child(_player_shape)
 	var player_info: VBoxContainer = VBoxContainer.new()
 	player_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	player_row.add_child(player_info)

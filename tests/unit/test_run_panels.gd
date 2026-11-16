@@ -26,12 +26,25 @@ func _run_in_shop() -> RunState:
 	return run
 
 
-func test_reward_reads_power_and_gold_of_the_last_fight() -> void:
+func test_reward_shows_who_fell_power_and_attribute_changes() -> void:
 	var run: RunState = _run_in_shop()
 	var view: Dictionary = RunPanels.new(run).reward_view()
 	assert_almost_eq(float(view["power"]), RunRules.power_gain(1, "common"), 0.0001)
 	assert_gt(int(view["gold"]), 0)
-	assert_string_contains(str(view["lines"][1]), "Ouro +%d" % int(view["gold"]))
+	assert_eq(run.enemies_defeated, 1)
+	var text: String = "
+".join(view["lines"])
+	assert_string_contains(text, "Rato Grande (nível 1) foi derrotado. Inimigos derrotados: 1.")
+	assert_string_contains(text, "Poder 1.00 → ")
+	assert_string_contains(text, "HP 130 → ")
+	assert_string_contains(text, "Ouro +%d" % int(view["gold"]))
+
+
+func test_stat_changes_lists_only_what_changed() -> void:
+	var before: Stats = Stats.make({"hp": 100, "strength": 10, "defense": 5})
+	var after: Stats = Stats.make({"hp": 105, "strength": 10, "defense": 6})
+	var lines: Array[String] = RunPanels.stat_changes(before, after)
+	assert_eq(lines, ["HP 100 → 105", "DEF 5 → 6"] as Array[String])
 
 
 func test_shop_lists_offer_with_prices_and_reasons() -> void:

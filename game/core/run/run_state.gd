@@ -33,6 +33,10 @@ var shop_offer: Array[String] = []
 var shop_rerolls: int = 0
 var combat: Combat
 var nodes_cleared: int = 0
+## Inimigos derrotados na Descida e o que a última vitória rendeu (ADR-0021): quem, nível,
+## Poder, ouro e os atributos antes e depois. Só para a apresentação.
+var enemies_defeated: int = 0
+var last_reward: Dictionary = {}
 ## Quem derrotou a Bibiana (id do inimigo e nível), para a tela de morte (GDD §26).
 var defeated_by_id: String = ""
 var defeated_by_level: int = 0
@@ -212,8 +216,14 @@ func finish_fight() -> bool:
 			phase = Phase.CHOOSING
 		Combat.Outcome.VICTORY:
 			var enemy_type: String = RunRules.enemy_type_for(node.kind)
-			_gain_power(RunRules.power_gain(node.level, enemy_type))
+			var stats_before: Stats = player_stats()
+			var gold_before: int = gold
+			var power_gain: float = RunRules.power_gain(node.level, enemy_type)
+			_gain_power(power_gain)
 			_gain_gold(RunRules.gold_drop(node.level, enemy_type, streams.loot()), "fight")
+			enemies_defeated += 1
+			last_reward = {"enemy_id": node.enemy_id, "level": node.level, "power": power_gain,
+				"gold": gold - gold_before, "before": stats_before, "after": player_stats()}
 			if node.kind == MapNode.Kind.BOSS:
 				if scenario_index + 1 < scenario_ids.size():
 					_enter_scenario(scenario_index + 1)
