@@ -1,10 +1,10 @@
 # HANDOFF
 
-Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-005, dados do cenário 1, concluída com a suíte completa verde: 150/150; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
+Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-005 commitada; TASK-006, combate jogável, concluída com a suíte completa verde: 161/161; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
 
 ## Como retomar
 
-1. Leia este arquivo, `CLAUDE.md` e a tarefa aberta em `docs/tasks/`. A próxima é a TASK-006 (combate jogável; abrir o arquivo da tarefa a partir do roteiro antes de codar).
+1. Leia este arquivo, `CLAUDE.md` e a tarefa aberta em `docs/tasks/`. A próxima é a TASK-007 (estado da Descida; abrir o arquivo da tarefa a partir do roteiro antes de codar).
 2. **Harness atual: Claude Code (aplicativo desktop), com terminal.** Rode a suíte direto: `powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1` (precisa de `GODOT_BIN`, já definido, e de `addons/gut/`; em worktree nova rode `tools\setup.ps1`). O observador (ADR-0005) só é necessário em ambientes sem terminal, como o projeto do claude.ai usado antes.
 3. MCP do Godot e do Blender em `.mcp.json` (ver `docs/MCP.md`). O addon do Blender já foi instalado e ativado no Blender 5.3 do Orlando; falta conectar na aba BlenderMCP (`N`) a cada sessão. Os servidores só aparecem depois de reiniciar a sessão e aprová-los. Aprovação local: `.claude/settings.local.json` com `"enabledMcpjsonServers": ["godot", "blender"]` (fora do Git; copiar para cada checkout ou worktree). Testados em 2026-11-16: os dois respondem ao handshake MCP e o `blender` conecta no addon em `localhost:9876`. O pacote `blender-mcp` virou wrapper de `mcp-for-blender`; continua funcionando na versão fixada.
 4. Uma tarefa por vez. O Orlando liberou seguir as tarefas do roteiro (2026-11-16), parando ao fim de cada uma para o resumo.
@@ -17,6 +17,7 @@ Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-005, dados do cenário
 - **TASK-003, grafo do mapa** (concluída e commitada em 2026-11-16): `game/core/map/`. ADR-0007.
 - **TASK-004, combate e moeda** (concluída no código em 2026-11-16, suíte 120/120, 14 scripts, 19 s; revisão cruzada pendente): `game/core/combat/` com `Combat` (motor por eventos), `Combatant`, `Stats`, `CombatFormulas`, `CoinRules`, `CoinState`, `EnemyMove`, `EnemyPhase`, `CombatEffect`, `CombatSkill` (Guerreiro), `CombatItem`, `CombatEvent`. Testes em `tests/unit/test_combat*.gd`, `test_coin.gd`, `test_stats.gd`; apoio em `tests/support/combat_fixtures.gd` (inimigos de teste, bot, auditor). ADR-0008 (20 leituras do GDD, 2 perguntas). `RULES_VERSION` = 2. A travada anterior da suíte no `test_map_generator` não se repetiu (duas rodadas completas verdes, uma pelo observador e uma no Claude Code); causa não identificada, o limite de 8 minutos do observador fica como proteção.
 - **TASK-005, dados do cenário 1** (concluída em 2026-11-16, suíte 150/150, 17 scripts; revisão cruzada pendente): JSON em `game/data/` (`classes`, `skills`, `enemies`, `items`, `scenarios`). `GameData` e `DataValidator` ficam em `game/core/data/`, sem I/O. `DataLoader` fica em `game/services/` e lê os arquivos. São 4 inimigos comuns, o Carrasco Apodrecido (elite) e O Coveiro (chefe, 2 fases). Os inimigos escalam por nível com as taxas do Poder. ADR-0009. Testes: `test_data_validator.gd`, `test_data_loader.gd` e `test_game_data.gd`, que inclui o auditor de justiça com os inimigos de verdade.
+- **TASK-006, combate jogável** (concluída no código em 2026-11-16, suíte 161/161, 19 scripts; faltam o teste de sensação do Orlando e a revisão cruzada). A tela fica em `game/presentation/combat/`: `CombatSession` (controlador sem nós), `CombatTexts` e `CombatScreen` (tela 2D montada em código). `main.gd` abre a tela direto, no seletor de depuração (inimigo pelas teclas 1 a 6, nível e Poder). Tem linha do tempo, ícone de intenção com a chance da moeda, registro da luta, lance de 1,2 s, Poção Turva (2 por luta) e velocidade 2x. ADR-0010.
 - ADR-0004 aprovado; ADR-0005 aceito (observador funcionando em laço).
 
 ## Onde está
@@ -25,7 +26,7 @@ Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-005, dados do cenário
 - Regras e comandos: `CLAUDE.md`. Decisões: `docs/adr/`. Tarefas: `docs/tasks/`.
 - Núcleo: `game/core/core_version.gd` (`RULES_VERSION = 2`), `game/core/rng/`, `game/core/map/`, `game/core/combat/` e `game/core/data/`.
 - Dados: `game/data/*.json`, carregados por `DataLoader.load_all()` (`game/services/data_loader.gd`).
-- Apresentação: `game/presentation/main.tscn`, cena provisória.
+- Apresentação: `game/presentation/main.tscn` abre a `CombatScreen` (`game/presentation/combat/`). F5 no editor joga uma luta.
 - Testes: `tests/unit/`. Rodar com `tools\run_tests.ps1` (Windows) ou `tools/run_tests.sh`.
 - `bibianas-quest.bundle` na raiz serviu só para trazer o commit da TASK-001. Está no `.gitignore` e pode ser apagado.
 
@@ -33,8 +34,9 @@ Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-005, dados do cenário
 
 1. Conectar o addon do Blender (aba BlenderMCP, tecla `N`) quando for usar o Blender.
 2. Revisar e mesclar a branch `claude/godot-blender-setup-0792cc` (TASK-004 e MCP). Depois da mesclagem, a pasta principal ainda tem cópias não commitadas desses mesmos arquivos: descartar com `git restore .` e `git clean -fd game tests docs` antes de puxar.
-3. Responder as duas perguntas do ADR-0008: PRE como bônus sobre 90, e Veterano com redução de 65% ou de 80%.
-4. Revisão cruzada do Gemini, TASK-001 a 005.
+3. Responder as duas perguntas do ADR-0008 (PRE como bônus sobre 90; Veterano com redução de 65% ou de 80%) e a do ADR-0010 (o que mostrar quando o jogador escolhe Coroa e o lance dá sucesso).
+5. **Teste de sensação da TASK-006:** abrir o projeto, F5, jogar algumas lutas (o Coveiro inclusive) e anotar no fim de `docs/tasks/TASK-006-combate-jogavel.md` se a moeda dá tensão e se o aviso de um turno basta.
+4. Revisão cruzada do Gemini, TASK-001 a 006.
 
 ## Falta (ordem combinada; o roteiro completo e as mudanças propostas estão em `docs/ROADMAP-MVP.md`)
 
@@ -62,6 +64,7 @@ O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICE
 | 0005 | Observador de arquivos roda a suíte no PC do Orlando e grava o resultado em `reports/` para o Claude ler | Aceito (2026-11-16) |
 | 0006 | RNG próprio PCG32; quatro fluxos com sementes por SplitMix64; estado salvo como texto | Aceito (TASK-002) |
 | 0008 | Leituras do GDD §6 a §8 para o combate (PRE como bônus, arredondamento, Veterano 65%, aviso garantido contra inimigo rápido, durações) | Aceito, com 2 perguntas (TASK-004) |
+| 0010 | Combate em 2D no protótipo: controlador sem nós e tela montada em código, com eventos animados em fila | Aceito, com 1 pergunta (TASK-006) |
 | 0009 | Dados em JSON validado (núcleo sem I/O); inimigos escalam por nível com as taxas do Poder; atributos da classe já incluem o equipamento inicial | Aceito (TASK-005) |
 | 0007 | Leituras do GDD §5 para o mapa (partida, convergência, fogueiras, 30% sem elite, máximo de 2 elites por camada); bot e níveis adiados para a TASK-008 | Aceito (TASK-003) |
 
@@ -87,7 +90,8 @@ O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICE
 - **Godot 4.7 e enums:** um enum usado dentro da própria classe e por outras com dependência cíclica dá erro de tipo ("Cannot assign Combatant.Side as Side"). Nesses casos, usar constantes inteiras.
 - **Observador:** tem limite de tempo por rodada desde 2026-11-16 (status `timeout`, exit 124). Saída parcial fica em `reports/last_run.out.tmp` enquanto roda.
 - A suíte leva cerca de 20 s por causa dos testes de propriedade do mapa; se passar de 1 minuto, separar os testes longos em outra pasta.
-- **Dados:** a TASK-006 deve montar a luta por `DataLoader.load_all()`, `make_player("warrior", poder)` e `make_enemy(id, nível)`. Não deve usar os `CombatFixtures`. `CombatSkill.warrior_set()` continua como referência, e um teste confere que é igual aos dados.
+- **Telas:** as próximas telas (TASK-009 e 010) seguem o padrão do ADR-0010: um controlador `RefCounted` testável e uma tela montada em código. Nos testes, `time_scale = 0` deixa a animação instantânea. Para ver uma tela sem abrir o editor, rode o Godot com janela e um script `SceneTree` que salva `root.get_texture().get_image()` em PNG (o headless não desenha).
+- **Dados:** a TASK-006 monta a luta por `DataLoader.load_all()`, `make_player("warrior", poder)` e `make_enemy(id, nível)`. Não deve usar os `CombatFixtures`. `CombatSkill.warrior_set()` continua como referência, e um teste confere que é igual aos dados.
 - **Exportação (TASK-014):** o Godot não exporta `.json` por padrão. No preset, incluir `game/data/*.json` em "Filtros para exportar arquivos que não são recursos", senão o jogo exportado abre sem dados.
 - **Calibração (TASK-008):** o Corvo Carniceiro dá 5,3 turnos por luta, abaixo da meta de 6 a 10. O Coveiro dá 28 turnos no teste com Poder suposto. A regra própria do Coveiro (covas e mortos) ainda não existe.
 - "Moedas" no GDD §15 é o ouro; "a moeda" do §7 é o cara ou coroa. No código: `gold` e `coin`.
