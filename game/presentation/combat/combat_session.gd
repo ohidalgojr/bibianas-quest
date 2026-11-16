@@ -18,6 +18,9 @@ var run_seed: int = 0
 var potions_left: int = POTIONS_PER_FIGHT
 var skills: Array[CombatSkill] = []
 var potion: CombatItem
+## Descida dona da luta, quando a luta vem do mapa (ADR-0013). Sem ela, a luta é de
+## teste e tem [constant POTIONS_PER_FIGHT] poções.
+var run: RunState
 
 ## Id do golpe -> tipo, para nomear golpes a partir dos eventos.
 var _move_kinds: Dictionary = {}
@@ -32,15 +35,37 @@ func _init(game_data: GameData, fight_enemy: String, fight_level: int, fight_pow
 	run_seed = fight_seed
 	skills = data.class_skills(CLASS_ID)
 	potion = data.combat_item(POTION_ID)
+	if enemy_id.is_empty():
+		return
 	var enemy: Combatant = data.make_enemy(enemy_id, level)
-	for phase: EnemyPhase in enemy.phases:
-		for move: EnemyMove in phase.moves:
-			_move_kinds[move.id] = move.kind
+	_learn_moves(enemy)
 	combat = Combat.new(data.make_player(CLASS_ID, power), enemy, RngStreams.new(run_seed),
 		coin_state if coin_state != null else CoinState.new())
 
 
+## Sessão da luta em andamento na Descida (já começada pelo [RunState]).
+static func for_run(run_state: RunState) -> CombatSession:
+	var node: MapNode = run_state.current_node()
+	var session: CombatSession = CombatSession.new(run_state.data, "", node.level, run_state.power,
+		run_state.streams.run_seed)
+	session.run = run_state
+	session.enemy_id = node.enemy_id
+	session.combat = run_state.combat
+	session.skills = run_state.data.class_skills(run_state.class_id)
+	session._learn_moves(run_state.combat.enemy)
+	return session
+
+
+func _learn_moves(enemy: Combatant) -> void:
+	for phase: EnemyPhase in enemy.phases:
+		for move: EnemyMove in phase.moves:
+			_move_kinds[move.id] = move.kind
+
+
+## Eventos já emitidos. Na Descida a luta começa no [RunState]; aqui só se lê o histórico.
 func start() -> Array[CombatEvent]:
+	if run != null:
+		return combat.history.duplicate()
 	return combat.start()
 
 
@@ -63,7 +88,8 @@ func defend() -> Array[CombatEvent]:
 func use_potion() -> Array[CombatEvent]:
 	if not can_use_potion():
 		return []
-	potions_left -= 1
+	if run == null:
+		potions_left -= 1
 	return combat.act(Combat.Action.ITEM, null, potion)
 
 
@@ -80,7 +106,11 @@ func can_use_skill(index: int) -> bool:
 
 
 func can_use_potion() -> bool:
-	return potions_left > 0 and combat.can_act(Combat.Action.ITEM, null, potion)
+	return potions_count() > 0 and combat.can_act(Combat.Action.ITEM, null, potion)
+
+
+func potions_count() -> int:
+	return run.available_in_fight(POTION_ID) if run != null else potions_left
 
 
 func can_flee() -> bool:
@@ -142,7 +172,7 @@ func skill_label(index: int) -> String:
 
 
 func potion_label() -> String:
-	return "%s (%d)" % [str(data.items[POTION_ID]["name"]), potions_left]
+	return "%s (%d)" % [str(data.items[POTION_ID]["name"]), potions_count()]
 
 
 func outcome_text() -> String:

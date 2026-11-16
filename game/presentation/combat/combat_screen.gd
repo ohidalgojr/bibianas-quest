@@ -5,6 +5,8 @@ extends Control
 ## fila. Nenhuma regra é calculada aqui.
 
 signal fight_finished(outcome: int)
+## Na luta da Descida, o jogador apertou "Continuar" depois do resultado (ADR-0013).
+signal run_fight_done
 
 ## Pausa por evento, em segundos, na velocidade 1x.
 const EVENT_DELAY: float = 0.35
@@ -60,6 +62,8 @@ var _menu_title: Label
 var _menu_enemies: VBoxContainer
 var _menu_level: OptionButton
 var _menu_power: SpinBox
+var _menu_debug: Array[Control] = []
+var _continue: Button
 
 
 func _ready() -> void:
@@ -88,12 +92,26 @@ func start_fight(enemy_id: String, level: int, power: float, fight_seed: int = -
 		_seed_counter += 1
 		fight_seed = int(Time.get_unix_time_from_system()) * 1000 + _seed_counter
 	session = CombatSession.new(data, enemy_id, level, power, fight_seed)
+	_begin(session.combat.player.hp, session.combat.player.mp, session.combat.enemy.hp)
+	await _play(session.start())
+
+
+## Luta da Descida (ADR-0013): a luta já começou no [RunState]; a tela repete os eventos
+## desde o início, a partir da vida e do MP de antes da luta.
+func start_run_fight(run: RunState) -> void:
+	session = CombatSession.for_run(run)
+	_begin(run.hp, run.mp, session.combat.enemy.stats.max_hp)
+	await _play(session.start())
+
+
+func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 	_menu.visible = false
 	_log.clear()
 	_effects = [{}, {}]
-	_player_hp = session.combat.player.hp
-	_player_mp = session.combat.player.mp
-	_enemy_hp = session.combat.enemy.hp
+	_player_hp = player_hp
+	_player_mp = player_mp
+	_enemy_hp = enemy_hp
+	var level: int = session.level
 	_enemy_name.text = "%s  (nível %d)" % [session.enemy_name(), level]
 	_enemy_shape.color = COLOR_BOSS if session.is_boss() else COLOR_ENEMY
 	_enemy_shape.custom_minimum_size = Vector2(150, 150) if session.is_boss() else Vector2(110, 110)
@@ -103,7 +121,6 @@ func start_fight(enemy_id: String, level: int, power: float, fight_seed: int = -
 	for index: int in session.skills.size():
 		(_buttons["skill_%d" % index] as Button).text = session.skill_label(index)
 	_refresh_bars()
-	await _play(session.start())
 
 
 func perform(action: String) -> void:
@@ -143,7 +160,10 @@ func _play(events: Array[CombatEvent]) -> void:
 	_refresh_buttons()
 	if session.is_over():
 		var result: int = session.combat.outcome
-		_open_menu(session.outcome_text())
+		if session.run != null:
+			_open_result(session.outcome_text())
+		else:
+			_open_menu(session.outcome_text())
 		fight_finished.emit(result)
 
 
@@ -273,6 +293,9 @@ func _push_log(line: String) -> void:
 
 func _open_menu(title: String) -> void:
 	_menu_title.text = title
+	_continue.visible = false
+	for control: Control in _menu_debug:
+		control.visible = true
 	for child: Node in _menu_enemies.get_children():
 		child.queue_free()
 	var scenario: Dictionary = data.scenario("abandoned_city")
@@ -469,7 +492,23 @@ func _build() -> void:
 	options.add_child(_menu_power)
 	_menu_enemies = VBoxContainer.new()
 	menu_box.add_child(_menu_enemies)
+	_menu_debug = [hint, options, _menu_enemies]
+	_continue = Button.new()
+	_continue.text = "Continuar"
+	_continue.custom_minimum_size = Vector2(0, 64)
+	_continue.visible = false
+	_continue.pressed.connect(func() -> void: run_fight_done.emit())
+	menu_box.add_child(_continue)
 	_refresh_buttons()
+
+
+## Resultado da luta da Descida: só o título e "Continuar".
+func _open_result(title: String) -> void:
+	_menu_title.text = title
+	for control: Control in _menu_debug:
+		control.visible = false
+	_continue.visible = true
+	_menu.visible = true
 
 
 func _toggle_speed() -> void:
