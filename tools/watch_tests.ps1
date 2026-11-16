@@ -5,7 +5,9 @@
 #   powershell -ExecutionPolicy Bypass -File tools\watch_tests.ps1 -Once
 #
 # Arquivos gerados (reports\ esta no .gitignore):
-#   last_run.status  state=running|done, started, finished, exit (0 = verde), reason
+#   last_run.status  state=running|done|timeout, started, finished, exit (0 = verde), reason
+# Limite de tempo por rodada: -TimeoutMinutes (padrao 8). Ao estourar, o processo e seus filhos
+# sao encerrados, a saida parcial vai para last_run.txt e o status fica state=timeout, exit=124.
 #   last_run.txt     saida completa do run_tests.ps1
 #   watcher.alive    hora da ultima volta do laco (prova que o observador esta vivo)
 # Para forcar uma rodada sem mudar codigo, crie um arquivo vazio reports\run_now.
@@ -13,7 +15,7 @@
 # ATENCAO: este script executa, sem pedir confirmacao, os scripts GDScript de game\ e tests\.
 # Revise o diff (git diff) depois que o agente gravar arquivos, e feche a janela para parar.
 # (Somente ASCII neste arquivo: o Windows PowerShell 5.1 le UTF-8 sem BOM como ANSI.)
-param([switch]$Once)
+param([switch]$Once, [int]$TimeoutMinutes = 8)
 
 $ErrorActionPreference = 'Continue'
 
@@ -63,9 +65,25 @@ function Invoke-Suite([string]$reason) {
     Write-Status 'running' $started '' '' $reason
     Write-Host "[$started] rodando a suite ($reason)..."
     $arguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ('"{0}"' -f $Runner))
-    $process = Start-Process -FilePath 'powershell.exe' -ArgumentList $arguments -NoNewWindow -Wait -PassThru `
+    $process = Start-Process -FilePath 'powershell.exe' -ArgumentList $arguments -NoNewWindow -PassThru `
         -RedirectStandardOutput $OutTmp -RedirectStandardError $ErrTmp
-    $code = $process.ExitCode
+    # Sem -Wait, o ExitCode so fica disponivel se o handle for lido logo no inicio.
+    $null = $process.Handle
+    $state = 'done'
+    if ($process.WaitForExit($TimeoutMinutes * 60 * 1000)) {
+        $process.WaitForExit()
+        $code = $process.ExitCode
+    }
+    else {
+        # Encerra a arvore inteira (powershell, Godot e uma eventual janela de erro do Godot).
+        & taskkill.exe /PID $process.Id /T /F | Out-Null
+        Get-Process -Name 'Godot*' -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -ge [datetime]$started } |
+            Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 1
+        $state = 'timeout'
+        $code = 124
+        Write-Host "AVISO: a suite passou de $TimeoutMinutes minutos e foi encerrada."
+    }
     # Junta saida e erro sem mexer na codificacao dos bytes.
     $stream = [System.IO.File]::Create($LogFile)
     foreach ($part in $OutTmp, $ErrTmp) {
@@ -76,7 +94,7 @@ function Invoke-Suite([string]$reason) {
     }
     $stream.Close()
     $finished = Get-Date -Format 'o'
-    Write-Status 'done' $started $finished $code $reason
+    Write-Status $state $started $finished $code $reason
     Write-Host "[$finished] terminou com codigo $code. Resultado em reports\last_run.txt"
     return $code
 }
@@ -85,7 +103,7 @@ if ($Once) {
     exit (Invoke-Suite 'uma vez')
 }
 
-Write-Host 'Observador de testes ativo. Ctrl+C para parar.'
+Write-Host "Observador de testes ativo (limite de $TimeoutMinutes minutos por rodada). Ctrl+C para parar."
 Write-Host "Resultado em: $LogFile"
 $last = $null
 $retries = 0

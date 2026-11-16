@@ -7,6 +7,7 @@ extends RefCounted
 ## gravam esse número, para que uma semente antiga não seja reproduzida com regras
 ## novas sem aviso.
 ##
-## Histórico: 0, nenhuma regra; 1, gerador de mapa (TASK-003, ADR-0007).
+## Histórico: 0, nenhuma regra; 1, gerador de mapa (TASK-003, ADR-0007); 2, combate e moeda
+## (TASK-004, ADR-0008).
 
-const RULES_VERSION: int = 1
+const RULES_VERSION: int = 2
