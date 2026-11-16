@@ -71,7 +71,28 @@ func _render_reward() -> void:
 	_title(str(view["title"]))
 	for line: Variant in view["lines"]:
 		_text(str(line))
-	_button("Continuar", func() -> void: closed.emit())
+	var drop: Dictionary = view["drop"]
+	if not drop.is_empty():
+		_render_drop(drop)
+	_button("Continuar (vende o drop)" if not drop.is_empty() else "Continuar", func() -> void: closed.emit())
+
+
+## Equipamento caído: raridade, efeito, mudança de atributos e Equipar ou Vender.
+func _render_drop(drop: Dictionary) -> void:
+	var title: Label = _text("Caiu: %s (%s, %s)" % [str(drop["name"]), str(drop["rarity"]), str(drop["slot"])], 22)
+	title.add_theme_color_override("font_color", Color(0.55, 0.8, 0.95))
+	_text(str(drop["effect"]), 16)
+	var changes: Array = drop["changes"]
+	_text("Equipando: " + (", ".join(changes) if not changes.is_empty() else "sem mudança"), 16)
+	var equip_label: String = "Equipar %s" % str(drop["name"])
+	if str(drop["replaces"]) != "":
+		equip_label += " (vende %s)" % str(drop["replaces"])
+	_button(equip_label, func() -> void:
+		panels.equip_drop()
+		_render())
+	_button("Vender por %d ouro" % int(drop["sell_value"]), func() -> void:
+		panels.sell_drop()
+		_render())
 
 
 func _render_shop() -> void:

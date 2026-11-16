@@ -14,6 +14,7 @@ const STAT_FIELDS: Array[Array] = [
 	["resistance", "RES"], ["speed", "VEL"], ["precision", "PRE"], ["evasion", "ESQ"], ["crit", "CRIT"],
 	["luck", "SORTE"],
 ]
+const RARITY_NAMES: Dictionary = {"worn": "Gasto", "common": "Comum", "uncommon": "Incomum", "rare": "Raro"}
 const SLOT_NAMES: Dictionary = {"weapon": "Arma", "armor": "Armadura", "consumable": "Consumível"}
 
 var run: RunState
@@ -39,7 +40,39 @@ func reward_view() -> Dictionary:
 		lines.append("Poder %.2f → %.2f" % [run.power - power, run.power])
 		lines.append_array(stat_changes(reward["before"], reward["after"]))
 	lines.append("Ouro +%d (total %d)." % [gold, run.gold])
-	return {"title": "Vitória!", "power": power, "gold": gold, "lines": lines}
+	var consumable: String = str(reward.get("consumable", ""))
+	if not consumable.is_empty():
+		lines.append("Encontrou: %s." % str(run.data.items[consumable]["name"]))
+	return {"title": "Vitória!", "power": power, "gold": gold, "lines": lines, "drop": drop_view()}
+
+
+## O equipamento caído, à espera de decisão; vazio se não há ([constant RunRules]).
+func drop_view() -> Dictionary:
+	if run.pending_drop.is_empty():
+		return {}
+	var item_id: String = run.pending_drop
+	var item: Dictionary = run.data.items[item_id]
+	var slot: String = str(item["slot"])
+	var old_id: String = str(run.equipment.get(slot, ""))
+	var changes: Array[String] = stat_changes(run.player_stats(), run.stats_with(item_id))
+	return {
+		"id": item_id,
+		"name": str(item["name"]),
+		"rarity": str(RARITY_NAMES.get(str(item["rarity"]), "")),
+		"slot": str(SLOT_NAMES.get(slot, slot)),
+		"effect": stats_text(item.get("stats", {})),
+		"replaces": str(run.data.items[old_id]["name"]) if not old_id.is_empty() else "",
+		"changes": changes,
+		"sell_value": RunRules.sell_value(run.item_price(item_id)),
+	}
+
+
+func equip_drop() -> bool:
+	return run.take_drop()
+
+
+func sell_drop() -> bool:
+	return run.sell_drop()
 
 
 ## Uma linha por atributo que mudou entre [param before] e [param after].

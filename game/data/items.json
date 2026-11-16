@@ -6,6 +6,15 @@
 		{"id": "sword_and_shield", "name": "Espada e Escudo", "slot": "weapon", "rarity": "worn", "price": 0, "stats": {}},
 		{"id": "old_chainmail", "name": "Cota de Malha Velha", "slot": "armor", "rarity": "worn", "price": 0, "stats": {}},
 		{"id": "worn_longsword", "name": "Espada Longa Gasta", "slot": "weapon", "rarity": "common", "price": 90, "stats": {"strength": 3}},
-		{"id": "dented_plate", "name": "Placa Amassada", "slot": "armor", "rarity": "common", "price": 120, "stats": {"defense": 5, "speed": -2}}
+		{"id": "dented_plate", "name": "Placa Amassada", "slot": "armor", "rarity": "common", "price": 120, "stats": {"defense": 5, "speed": -2}},
+		{"id": "bone_dagger", "name": "Adaga de Osso", "slot": "weapon", "rarity": "common", "price": 100, "stats": {"strength": 2, "crit": 5, "speed": 1}},
+		{"id": "rusty_axe", "name": "Machadinha Enferrujada", "slot": "weapon", "rarity": "uncommon", "price": 140, "stats": {"strength": 4, "crit": 3}},
+		{"id": "spiked_mace", "name": "Maça Cravejada", "slot": "weapon", "rarity": "rare", "price": 320, "stats": {"strength": 7, "crit": 2, "precision": 5}},
+		{"id": "leather_vest", "name": "Colete de Couro", "slot": "armor", "rarity": "common", "price": 90, "stats": {"defense": 3, "evasion": 3}},
+		{"id": "reinforced_mail", "name": "Cota Reforçada", "slot": "armor", "rarity": "uncommon", "price": 190, "stats": {"defense": 7, "hp": 10}},
+		{"id": "warden_plate", "name": "Placa do Carcereiro", "slot": "armor", "rarity": "rare", "price": 380, "stats": {"defense": 10, "resistance": 4, "speed": -2}},
+		{"id": "worn_charm", "name": "Amuleto Gasto", "slot": "relic", "rarity": "common", "price": 90, "stats": {"luck": 4}},
+		{"id": "iron_ring", "name": "Anel de Ferro", "slot": "relic", "rarity": "uncommon", "price": 150, "stats": {"defense": 3, "resistance": 3}},
+		{"id": "grave_bell", "name": "Sino do Coveiro", "slot": "relic", "rarity": "rare", "price": 350, "stats": {"luck": 8, "hp": 15}}
 	]
 }

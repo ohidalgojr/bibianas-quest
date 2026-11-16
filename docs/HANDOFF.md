@@ -1,6 +1,6 @@
 # HANDOFF
 
-Atualizado em 2026-11-16 (TASK-001 a 013 e TASK-015 concluídas e TASK-014 em verificação; suíte 233/233; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
+Atualizado em 2026-11-16 (TASK-001 a 013 e TASK-015 concluídas e TASK-014 em verificação; suíte 244/244; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
 
 ## Como retomar
 
@@ -47,18 +47,19 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
   - `game/presentation/run/`: `RunPanels` (controlador sem nós) e `RunPanelScreen` (painel em código). O `GameScreen` mostra a recompensa (Poder, ouro) depois de uma vitória com loja, depois a loja (comprar, atualizar, motivo do botão desabilitado) e, nas fogueiras, Descansar e skills. ADR-0015.
 - **TASK-011, fluxo completo** (concluída no código em 2026-11-16, suíte 213/213; jogada humana e revisão cruzada pendentes). Menu com Ecos e classe, tela de fim com causa da morte e Ecos (1 por nó, 5 por chefe, provisório), "Outra Descida" com nova semente; três Descidas seguidas testadas. Ecos persistem desde a TASK-012. ADR-0016.
 - **TASK-012, auto-save** (concluída no código em 2026-11-16, suíte 217/217; jogada humana e revisão cruzada pendentes). `RunSave` (núcleo) e `SaveStore` (serviços) gravam a Descida a cada nó no mapa, em `user://run.json`, e a meta (Ecos) em `user://meta.json`. Menu ganhou "Continuar Descida". ADR-0017.
-- **TASK-013, depuração e telemetria** (concluída no código em 2026-11-16, suíte 233/233; jogada humana e revisão cruzada pendentes). Em build de depuração: semente no menu, F1 +100 ouro, F2 pular nó, F3 matar inimigo, F4 forçar moeda. `Telemetry` (serviços) grava `user://telemetry.log` (nós, moeda, lutas, mortes com `by_coin`). ADR-0018.
+- **TASK-013, depuração e telemetria** (concluída no código em 2026-11-16, suíte 244/244; jogada humana e revisão cruzada pendentes). Em build de depuração: semente no menu, F1 +100 ouro, F2 pular nó, F3 matar inimigo, F4 forçar moeda. `Telemetry` (serviços) grava `user://telemetry.log` (nós, moeda, lutas, mortes com `by_coin`). ADR-0018.
 - **TASK-014, exportação** (em verificação em 2026-11-16): `export_presets.cfg` (Web e Android), `tools\export_web.ps1`, `docs/PLAYTEST.md` e toque desligado em mobile e web. **Nada foi exportado**: não há templates de exportação no PC. Depende do Orlando (ver pendências). ADR-0019.
 - **Feedback de playtest:** registrado em `docs/FEEDBACK.md` (F-001 chefe com moeda demais, F-002 golpes com debuff por probabilidade, F-003 matar inimigos sem senso de progressão). Propostas de TASK-016 e TASK-017 lá.
-- **TASK-016, ritmo da moeda e debuffs do chefe** (concluída no código em 2026-11-16, suíte 233/233; jogada humana e revisão cruzada pendentes; `RULES_VERSION` = 5). Ao menos 2 golpes entre golpes de moeda em todos os inimigos (sem exceção de chefe); novo golpe `debuff` com chance própria, aviso DEBILITA, Defender corta a chance pela metade; Veneno e Fraqueza do GDD §11; Coveiro com Toque Podre e Maldição. Simulador: mediano 56%, mortes por moeda 21,6%. F-001 e F-002 atendidos; F-003 segue aberto. ADR-0020.
-- **TASK-017, progressão visível** (concluída no código em 2026-11-16, suíte 233/233; jogada humana e revisão cruzada pendentes). Recompensa com quem caiu e atributos antes e depois; mapa e fim com FOR, DEF, VEL e inimigos derrotados; números de dano e animação de abate na luta. Sem mudança de regra. **Achado:** o ganho por luta é de 1 a 2 de HP no começo; decisão de economia pendente (drops, marcos ou curva do Poder). ADR-0021.
+- **TASK-016, ritmo da moeda e debuffs do chefe** (concluída no código em 2026-11-16, suíte 244/244; jogada humana e revisão cruzada pendentes; `RULES_VERSION` = 5). Ao menos 2 golpes entre golpes de moeda em todos os inimigos (sem exceção de chefe); novo golpe `debuff` com chance própria, aviso DEBILITA, Defender corta a chance pela metade; Veneno e Fraqueza do GDD §11; Coveiro com Toque Podre e Maldição. Simulador: mediano 56%, mortes por moeda 21,6%. F-001 e F-002 atendidos; F-003 segue aberto. ADR-0020.
+- **TASK-017, progressão visível** (concluída no código em 2026-11-16, suíte 244/244; jogada humana e revisão cruzada pendentes). Recompensa com quem caiu e atributos antes e depois; mapa e fim com FOR, DEF, VEL e inimigos derrotados; números de dano e animação de abate na luta. Sem mudança de regra. **Achado:** o ganho por luta é de 1 a 2 de HP no começo; decisão de economia pendente (drops, marcos ou curva do Poder). ADR-0021.
+- **TASK-018, drops e equipamento** (concluída no código em 2026-11-16, suíte 244/244; jogada humana e revisão cruzada pendentes; `RULES_VERSION` = 6). Inimigos soltam equipamento (12% comum, 35% elite, raridade por pesos, raro só de elite) e consumível de cura; a recompensa pergunta Equipar ou Vender (40%); 9 itens novos; loja sem raros. Simulador: mediano 65,5%. Recalibrar o Coveiro uma vez depois da TASK-020. ADR-0022. Parte do F-004; faltam TASK-019 (ganho de status) e TASK-020 (skills na loja).
 - ADR-0004 aprovado; ADR-0005 aceito (observador funcionando em laço).
 
 ## Onde está
 
 - Repositório: `C:\Users\Orlando\Downloads\Projetos\bibianas-quest`. A mesma pasta é o projeto Godot, o repositório Git e o vault do Obsidian. Um commit por tarefa.
 - Regras e comandos: `CLAUDE.md`. Decisões: `docs/adr/`. Tarefas: `docs/tasks/`.
-- Núcleo: `game/core/core_version.gd` (`RULES_VERSION = 5`), `game/core/rng/`, `game/core/map/`, `game/core/combat/`, `game/core/data/`, `game/core/run/` e `game/core/sim/`.
+- Núcleo: `game/core/core_version.gd` (`RULES_VERSION = 6`), `game/core/rng/`, `game/core/map/`, `game/core/combat/`, `game/core/data/`, `game/core/run/` e `game/core/sim/`.
 - Dados: `game/data/*.json`, carregados por `DataLoader.load_all()` (`game/services/data_loader.gd`).
 - Apresentação: `game/presentation/main.tscn` abre o `GameScreen`. F5 no editor joga uma Descida ("Nova Descida") ou a luta de teste. Telas em `game/presentation/combat/` e `game/presentation/map/`.
 - Testes: `tests/unit/`. Rodar com `tools\run_tests.ps1` (Windows) ou `tools/run_tests.sh`.
@@ -102,6 +103,7 @@ O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICE
 | 0005 | Observador de arquivos roda a suíte no PC do Orlando e grava o resultado em `reports/` para o Claude ler | Aceito (2026-11-16) |
 | 0006 | RNG próprio PCG32; quatro fluxos com sementes por SplitMix64; estado salvo como texto | Aceito (TASK-002) |
 | 0008 | Leituras do GDD §6 a §8 para o combate (PRE como bônus, arredondamento, Veterano 65%, aviso garantido contra inimigo rápido, durações) | Aceito, com 2 perguntas (TASK-004) |
+| 0022 | Drops de equipamento (GDD §10) e consumível, raridade por pesos, Equipar ou Vender a 40%, raros fora da loja | Aceito, com 1 ponto de calibração (TASK-018) |
 | 0021 | Progressão visível só na apresentação (recompensa com atributos, contador, números de dano, abate); pergunta sobre a economia | Aceito, com 1 pergunta (TASK-017) |
 | 0020 | Intervalo de 2 golpes entre golpes de moeda; golpes de debuff com chance própria; Veneno e Fraqueza; Coveiro reescrito | Aceito (TASK-016) |
 | 0019 | Presets de exportação no Git sem segredos, dados `.json` incluídos, Web sem threads, toque emulado desligado em mobile e web | Aceito (TASK-014, não exercitado) |

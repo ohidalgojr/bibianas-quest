@@ -37,6 +37,8 @@ var nodes_cleared: int = 0
 ## Poder, ouro e os atributos antes e depois. Só para a apresentação.
 var enemies_defeated: int = 0
 var last_reward: Dictionary = {}
+## Equipamento caído na última vitória, à espera de Equipar ou Vender (ADR-0022).
+var pending_drop: String = ""
 ## Quem derrotou a Bibiana (id do inimigo e nível), para a tela de morte (GDD §26).
 var defeated_by_id: String = ""
 var defeated_by_level: int = 0
@@ -98,9 +100,20 @@ func options() -> Array[MapNode]:
 ## Atributos da Bibiana agora: classe e Poder (GDD §8 e §9), mais equipamento e buffs
 ## de fogueira ativos (ADR-0011).
 func player_stats() -> Stats:
+	return _stats_for(equipment)
+
+
+## Atributos se [param item_id] fosse equipado no lugar do que está no espaço dele.
+func stats_with(item_id: String) -> Stats:
+	var trial: Dictionary = equipment.duplicate()
+	trial[str(data.items[item_id]["slot"])] = item_id
+	return _stats_for(trial)
+
+
+func _stats_for(worn: Dictionary) -> Stats:
 	var stats: Stats = data.class_stats(class_id).scaled_for_power(power)
-	for slot: String in equipment:
-		var mods: Dictionary = data.items[equipment[slot]].get("stats", {})
+	for slot: String in worn:
+		var mods: Dictionary = data.items[worn[slot]].get("stats", {})
 		for key: String in mods:
 			var field: String = _stat_field(key)
 			stats.set(field, int(stats.get(field)) + int(mods[key]))
@@ -224,6 +237,7 @@ func finish_fight() -> bool:
 			enemies_defeated += 1
 			last_reward = {"enemy_id": node.enemy_id, "level": node.level, "power": power_gain,
 				"gold": gold - gold_before, "before": stats_before, "after": player_stats()}
+			_roll_drops(enemy_type)
 			if node.kind == MapNode.Kind.BOSS:
 				if scenario_index + 1 < scenario_ids.size():
 					_enter_scenario(scenario_index + 1)
@@ -338,13 +352,85 @@ func reroll_shop() -> bool:
 	return true
 
 
+## Equipa o drop pendente; o item que estava no espaço é vendido a 40% (ADR-0022).
+func take_drop() -> bool:
+	if phase != Phase.SHOP or pending_drop.is_empty():
+		return false
+	var slot: String = str(data.items[pending_drop]["slot"])
+	var old_id: String = str(equipment.get(slot, ""))
+	if not old_id.is_empty():
+		var value: int = RunRules.sell_value(item_price(old_id))
+		gold += value
+		_emit(RunEvent.Type.SOLD, old_id, value)
+	var old_max: int = player_stats().max_hp
+	equipment[slot] = pending_drop
+	_adjust_hp(old_max)
+	_emit(RunEvent.Type.EQUIPPED, pending_drop)
+	pending_drop = ""
+	return true
+
+
+func sell_drop() -> bool:
+	if phase != Phase.SHOP or pending_drop.is_empty():
+		return false
+	var value: int = RunRules.sell_value(item_price(pending_drop))
+	gold += value
+	_emit(RunEvent.Type.SOLD, pending_drop, value)
+	pending_drop = ""
+	return true
+
+
 func leave_shop() -> bool:
 	if phase != Phase.SHOP:
 		return false
+	sell_drop()
 	phase = Phase.CHOOSING
 	shop_offer.clear()
 	_emit(RunEvent.Type.SHOP, "leave", 0)
 	return true
+
+
+## Drops da vitória (GDD §10, ADR-0022), no fluxo de loot: equipamento com a chance do tipo
+## de inimigo e, à parte, um consumível de cura. O chefe não solta.
+func _roll_drops(enemy_type: String) -> void:
+	pending_drop = ""
+	last_reward["drop"] = ""
+	last_reward["consumable"] = ""
+	if enemy_type == "boss":
+		return
+	var loot: Pcg32 = streams.loot()
+	if RunRules.equipment_drops(enemy_type, loot):
+		var rarity: String = RunRules.drop_rarity(enemy_type, loot)
+		var pool: Array[String] = _drop_pool(rarity, false)
+		if pool.is_empty():
+			pool = _drop_pool("common", false)
+		pending_drop = pool[loot.draw_index(pool.size())]
+		_emit(RunEvent.Type.DROP, pending_drop)
+	if RunRules.consumable_drops(enemy_type, loot) and total_consumables() < RunRules.MAX_CONSUMABLES:
+		var potions: Array[String] = _drop_pool("", true)
+		var found: String = potions[loot.draw_index(potions.size())]
+		consumables[found] = consumable_count(found) + 1
+		_emit(RunEvent.Type.ITEM_GAINED, found, 1)
+		last_reward["consumable"] = found
+	last_reward["drop"] = pending_drop
+
+
+## Ids com preço, em ordem, de uma raridade de equipamento (ou os consumíveis de cura).
+func _drop_pool(rarity: String, consumable: bool) -> Array[String]:
+	var pool: Array[String] = []
+	var ids: Array = data.items.keys()
+	ids.sort()
+	for item_id: Variant in ids:
+		var item: Dictionary = data.items[item_id]
+		if int(item["price"]) <= 0:
+			continue
+		var is_consumable: bool = str(item["slot"]) == "consumable"
+		if consumable:
+			if is_consumable and int(item.get("heal_hp_percent", 0)) > 0:
+				pool.append(str(item_id))
+		elif not is_consumable and str(item["rarity"]) == rarity:
+			pool.append(str(item_id))
+	return pool
 
 
 func _open_shop() -> void:
@@ -362,7 +448,7 @@ func _stock_shop() -> void:
 	ids.sort()
 	for item_id: Variant in ids:
 		var item: Dictionary = data.items[item_id]
-		if int(item["price"]) <= 0:
+		if int(item["price"]) <= 0 or str(item["rarity"]) == "rare":
 			continue
 		if str(item["slot"]) == "consumable":
 			consumable_pool.append(str(item_id))

@@ -452,6 +452,7 @@ Exemplos de malditos: Anel do Cobrador (+30% de dano, mas perde 5 de ouro por tu
 ### Drops e inventário
 
 - Inimigos sempre dão moedas. Chance de equipamento: 12% comum, 35% elite, garantido raro em mini boss (valores iniciais).
+- **No protótipo (ADR-0022):** inimigos comuns e elites soltam também um consumível de cura (30% e 50%). A raridade do equipamento sai de pesos: comum 30% gasto, 55% comum, 15% incomum; elite 30% comum, 45% incomum, 25% raro. O chefe não solta equipamento. Itens raros só caem; não entram na loja. O jogador decide na hora: Equipar (o item trocado é vendido a 40%) ou Vender o drop a 40% (seção 15); sair da loja vende o drop pendente.
 - O nível do item acompanha o cenário. Qualidade vem de pesos de raridade que sobem com a profundidade.
 - Inventário: 8 consumíveis e 6 equipamentos reserva. Passou disso, o jogador vende algo na hora.
 - Ao morrer, o jogador perde tudo o que carrega na Descida. Nada do inventário vai para o Santuário, a não ser Almas e o que foi forjado.

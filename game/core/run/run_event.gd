@@ -14,9 +14,11 @@ extends RefCounted
 ## - EQUIPPED: label = id do item; value = 0.
 ## - CAMPFIRE: label = ação (open, rest, id da skill, leave); value = Brasas restantes.
 ## - SHOP: label = open, reroll ou leave; value = quantos itens à venda.
+## - DROP: label = id do equipamento caído (decisão pendente na loja).
+## - SOLD: label = id do item; value = ouro recebido.
 ## - ENDED: value = 1 vitória, 0 derrota.
 
-enum Type { SCENARIO, NODE, FIGHT_STARTED, FIGHT_ENDED, POWER, GOLD, SPENT, ITEM_USED, ITEM_GAINED, EQUIPPED, CAMPFIRE, SHOP, ENDED }
+enum Type { SCENARIO, NODE, FIGHT_STARTED, FIGHT_ENDED, POWER, GOLD, SPENT, ITEM_USED, ITEM_GAINED, EQUIPPED, CAMPFIRE, SHOP, ENDED, DROP, SOLD }
 
 var type: Type = Type.SCENARIO
 var label: String = ""

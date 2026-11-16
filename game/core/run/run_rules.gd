@@ -45,6 +45,18 @@ const STARTING_ITEMS: Dictionary = {"murky_potion": 2}
 const ECHOES_PER_NODE: int = 1
 const ECHOES_PER_BOSS: int = 5
 
+## GDD §10: chance de equipamento por inimigo, valores iniciais (ADR-0022).
+const DROP_EQUIPMENT_PERCENT: Dictionary = {"common": 12, "elite": 35}
+## Consumível que cura HP: não está no GDD, proposta do ADR-0022.
+const DROP_CONSUMABLE_PERCENT: Dictionary = {"common": 30, "elite": 50}
+## GDD §10: o raro vem de elites; pesos por raridade (ADR-0022).
+const DROP_RARITY_WEIGHTS: Dictionary = {
+	"common": {"worn": 30, "common": 55, "uncommon": 15},
+	"elite": {"common": 30, "uncommon": 45, "rare": 25},
+}
+## GDD §15: venda de itens paga 40% do valor.
+const SELL_PERCENT: int = 40
+
 ## ADR-0011: elite um nível acima da camada; eventos fora do protótipo.
 const ELITE_LEVEL_BONUS: int = 1
 const PROTOTYPE_EVENT_WEIGHT: int = 0
@@ -53,6 +65,33 @@ const PROTOTYPE_EVENT_WEIGHT: int = 0
 ## Ecos de uma Descida terminada: sempre creditados, mesmo na morte (GDD §26).
 static func echoes(nodes_cleared: int, bosses_defeated: int) -> int:
 	return ECHOES_PER_NODE * nodes_cleared + ECHOES_PER_BOSS * bosses_defeated
+
+
+## Equipamento cai? Só inimigos comuns e elites (chefes dão Alma, fora do protótipo).
+static func equipment_drops(enemy_type: String, loot: Pcg32) -> bool:
+	return DROP_EQUIPMENT_PERCENT.has(enemy_type) and loot.draw_percent(int(DROP_EQUIPMENT_PERCENT[enemy_type]))
+
+
+static func consumable_drops(enemy_type: String, loot: Pcg32) -> bool:
+	return DROP_CONSUMABLE_PERCENT.has(enemy_type) and loot.draw_percent(int(DROP_CONSUMABLE_PERCENT[enemy_type]))
+
+
+## Raridade sorteada pelos pesos do tipo de inimigo.
+static func drop_rarity(enemy_type: String, loot: Pcg32) -> String:
+	var weights: Dictionary = DROP_RARITY_WEIGHTS[enemy_type]
+	var total: int = 0
+	for rarity: String in weights:
+		total += int(weights[rarity])
+	var roll: int = loot.draw_int(1, total)
+	for rarity: String in weights:
+		roll -= int(weights[rarity])
+		if roll <= 0:
+			return rarity
+	return "common"
+
+
+static func sell_value(price: int) -> int:
+	return roundi(price * SELL_PERCENT / 100.0)
 
 
 static func type_multiplier(enemy_type: String) -> float:

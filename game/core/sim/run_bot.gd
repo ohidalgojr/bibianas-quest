@@ -141,6 +141,7 @@ static func _careful_turn(run: RunState, combat: Combat) -> void:
 ## Poções primeiro (2 no mediano, 4 no cuidadoso), depois equipamento que couber
 ## deixando uma reserva de 30.
 static func shop(run: RunState, profile: Profile) -> void:
+	_handle_drop(run)
 	var want_potions: int = 4 if profile == Profile.CAREFUL else 2
 	for item_id: String in run.shop_offer.duplicate():
 		var slot: String = str(run.data.items[item_id]["slot"])
@@ -149,6 +150,23 @@ static func shop(run: RunState, profile: Profile) -> void:
 		elif slot != "consumable" and run.gold - run.item_price(item_id) >= 30:
 			run.buy(item_id)
 	run.leave_shop()
+
+
+const RARITY_RANK: Dictionary = {"worn": 0, "common": 1, "uncommon": 2, "rare": 3}
+
+
+## Equipa o drop se for de raridade maior que o item do espaço; senão vende (ADR-0022).
+static func _handle_drop(run: RunState) -> void:
+	if run.pending_drop.is_empty():
+		return
+	var slot: String = str(run.data.items[run.pending_drop]["slot"])
+	var old_id: String = str(run.equipment.get(slot, ""))
+	var new_rank: int = int(RARITY_RANK.get(str(run.data.items[run.pending_drop]["rarity"]), 0))
+	var old_rank: int = -1 if old_id.is_empty() else int(RARITY_RANK.get(str(run.data.items[old_id]["rarity"]), 0))
+	if new_rank > old_rank:
+		run.take_drop()
+	else:
+		run.sell_drop()
 
 
 static func campfire(run: RunState, profile: Profile) -> void:

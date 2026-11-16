@@ -28,3 +28,14 @@ Propostas, a decidir com o Orlando depois da TASK-014 (portão da Fase 1):
 
 1. **TASK-016, ajuste do laço de combate:** F-001 e F-002 (ritmo de moeda do chefe, efeitos e debuffs por probabilidade), com ADR e nova rodada do simulador.
 2. **TASK-017, progressão visível:** F-003, depois de definir a direção.
+
+## 2026-11-16, depois da TASK-017
+
+### F-004: faltam as mecânicas básicas de um roguelike RPG: ganho de status, drops e magias na loja
+
+- **Status:** em andamento. Escolhida pelo Orlando como direção do F-003 (drops dos inimigos) e ampliada.
+- **Pedido (três pontos):** (1) ganho de status que se sinta, (2) drops de inimigos, (3) novas magias (skills) para comprar na loja.
+- **Plano, uma tarefa por ponto, nesta ordem:**
+  1. **TASK-018, drops e equipamento:** inimigos soltam equipamento e consumíveis; a recompensa pergunta "Equipar ou Vender"; novos itens de arma, armadura e relíquia, com raridade.
+  2. **TASK-019, ganho de status:** a Bibiana sobe de nível de forma discreta, com ganho de atributos que se vê.
+  3. **TASK-020, skills na loja:** novas skills do Guerreiro à venda, com mais espaços de skill no combate.
