@@ -1,7 +1,7 @@
 class_name GameScreen
 extends Control
 ## Raiz do fluxo provisório da Descida (TASK-009, ADR-0013): início, espera pela
-## geração do mapa, mapa, combate, loja e fogueira provisórias e resultado. A TASK-011
+## geração do mapa, mapa, combate, recompensa, loja, fogueira e resultado. A TASK-011
 ## troca o início pelo menu de verdade. Só chama as ações públicas do [RunState].
 
 signal run_ended(victory: bool)
@@ -21,7 +21,8 @@ var _thread: Thread
 var _content: Control
 var _map: MapScreen
 var _combat: CombatScreen
-var _panel: PanelContainer
+var _panel: Control
+var _reward_pending: bool = false
 var _seed_counter: int = 0
 
 
@@ -84,7 +85,10 @@ func _after_action() -> void:
 			_show_fight()
 		RunState.Phase.SHOP:
 			_show_map()
-			_show_shop()
+			if _reward_pending:
+				_show_reward()
+			else:
+				_show_shop()
 		RunState.Phase.CAMPFIRE:
 			_show_map()
 			_show_campfire()
@@ -117,30 +121,42 @@ func _show_fight() -> void:
 
 func _on_fight_done() -> void:
 	run.finish_fight()
+	# Depois de uma vitória com loja, a recompensa vem antes dela (TASK-010).
+	_reward_pending = run.phase == RunState.Phase.SHOP
 	_after_action()
 
 
-## Loja provisória (ADR-0013): a de verdade chega na TASK-010.
-func _show_shop() -> void:
-	var box: VBoxContainer = _open_panel("Loja", "Ouro: %d. A loja de verdade chega na TASK-010." % run.gold)
-	box.add_child(_button("Seguir", func() -> void:
-		run.leave_shop()
-		_after_action()))
-
-
-## Fogueira provisória (ADR-0013): Descansar e Seguir.
-func _show_campfire() -> void:
-	var stats: Stats = run.player_stats()
-	var box: VBoxContainer = _open_panel("Fogueira", "Brasas: %d. HP %d/%d, MP %d/%d." % [
-		run.embers, run.hp, stats.max_hp, run.mp, stats.max_mp])
-	var rest: Button = _button("Descansar (%d Brasas)" % RunRules.REST_COST, func() -> void:
-		run.rest()
+## Recompensa, loja e fogueira (TASK-010, ADR-0015): painéis por cima do mapa.
+func _show_reward() -> void:
+	var screen: RunPanelScreen = _open_panel()
+	screen.show_reward()
+	screen.closed.connect(func() -> void:
+		_reward_pending = false
 		_after_action())
-	rest.disabled = run.embers < RunRules.REST_COST
-	box.add_child(rest)
-	box.add_child(_button("Seguir", func() -> void:
+
+
+func _show_shop() -> void:
+	var screen: RunPanelScreen = _open_panel()
+	screen.show_shop()
+	screen.closed.connect(func() -> void:
+		run.leave_shop()
+		_after_action())
+
+
+func _show_campfire() -> void:
+	var screen: RunPanelScreen = _open_panel()
+	screen.show_campfire()
+	screen.closed.connect(func() -> void:
 		run.leave_campfire()
-		_after_action()))
+		_after_action())
+
+
+func _open_panel() -> RunPanelScreen:
+	var screen: RunPanelScreen = RunPanelScreen.new()
+	screen.panels = RunPanels.new(run)
+	_panel = screen
+	_content.add_child(screen)
+	return screen
 
 
 func _show_result() -> void:
@@ -193,23 +209,6 @@ func _page(title: String, text: String) -> VBoxContainer:
 	var box: VBoxContainer = _titled_box(title, text)
 	center.add_child(box)
 	_set_content(page)
-	return box
-
-
-func _open_panel(title: String, text: String) -> VBoxContainer:
-	_panel = PanelContainer.new()
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.03, 0.03, 0.05, 0.94)
-	style.set_corner_radius_all(8)
-	style.set_content_margin_all(16)
-	_panel.add_theme_stylebox_override("panel", style)
-	_panel.anchor_left = 0.05
-	_panel.anchor_right = 0.95
-	_panel.anchor_top = 0.3
-	_panel.anchor_bottom = 0.7
-	var box: VBoxContainer = _titled_box(title, text)
-	_panel.add_child(box)
-	_content.add_child(_panel)
 	return box
 
 

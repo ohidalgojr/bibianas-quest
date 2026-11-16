@@ -1,10 +1,10 @@
 # HANDOFF
 
-Atualizado em 2026-11-16 (TASK-001 a 009 e TASK-015, escolha do lado da moeda, concluídas; suíte 205/205; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
+Atualizado em 2026-11-16 (TASK-001 a 010 e TASK-015, escolha do lado da moeda, concluídas; suíte 210/210; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
 
 ## Como retomar
 
-1. Leia este arquivo, `CLAUDE.md` e a tarefa aberta em `docs/tasks/`. A próxima é a TASK-010 (recompensa, loja e fogueira em tela; abrir o arquivo da tarefa a partir do roteiro antes de codar).
+1. Leia este arquivo, `CLAUDE.md` e a tarefa aberta em `docs/tasks/`. A próxima é a TASK-011 (fluxo completo: menu, Descida, chefe, morte, recomeço; abrir o arquivo da tarefa a partir do roteiro antes de codar).
 2. **Harness atual: Claude Code (aplicativo desktop), com terminal.** Rode a suíte direto: `powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1` (precisa de `GODOT_BIN`, já definido, e de `addons/gut/`; em worktree nova rode `tools\setup.ps1`). O observador (ADR-0005) só é necessário em ambientes sem terminal, como o projeto do claude.ai usado antes.
 3. MCP do Godot e do Blender em `.mcp.json` (ver `docs/MCP.md`). O addon do Blender já foi instalado e ativado no Blender 5.3 do Orlando; falta conectar na aba BlenderMCP (`N`) a cada sessão. Os servidores só aparecem depois de reiniciar a sessão e aprová-los. Aprovação local: `.claude/settings.local.json` com `"enabledMcpjsonServers": ["godot", "blender"]` (fora do Git; copiar para cada checkout ou worktree). Testados em 2026-11-16: os dois respondem ao handshake MCP e o `blender` conecta no addon em `localhost:9876`. O pacote `blender-mcp` virou wrapper de `mcp-for-blender`; continua funcionando na versão fixada.
 4. Uma tarefa por vez. O Orlando liberou seguir as tarefas do roteiro (2026-11-16), parando ao fim de cada uma para o resumo.
@@ -43,6 +43,8 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
   - Todo lance (golpe de moeda do inimigo, Atordoar, Fugir) pede Cara ou Coroa antes de girar. Acertar o lado é o sucesso: a moeda cai no lado escolhido no sucesso e no outro na falha. Chance, sorteio e núcleo não mudaram (a escolha é ritual).
   - GDD §7 atualizado. Respondeu a pergunta do ADR-0010. ADR-0014. Em testes, `CombatScreen.auto_call` decide o lado.
   - Quando a trapaça (anúncio ou Moeda Viciada) entrar, o núcleo vai precisar parar no lance; ver ADR-0014.
+- **TASK-010, recompensa, loja e fogueira em tela** (concluída no código em 2026-11-16, suíte 210/210, 27 scripts; revisão cruzada e jogada humana pendentes).
+  - `game/presentation/run/`: `RunPanels` (controlador sem nós) e `RunPanelScreen` (painel em código). O `GameScreen` mostra a recompensa (Poder, ouro) depois de uma vitória com loja, depois a loja (comprar, atualizar, motivo do botão desabilitado) e, nas fogueiras, Descansar e skills. ADR-0015.
 - ADR-0004 aprovado; ADR-0005 aceito (observador funcionando em laço).
 
 ## Onde está
@@ -90,6 +92,7 @@ O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICE
 | 0005 | Observador de arquivos roda a suíte no PC do Orlando e grava o resultado em `reports/` para o Claude ler | Aceito (2026-11-16) |
 | 0006 | RNG próprio PCG32; quatro fluxos com sementes por SplitMix64; estado salvo como texto | Aceito (TASK-002) |
 | 0008 | Leituras do GDD §6 a §8 para o combate (PRE como bônus, arredondamento, Veterano 65%, aviso garantido contra inimigo rápido, durações) | Aceito, com 2 perguntas (TASK-004) |
+| 0015 | Recompensa, loja e fogueira: controlador sem nós e painel em código por cima do mapa; recompensa só depois de vitória com loja | Aceito (TASK-010) |
 | 0014 | O jogador escolhe Cara ou Coroa em todo lance; acertar o lado é o sucesso; a escolha é ritual e o núcleo não muda | Aceito (TASK-015) |
 | 0013 | Mapa em grade 2D com névoa (`MapView` sem nós e `MapScreen`). Combate ligado à Descida. Loja e fogueira provisórias. Descida criada numa `Thread`. `GameScreen` como raiz provisória | Aceito (TASK-009) |
 | 0012 | Bots mediano e cuidadoso; vencibilidade com 200 simulações, parada antecipada, 5 suavizações e descarte; meta de rota 60%; Coveiro com HP 150, FOR 14 e 2 golpes de moeda na fase final | Aceito, com 2 pontos para decidir (TASK-008) |
@@ -126,7 +129,7 @@ O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICE
 - **Simulador:** `"$GODOT_BIN" --headless --path . -s tools/simulate.gd -- --runs 200 --check 40 --maps 200 --map-check 20`. Leva cerca de 7 min e passa do limite de 10 min com `--runs 300` ou mais, então rode em segundo plano. Script novo com `class_name` exige `--headless --import` antes de rodar fora da suíte.
 - **Criação da Descida:** o `GameScreen` já cria o `RunState` numa `Thread`, com `Winnability.DEFAULT_RUNS` (200). Leva cerca de 1,5 s no PC e falta medir no celular (TASK-014). Guardar o resultado no save fica para a TASK-012.
 - **Telas novas:** os nós trocados com `queue_free` aparecem como "órfãos" no GUT. É esperado: liberar na hora pode derrubar o jogo, porque o botão que pediu a troca ainda está emitindo o sinal.
-- **TASK-010:** substituir `_show_shop` e `_show_campfire` do `GameScreen` pelas telas de verdade, seguindo o ADR-0010 (um controlador sem nós e uma tela montada em código). A recompensa de fim de luta entra entre o "Continuar" do combate e a loja.
+- **Worktree e o Godot:** quem joga precisa abrir a pasta da worktree/branch com as mudanças (ou mesclar na `main`); abrir a raiz de outro checkout mostra o jogo antigo (foi o que fez a moeda parecer automática de novo).
 - **Calibração resolvida na TASK-008 (histórico):** o bot de regras vence só 8% das Descidas do cenário 1, contra a meta de 55% a 65%. Em 300 Descidas, 239 mortes foram no Coveiro (nível 6, 220 de HP, Golpe Mortal), contra uma Bibiana com Poder perto de 2,5. Antes de mexer em números, ver se o bot joga mal o chefe (não guarda poção, não defende o Golpe Mortal) e só então ajustar as alavancas do GDD §23, com ADR. O script de diagnóstico usado foi um `SceneTree` com `RunBot.play` em 300 sementes, contando `run.current_node()` nas derrotas.
 - **Calibração (TASK-008):** o Corvo Carniceiro dá 5,3 turnos por luta, abaixo da meta de 6 a 10. O Coveiro dá 28 turnos no teste com Poder suposto. A regra própria do Coveiro (covas e mortos) ainda não existe.
 - "Moedas" no GDD §15 é o ouro; "a moeda" do §7 é o cara ou coroa. No código: `gold` e `coin`.

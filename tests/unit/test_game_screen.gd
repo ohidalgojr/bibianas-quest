@@ -37,6 +37,7 @@ func test_full_run_through_the_screens() -> void:
 	assert_not_null(run)
 	var steps: int = 0
 	var fights: int = 0
+	var rewards: int = 0
 	while ended.is_empty() and steps < 400:
 		steps += 1
 		match run.phase:
@@ -57,6 +58,9 @@ func test_full_run_through_the_screens() -> void:
 				else:
 					screen._buttons["attack"].pressed.emit()
 			RunState.Phase.SHOP:
+				# A recompensa vem antes da loja (TASK-010).
+				if _press(_game, "Continuar"):
+					rewards += 1
 				assert_true(_press(_game, "Seguir"))
 			RunState.Phase.CAMPFIRE:
 				_press(_game, "Descansar")
@@ -65,6 +69,7 @@ func test_full_run_through_the_screens() -> void:
 				break
 	assert_eq(ended.size(), 1, "a Descida terminou pelas telas")
 	assert_gt(fights, 0)
+	assert_gt(rewards, 0, "a recompensa apareceu antes da loja")
 	assert_true(run.is_over())
 	assert_true(_press(_game, "Nova Descida"), "o resultado oferece nova Descida")
 
