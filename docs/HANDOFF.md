@@ -1,10 +1,10 @@
 # HANDOFF
 
-Atualizado em 2026-11-16 (TASK-001 a 013 e TASK-015 concluídas; suíte 222/222; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
+Atualizado em 2026-11-16 (TASK-001 a 013 e TASK-015 concluídas e TASK-014 em verificação; suíte 222/222; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
 
 ## Como retomar
 
-1. Leia este arquivo, `CLAUDE.md` e a tarefa aberta em `docs/tasks/`. A próxima é a TASK-014 (exportação Web e Android e sessão de 20 minutos no celular; precisa do Orlando para testar no aparelho e dos templates de exportação do Godot).
+1. Leia este arquivo, `CLAUDE.md` e a tarefa aberta em `docs/tasks/`. A TASK-014 está em verificação (ver pendências 7 e 8). Com ela fechada, a Fase 1 acaba e o próximo passo é decidir com o Orlando o ajuste do laço (`docs/FEEDBACK.md`, propostas TASK-016 e 017) e abrir o roteiro da Fase 2.
 2. **Harness atual: Claude Code (aplicativo desktop), com terminal.** Rode a suíte direto: `powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1` (precisa de `GODOT_BIN`, já definido, e de `addons/gut/`; em worktree nova rode `tools\setup.ps1`). O observador (ADR-0005) só é necessário em ambientes sem terminal, como o projeto do claude.ai usado antes.
 3. MCP do Godot e do Blender em `.mcp.json` (ver `docs/MCP.md`). O addon do Blender já foi instalado e ativado no Blender 5.3 do Orlando; falta conectar na aba BlenderMCP (`N`) a cada sessão. Os servidores só aparecem depois de reiniciar a sessão e aprová-los. Aprovação local: `.claude/settings.local.json` com `"enabledMcpjsonServers": ["godot", "blender"]` (fora do Git; copiar para cada checkout ou worktree). Testados em 2026-11-16: os dois respondem ao handshake MCP e o `blender` conecta no addon em `localhost:9876`. O pacote `blender-mcp` virou wrapper de `mcp-for-blender`; continua funcionando na versão fixada.
 4. Uma tarefa por vez. O Orlando liberou seguir as tarefas do roteiro (2026-11-16), parando ao fim de cada uma para o resumo.
@@ -48,6 +48,8 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
 - **TASK-011, fluxo completo** (concluída no código em 2026-11-16, suíte 213/213; jogada humana e revisão cruzada pendentes). Menu com Ecos e classe, tela de fim com causa da morte e Ecos (1 por nó, 5 por chefe, provisório), "Outra Descida" com nova semente; três Descidas seguidas testadas. Ecos persistem desde a TASK-012. ADR-0016.
 - **TASK-012, auto-save** (concluída no código em 2026-11-16, suíte 217/217; jogada humana e revisão cruzada pendentes). `RunSave` (núcleo) e `SaveStore` (serviços) gravam a Descida a cada nó no mapa, em `user://run.json`, e a meta (Ecos) em `user://meta.json`. Menu ganhou "Continuar Descida". ADR-0017.
 - **TASK-013, depuração e telemetria** (concluída no código em 2026-11-16, suíte 222/222; jogada humana e revisão cruzada pendentes). Em build de depuração: semente no menu, F1 +100 ouro, F2 pular nó, F3 matar inimigo, F4 forçar moeda. `Telemetry` (serviços) grava `user://telemetry.log` (nós, moeda, lutas, mortes com `by_coin`). ADR-0018.
+- **TASK-014, exportação** (em verificação em 2026-11-16): `export_presets.cfg` (Web e Android), `tools\export_web.ps1`, `docs/PLAYTEST.md` e toque desligado em mobile e web. **Nada foi exportado**: não há templates de exportação no PC. Depende do Orlando (ver pendências). ADR-0019.
+- **Feedback de playtest:** registrado em `docs/FEEDBACK.md` (F-001 chefe com moeda demais, F-002 golpes com debuff por probabilidade, F-003 matar inimigos sem senso de progressão). Propostas de TASK-016 e TASK-017 lá.
 - ADR-0004 aprovado; ADR-0005 aceito (observador funcionando em laço).
 
 ## Onde está
@@ -67,7 +69,10 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
 3. **Teste de sensação da TASK-006:** jogar algumas lutas (o Coveiro inclusive) e anotar no fim de `docs/tasks/TASK-006-combate-jogavel.md` se a moeda dá tensão e se o aviso de um turno basta.
 4. Responder a pergunta do ADR-0008 (PRE como bônus sobre 90; Veterano com redução de 65% ou de 80%). A do ADR-0010 foi respondida no ADR-0014; confirmar que "acertar o lado" é o que o Orlando queria.
 5. **Decidir os dois pontos do ADR-0012:** o custo da checagem de mapa no celular (a thread já existe; falta medir no celular e decidir o save) e as mortes por moeda acima da meta (31% e 35%, contra 25%; recomendação: esperar o teste de sensação).
-6. Revisão cruzada do Gemini, TASK-001 a 009.
+6. Revisão cruzada do Gemini, TASK-001 a 013 e 015.
+7. **TASK-014:** instalar os templates de exportação (Editor > Projeto > Exportar > Gerenciar templates), rodar `tools\export_web.ps1 -Serve` e abrir o link; para o celular, instalar JDK e Android SDK (`docs/PLAYTEST.md`).
+8. **Sessão de 20 minutos no celular** e a ficha de `docs/PLAYTEST.md`.
+9. **Feedback de design (`docs/FEEDBACK.md`):** decidir a direção de F-001 a F-003 antes de abrir a TASK-016.
 
 ## Falta (ordem combinada; o roteiro completo e as mudanças propostas estão em `docs/ROADMAP-MVP.md`)
 
@@ -95,6 +100,7 @@ O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICE
 | 0005 | Observador de arquivos roda a suíte no PC do Orlando e grava o resultado em `reports/` para o Claude ler | Aceito (2026-11-16) |
 | 0006 | RNG próprio PCG32; quatro fluxos com sementes por SplitMix64; estado salvo como texto | Aceito (TASK-002) |
 | 0008 | Leituras do GDD §6 a §8 para o combate (PRE como bônus, arredondamento, Veterano 65%, aviso garantido contra inimigo rápido, durações) | Aceito, com 2 perguntas (TASK-004) |
+| 0019 | Presets de exportação no Git sem segredos, dados `.json` incluídos, Web sem threads, toque emulado desligado em mobile e web | Aceito (TASK-014, não exercitado) |
 | 0018 | Atalhos só em build de depuração; moeda forçada troca só o resultado; telemetria local em JSON por linha com morte por moeda | Aceito (TASK-013) |
 | 0017 | Save: foto do estado no mapa (não repetição de escolhas), mapa incluso, versão das regras recusa save antigo, meta em arquivo separado | Aceito (TASK-012) |
 | 0016 | Ecos do protótipo: 1 por nó e 5 por chefe, creditados também na morte; tela de fim com causa | Aceito, com 1 pergunta (TASK-011) |

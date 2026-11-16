@@ -31,6 +31,8 @@ window/handheld/orientation=1
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
+pointing/emulate_touch_from_mouse.mobile=false
+pointing/emulate_touch_from_mouse.web=false
 
 [rendering]
 
