@@ -156,6 +156,12 @@ func test_rejects_phase_thresholds_out_of_order() -> void:
 	_assert_rejects(docs, "a primeira fase começa em 100")
 
 
+func test_rejects_missing_winnable_target() -> void:
+	var docs: Dictionary = _docs()
+	(docs["scenarios"]["scenarios"][0] as Dictionary).erase("winnable_target")
+	_assert_rejects(docs, "scenarios[abandoned_city]: campo faltando: winnable_target")
+
+
 func test_rejects_consumable_without_effect() -> void:
 	var docs: Dictionary = _docs()
 	docs["items"]["items"][0]["heal_hp_percent"] = 0

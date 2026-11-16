@@ -1,10 +1,10 @@
 # HANDOFF
 
-Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-001 a 006 commitadas; TASK-007, estado da Descida, concluída com a suíte completa verde: 184/184; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
+Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-001 a 007 commitadas; TASK-008, simulador e vencibilidade, concluída com a suíte completa verde: 194/194; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
 
 ## Como retomar
 
-1. Leia este arquivo, `CLAUDE.md` e a tarefa aberta em `docs/tasks/`. A próxima é a TASK-008 (simulador, vencibilidade e calibração; abrir o arquivo da tarefa a partir do roteiro antes de codar).
+1. Leia este arquivo, `CLAUDE.md` e a tarefa aberta em `docs/tasks/`. A próxima é a TASK-009 (mapa jogável; abrir o arquivo da tarefa a partir do roteiro antes de codar).
 2. **Harness atual: Claude Code (aplicativo desktop), com terminal.** Rode a suíte direto: `powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1` (precisa de `GODOT_BIN`, já definido, e de `addons/gut/`; em worktree nova rode `tools\setup.ps1`). O observador (ADR-0005) só é necessário em ambientes sem terminal, como o projeto do claude.ai usado antes.
 3. MCP do Godot e do Blender em `.mcp.json` (ver `docs/MCP.md`). O addon do Blender já foi instalado e ativado no Blender 5.3 do Orlando; falta conectar na aba BlenderMCP (`N`) a cada sessão. Os servidores só aparecem depois de reiniciar a sessão e aprová-los. Aprovação local: `.claude/settings.local.json` com `"enabledMcpjsonServers": ["godot", "blender"]` (fora do Git; copiar para cada checkout ou worktree). Testados em 2026-11-16: os dois respondem ao handshake MCP e o `blender` conecta no addon em `localhost:9876`. O pacote `blender-mcp` virou wrapper de `mcp-for-blender`; continua funcionando na versão fixada.
 4. Uma tarefa por vez. O Orlando liberou seguir as tarefas do roteiro (2026-11-16), parando ao fim de cada uma para o resumo.
@@ -24,13 +24,18 @@ Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-001 a 006 commitadas; 
   - `RunEvent`: eventos da Descida para a apresentação.
 
   O `MapNode` ganhou `enemy_id` e `level`. O bot de regras está em `tests/support/run_bot.gd`. ADR-0011. `RULES_VERSION` = 3.
+- **TASK-008, simulador e vencibilidade** (concluída no código em 2026-11-16, suíte 194/194, 24 scripts, 25 s; revisão cruzada pendente).
+  - **Simulação:** os bots mediano e cuidadoso e o `Simulator` ficam em `game/core/sim/`. O bot saiu de `tests/support/`. `tools/simulate.gd` grava `reports/simulation.md`.
+  - **Vencibilidade (GDD §5):** está em `game/core/run/winnability.gd` e entra pelo parâmetro `map_check_runs` do `RunState`, com padrão 0 nos testes e 200 no GDD. A meta de rota do cenário 1 é 60%.
+  - **Coveiro calibrado:** HP 150, FOR 14, fase final com 2 golpes de moeda em 4. O mediano vence 65% e o cuidadoso 64%, com 6,3 turnos por luta comum.
+  - ADR-0012. `RULES_VERSION` = 4.
 - ADR-0004 aprovado; ADR-0005 aceito (observador funcionando em laço).
 
 ## Onde está
 
 - Repositório: `C:\Users\Orlando\Downloads\Projetos\bibianas-quest`. A mesma pasta é o projeto Godot, o repositório Git e o vault do Obsidian. Um commit por tarefa.
 - Regras e comandos: `CLAUDE.md`. Decisões: `docs/adr/`. Tarefas: `docs/tasks/`.
-- Núcleo: `game/core/core_version.gd` (`RULES_VERSION = 3`), `game/core/rng/`, `game/core/map/`, `game/core/combat/`, `game/core/data/` e `game/core/run/`.
+- Núcleo: `game/core/core_version.gd` (`RULES_VERSION = 4`), `game/core/rng/`, `game/core/map/`, `game/core/combat/`, `game/core/data/`, `game/core/run/` e `game/core/sim/`.
 - Dados: `game/data/*.json`, carregados por `DataLoader.load_all()` (`game/services/data_loader.gd`).
 - Apresentação: `game/presentation/main.tscn` abre a `CombatScreen` (`game/presentation/combat/`). F5 no editor joga uma luta.
 - Testes: `tests/unit/`. Rodar com `tools\run_tests.ps1` (Windows) ou `tools/run_tests.sh`.
@@ -40,9 +45,10 @@ Atualizado em 2026-11-16 (TASK-001 a 004 commitadas; TASK-001 a 006 commitadas; 
 
 1. Conectar o addon do Blender (aba BlenderMCP, tecla `N`) quando for usar o Blender.
 2. Revisar e mesclar a branch `claude/godot-blender-setup-0792cc` (TASK-004 e MCP). Depois da mesclagem, a pasta principal ainda tem cópias não commitadas desses mesmos arquivos: descartar com `git restore .` e `git clean -fd game tests docs` antes de puxar.
+6. **Decidir os dois pontos do ADR-0012:** o custo da checagem de mapa no celular (recomendação: thread mais save) e as mortes por moeda acima da meta (31% e 35%, contra 25%; recomendação: esperar o teste de sensação).
 3. Responder as duas perguntas do ADR-0008 (PRE como bônus sobre 90; Veterano com redução de 65% ou de 80%) e a do ADR-0010 (o que mostrar quando o jogador escolhe Coroa e o lance dá sucesso).
 5. **Teste de sensação da TASK-006:** abrir o projeto, F5, jogar algumas lutas (o Coveiro inclusive) e anotar no fim de `docs/tasks/TASK-006-combate-jogavel.md` se a moeda dá tensão e se o aviso de um turno basta.
-4. Revisão cruzada do Gemini, TASK-001 a 006.
+4. Revisão cruzada do Gemini, TASK-001 a 008.
 
 ## Falta (ordem combinada; o roteiro completo e as mudanças propostas estão em `docs/ROADMAP-MVP.md`)
 
@@ -70,6 +76,7 @@ O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICE
 | 0005 | Observador de arquivos roda a suíte no PC do Orlando e grava o resultado em `reports/` para o Claude ler | Aceito (2026-11-16) |
 | 0006 | RNG próprio PCG32; quatro fluxos com sementes por SplitMix64; estado salvo como texto | Aceito (TASK-002) |
 | 0008 | Leituras do GDD §6 a §8 para o combate (PRE como bônus, arredondamento, Veterano 65%, aviso garantido contra inimigo rápido, durações) | Aceito, com 2 perguntas (TASK-004) |
+| 0012 | Bots mediano e cuidadoso; vencibilidade com 200 simulações, parada antecipada, 5 suavizações e descarte; meta de rota 60%; Coveiro com HP 150, FOR 14 e 2 golpes de moeda na fase final | Aceito, com 2 pontos para decidir (TASK-008) |
 | 0011 | Estado da Descida. HP e MP persistem; nível por camada interpolado; eventos fora do protótipo; emboscada como batalha; baú só com ouro. Fogueira com skills a 2 Brasas e buffs como FOR e DEF ×1,15. Loja sem especial; equipamento equipado na hora | Aceito (TASK-007) |
 | 0010 | Combate em 2D no protótipo: controlador sem nós e tela montada em código, com eventos animados em fila | Aceito, com 1 pergunta (TASK-006) |
 | 0009 | Dados em JSON validado (núcleo sem I/O); inimigos escalam por nível com as taxas do Poder; atributos da classe já incluem o equipamento inicial | Aceito (TASK-005) |
@@ -100,7 +107,9 @@ O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICE
 - **Telas:** as próximas telas (TASK-009 e 010) seguem o padrão do ADR-0010: um controlador `RefCounted` testável e uma tela montada em código. Nos testes, `time_scale = 0` deixa a animação instantânea. Para ver uma tela sem abrir o editor, rode o Godot com janela e um script `SceneTree` que salva `root.get_texture().get_image()` em PNG (o headless não desenha).
 - **Dados:** a TASK-006 monta a luta por `DataLoader.load_all()`, `make_player("warrior", poder)` e `make_enemy(id, nível)`. Não deve usar os `CombatFixtures`. `CombatSkill.warrior_set()` continua como referência, e um teste confere que é igual aos dados.
 - **Exportação (TASK-014):** o Godot não exporta `.json` por padrão. No preset, incluir `game/data/*.json` em "Filtros para exportar arquivos que não são recursos", senão o jogo exportado abre sem dados.
-- **Calibração (TASK-008), o mais urgente:** o bot de regras vence só 8% das Descidas do cenário 1, contra a meta de 55% a 65%. Em 300 Descidas, 239 mortes foram no Coveiro (nível 6, 220 de HP, Golpe Mortal), contra uma Bibiana com Poder perto de 2,5. Antes de mexer em números, ver se o bot joga mal o chefe (não guarda poção, não defende o Golpe Mortal) e só então ajustar as alavancas do GDD §23, com ADR. O script de diagnóstico usado foi um `SceneTree` com `RunBot.play` em 300 sementes, contando `run.current_node()` nas derrotas.
+- **Simulador:** `"$GODOT_BIN" --headless --path . -s tools/simulate.gd -- --runs 200 --check 40 --maps 200 --map-check 20`. Leva cerca de 7 min e passa do limite de 10 min com `--runs 300` ou mais, então rode em segundo plano. Script novo com `class_name` exige `--headless --import` antes de rodar fora da suíte.
+- **Ao criar a Descida no jogo (TASK-011):** passe `Winnability.DEFAULT_RUNS` (200) para o `RunState` e rode a criação fora da thread principal. Com cerca de 3 suavizações por mapa, leva vários segundos no PC. Decisão pendente no ADR-0012.
+- **Calibração resolvida na TASK-008 (histórico):** o bot de regras vence só 8% das Descidas do cenário 1, contra a meta de 55% a 65%. Em 300 Descidas, 239 mortes foram no Coveiro (nível 6, 220 de HP, Golpe Mortal), contra uma Bibiana com Poder perto de 2,5. Antes de mexer em números, ver se o bot joga mal o chefe (não guarda poção, não defende o Golpe Mortal) e só então ajustar as alavancas do GDD §23, com ADR. O script de diagnóstico usado foi um `SceneTree` com `RunBot.play` em 300 sementes, contando `run.current_node()` nas derrotas.
 - **Calibração (TASK-008):** o Corvo Carniceiro dá 5,3 turnos por luta, abaixo da meta de 6 a 10. O Coveiro dá 28 turnos no teste com Poder suposto. A regra própria do Coveiro (covas e mortos) ainda não existe.
 - "Moedas" no GDD §15 é o ouro; "a moeda" do §7 é o cara ou coroa. No código: `gold` e `coin`.
 - Fórmulas do GDD só mudam com ADR, no mesmo commit do GDD (`docs/GDD.md`) e do código, com `CoreVersion.RULES_VERSION` incrementado.

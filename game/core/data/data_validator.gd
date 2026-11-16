@@ -261,6 +261,7 @@ func _check_scenario(entry: Variant, enemy_ids: Dictionary) -> void:
 	_check_min(low, 1, path, "min_level")
 	if high < low:
 		_error(path, "max_level menor que min_level")
+	_check_range(_int_field(data, "winnable_target", path), 1, 100, path, "winnable_target")
 	_check_enemy_refs(data, "common_enemies", "common", path, enemy_ids)
 	_check_enemy_refs(data, "elite_enemies", "elite", path, enemy_ids)
 	var boss_id: String = _string_field(data, "boss", path)

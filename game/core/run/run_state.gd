@@ -34,10 +34,16 @@ var shop_rerolls: int = 0
 var combat: Combat
 var nodes_cleared: int = 0
 var history: Array[RunEvent] = []
+## Simulações da checagem de vencibilidade de cada mapa (GDD §5; 0 desliga).
+var winnability_runs: int = 0
+## Resultado da checagem do mapa do cenário atual.
+var map_check: Winnability
 
 
-func _init(game_data: GameData, run_seed: int, run_class: String = "warrior", run_scenarios: Array[String] = []) -> void:
+func _init(game_data: GameData, run_seed: int, run_class: String = "warrior", run_scenarios: Array[String] = [],
+		map_check_runs: int = 0, given_map: MapGraph = null) -> void:
 	data = game_data
+	winnability_runs = map_check_runs
 	streams = RngStreams.new(run_seed)
 	class_id = run_class
 	scenario_ids = run_scenarios.duplicate()
@@ -52,7 +58,13 @@ func _init(game_data: GameData, run_seed: int, run_class: String = "warrior", ru
 	var stats: Stats = player_stats()
 	hp = stats.max_hp
 	mp = stats.max_mp
-	_enter_scenario(0)
+	if given_map != null:
+		# Simulação da checagem de vencibilidade: usa o mapa dado, sem gerar outro.
+		map = given_map
+		current_node_id = map.start_id
+		map_check = Winnability.new()
+	else:
+		_enter_scenario(0)
 
 
 # --- Consultas -------------------------------------------------------------------
@@ -347,10 +359,19 @@ func _enter_scenario(index: int) -> void:
 	var entry: Dictionary = scenario()
 	var config: MapConfig = MapConfig.for_layers(int(entry["layers"]))
 	config.weight_event = RunRules.PROTOTYPE_EVENT_WEIGHT
-	map = MapGenerator.generate(config, streams.map())
-	_assign_enemies(entry)
-	current_node_id = map.start_id
 	phase = Phase.CHOOSING
+	map_check = Winnability.new()
+	for attempt: int in Winnability.MAX_MAPS:
+		map = MapGenerator.generate(config, streams.map())
+		_assign_enemies(entry)
+		current_node_id = map.start_id
+		if winnability_runs <= 0:
+			break
+		# GDD §5: o mapa precisa de um caminho vencível; se não der, descarta e gera outro.
+		if map_check.check(self, config, winnability_runs, float(entry["winnable_target"]), attempt):
+			break
+		if attempt < Winnability.MAX_MAPS - 1:
+			map_check.maps_discarded += 1
 	_emit(RunEvent.Type.SCENARIO, scenario_ids[index], index)
 
 

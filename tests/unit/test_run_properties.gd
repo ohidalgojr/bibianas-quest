@@ -2,7 +2,7 @@ extends GutTest
 ## Descidas inteiras jogadas pelo bot de regras (ADR-0011): toda Descida termina, o
 ## estado nunca fica inválido e a mesma semente reproduz a mesma Descida.
 
-const RUNS: int = 200
+const RUNS: int = 120
 
 var _data: GameData
 
@@ -37,13 +37,18 @@ func _problems(run: RunState) -> PackedStringArray:
 
 
 func test_property_bot_runs_always_end_in_valid_state() -> void:
+	for profile: int in [RunBot.Profile.MEDIAN, RunBot.Profile.CAREFUL]:
+		_check_profile(profile)
+
+
+func _check_profile(profile: RunBot.Profile) -> void:
 	var problems: PackedStringArray = PackedStringArray()
 	var wins: int = 0
 	var power_total: float = 0.0
 	var gold_total: int = 0
 	var nodes_total: int = 0
 	for run_seed: int in RUNS:
-		var run: RunState = RunBot.play(_data, run_seed)
+		var run: RunState = RunBot.play(_data, run_seed, profile)
 		var found: PackedStringArray = _problems(run)
 		if not found.is_empty() and problems.size() < 5:
 			problems.append("semente %d: %s" % [run_seed, " | ".join(found)])
@@ -53,8 +58,9 @@ func test_property_bot_runs_always_end_in_valid_state() -> void:
 		gold_total += run.gold
 		nodes_total += run.nodes_cleared
 	assert_eq(" || ".join(problems), "")
-	gut.p("bot de regras, cenário 1: %d%% de vitórias, Poder médio %.2f, ouro médio %d, %.1f nós por Descida" % [
-		roundi(100.0 * wins / RUNS), power_total / RUNS, gold_total / RUNS, float(nodes_total) / RUNS])
+	gut.p("bot %s, cenário 1: %d%% de vitórias, Poder médio %.2f, ouro médio %d, %.1f nós por Descida" % [
+		RunBot.PROFILE_NAMES[profile], roundi(100.0 * wins / RUNS), power_total / RUNS, gold_total / RUNS,
+		float(nodes_total) / RUNS])
 	assert_gt(wins, 0, "o bot vence às vezes")
 	assert_lt(wins, RUNS, "o bot perde às vezes")
 
