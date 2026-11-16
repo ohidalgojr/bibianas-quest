@@ -233,10 +233,10 @@ A moeda é a assinatura do jogo: decide momentos de risco, é sempre avisada ant
 ### Regras
 
 ```latex
-\text{Chance de Cara}\,(\%) = \text{clamp}(50 + SORTE + \text{mods},\; 15,\; 85)
+\text{Chance de acerto}\,(\%) = \text{clamp}(50 + SORTE + \text{mods},\; 15,\; 85)
 ```
 
-- **Cara** é sucesso e **Coroa** é falha. O jogador escolhe o lado antes do lance (puro ritual; a chance vem da fórmula).
+- O jogador **escolhe Cara ou Coroa antes de cada lance**, nunca automático. **Acertar o lado é o sucesso** e errar é a falha: a moeda cai no lado escolhido quando o lance dá sucesso e no outro quando dá falha. A escolha é ritual; a chance vem só da fórmula (ADR-0014).
 - SORTE vale +1 ponto percentual por ponto, até +15. Clima, doenças, maldições e itens somam ou subtraem pontos ("mods").
 - A chance real aparece em um tooltip no momento do lance. Sem números escondidos.
 - **Maré de azar:** depois de 3 lances perdidos seguidos, o próximo ganha +10 pontos e o jogo avisa na tela.
@@ -246,7 +246,7 @@ A moeda é a assinatura do jogo: decide momentos de risco, é sempre avisada ant
 
 ### Onde a moeda aparece
 
-| Situação | Cara (sucesso) | Coroa (falha) |
+| Situação | Acertou o lado (sucesso) | Errou o lado (falha) |
 | --- | --- | --- |
 | Golpe Pesado do inimigo | Dano normal | Dano +50% |
 | Golpe Cruel do inimigo | Dano -50% | Dano +100% e um debuff ou risco de doença |

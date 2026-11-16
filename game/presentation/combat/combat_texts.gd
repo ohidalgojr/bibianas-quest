@@ -54,21 +54,33 @@ static func outcome(result: int) -> String:
 	return str(OUTCOMES.get(result, ""))
 
 
-## Consequência de Cara e Coroa do golpe de moeda (GDD §7, "Onde a moeda aparece").
+## Consequência de acertar e de errar o lado do golpe de moeda (GDD §7, "Onde a moeda
+## aparece").
 static func coin_stakes(kind: EnemyMove.Kind) -> String:
 	match kind:
 		EnemyMove.Kind.HEAVY:
-			return "Coroa: dano +%d%%" % _percent(CombatFormulas.HEAVY_FAIL)
+			return "Errar: dano +%d%%" % _percent(CombatFormulas.HEAVY_FAIL)
 		EnemyMove.Kind.CRUEL:
-			return "Cara: dano -%d%%. Coroa: dano +%d%%" % [
+			return "Acertar: dano -%d%%. Errar: dano +%d%%" % [
 				-_percent(CombatFormulas.CRUEL_SUCCESS), _percent(CombatFormulas.CRUEL_FAIL)]
 		EnemyMove.Kind.MORTAL:
-			return "Coroa: dano +%d%%" % _percent(CombatFormulas.MORTAL_FAIL)
+			return "Errar: dano +%d%%" % _percent(CombatFormulas.MORTAL_FAIL)
 	return ""
 
 
-static func coin_result(success: bool) -> String:
-	return "Cara (sucesso)" if success else "Coroa (falha)"
+static func side_name(side: int) -> String:
+	return "Cara" if side == CoinRules.HEADS else "Coroa"
+
+
+## Lado em que a moeda cai (ADR-0014): o escolhido se o lance dá sucesso, o outro se falha.
+static func landed_side(called: int, success: bool) -> int:
+	if success:
+		return called
+	return CoinRules.TAILS if called == CoinRules.HEADS else CoinRules.HEADS
+
+
+static func coin_result(called: int, success: bool) -> String:
+	return "Saiu %s: %s" % [side_name(landed_side(called, success)), "acertou!" if success else "errou."]
 
 
 static func _percent(multiplier: float) -> int:

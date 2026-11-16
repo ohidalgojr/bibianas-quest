@@ -21,6 +21,8 @@ var potion: CombatItem
 ## Descida dona da luta, quando a luta vem do mapa (ADR-0013). Sem ela, a luta é de
 ## teste e tem [constant POTIONS_PER_FIGHT] poções.
 var run: RunState
+## Último lado escolhido pelo jogador (ADR-0014); a tela grava antes de animar o lance.
+var coin_call: int = CoinRules.HEADS
 
 ## Id do golpe -> tipo, para nomear golpes a partir dos eventos.
 var _move_kinds: Dictionary = {}
@@ -160,7 +162,7 @@ func intent_view(move_id: String) -> Dictionary:
 		"detail": "",
 	}
 	if move.is_coin():
-		view["detail"] = "Chance de Cara: %d%%. %s" % [coin_chance(), CombatTexts.coin_stakes(kind)]
+		view["detail"] = "Escolha Cara ou Coroa. Chance de acertar: %d%%. %s" % [coin_chance(), CombatTexts.coin_stakes(kind)]
 	elif kind == EnemyMove.Kind.STRONG:
 		view["detail"] = "Defender reduz o dano."
 	return view
@@ -208,7 +210,8 @@ func describe(event: CombatEvent) -> String:
 				parts.append("%d de MP" % event.extra)
 			return "%s recupera %s." % [who, " e ".join(parts)]
 		CombatEvent.Type.COIN:
-			var coin_line: String = "Moeda (chance de Cara %d%%): %s." % [event.value, CombatTexts.coin_result(event.flag)]
+			var coin_line: String = "Moeda (chance de acertar %d%%): você escolheu %s. %s" % [
+				event.value, CombatTexts.side_name(coin_call), CombatTexts.coin_result(coin_call, event.flag)]
 			if event.extra > 0:
 				coin_line += " Maré de azar: +%d." % event.extra
 			return coin_line

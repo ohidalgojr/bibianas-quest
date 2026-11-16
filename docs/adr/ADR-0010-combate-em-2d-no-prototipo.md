@@ -20,7 +20,7 @@ O GDD descreve o combate numa cena 3D. O roteiro do MVP pede jogar uma luta o qu
 5. **Poções do protótipo:** 2 Poções Turvas por luta, só para a luta ser jogável. O inventário de verdade é da TASK-007.
 6. **Seletor de depuração** na mesma tela: inimigo, nível e Poder da Bibiana. As teclas 1 a 6 escolhem o inimigo. Ele some quando os atalhos de depuração forem separados por build (TASK-013).
 
-**Pergunta:** o GDD §7 diz que o jogador escolhe o lado antes do lance, mas Cara é sempre sucesso. Se a escolha for só ritual, o que aparece quando o jogador escolhe Coroa e o lance dá sucesso? Até a resposta, a tela não pede o lado e mostra "Cara (sucesso)" ou "Coroa (falha)".
+**Pergunta (respondida no ADR-0014, TASK-015):** o GDD §7 diz que o jogador escolhe o lado antes do lance, mas Cara é sempre sucesso. Se a escolha for só ritual, o que aparece quando o jogador escolhe Coroa e o lance dá sucesso? Resposta: acertar o lado é o sucesso, e a tela pede o lado em todo lance.
 
 ## Alternativas
 

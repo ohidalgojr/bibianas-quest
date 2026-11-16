@@ -35,9 +35,35 @@ func test_events_become_portuguese_lines() -> void:
 	assert_string_contains(lines[0], "A luta começa: Cidadão Infectado, nível 1. Semente 1.")
 	assert_string_contains(" ".join(lines), "Cidadão Infectado prepara:")
 	var coin: CombatEvent = CombatEvent.make(CombatEvent.Type.COIN, Combatant.PLAYER, "heavy", 60, false, 10)
-	assert_eq(session.describe(coin), "Moeda (chance de Cara 60%): Coroa (falha). Maré de azar: +10.")
+	session.coin_call = CoinRules.HEADS
+	assert_eq(session.describe(coin),
+		"Moeda (chance de acertar 60%): você escolheu Cara. Saiu Coroa: errou. Maré de azar: +10.")
 	var hit: CombatEvent = CombatEvent.make(CombatEvent.Type.DAMAGE, Combatant.ENEMY, "attack", 12, true, 30)
 	assert_eq(session.describe(hit), "Cidadão Infectado sofre 12 de dano, crítico!")
+
+
+## ADR-0014: a moeda cai no lado escolhido se o lance dá sucesso e no outro se falha.
+func test_coin_lands_on_called_side_only_on_success() -> void:
+	assert_eq(CombatTexts.landed_side(CoinRules.HEADS, true), CoinRules.HEADS)
+	assert_eq(CombatTexts.landed_side(CoinRules.TAILS, true), CoinRules.TAILS)
+	assert_eq(CombatTexts.landed_side(CoinRules.HEADS, false), CoinRules.TAILS)
+	assert_eq(CombatTexts.landed_side(CoinRules.TAILS, false), CoinRules.HEADS)
+	assert_eq(CombatTexts.coin_result(CoinRules.TAILS, true), "Saiu Coroa: acertou!")
+	assert_eq(CombatTexts.coin_result(CoinRules.TAILS, false), "Saiu Cara: errou.")
+
+
+## ADR-0014: o lado escolhido é só ritual; o núcleo sorteia igual para qualquer lado.
+func test_called_side_does_not_change_the_outcome() -> void:
+	var first: CombatSession = _session("gravedigger", 6, 77)
+	var second: CombatSession = _session("gravedigger", 6, 77)
+	second.coin_call = CoinRules.TAILS
+	for session: CombatSession in [first, second]:
+		var guard: int = 0
+		while not session.is_over() and guard < 300:
+			guard += 1
+			session.attack()
+	assert_eq(first.combat.history.size(), second.combat.history.size())
+	assert_eq(first.combat.player.hp, second.combat.player.hp)
 
 
 ## GDD §7: a consequência mostrada vem das constantes do núcleo.
@@ -46,9 +72,9 @@ func test_coin_intent_shows_real_chance_and_stakes() -> void:
 	var cruel: Dictionary = session.intent_view("shovel")
 	assert_eq(cruel["icon"], "MOEDA")
 	assert_true(cruel["coin"])
-	assert_string_contains(str(cruel["detail"]), "Chance de Cara: %d%%" % session.coin_chance())
-	assert_string_contains(str(cruel["detail"]), "Cara: dano -50%. Coroa: dano +100%")
-	assert_string_contains(str(session.intent_view("grave")["detail"]), "Coroa: dano +150%")
+	assert_string_contains(str(cruel["detail"]), "Chance de acertar: %d%%" % session.coin_chance())
+	assert_string_contains(str(cruel["detail"]), "Acertar: dano -50%. Errar: dano +100%")
+	assert_string_contains(str(session.intent_view("grave")["detail"]), "Errar: dano +150%")
 	var strong: Dictionary = session.intent_view("sweep")
 	assert_eq(strong["icon"], "FORTE")
 	assert_false(strong["coin"])

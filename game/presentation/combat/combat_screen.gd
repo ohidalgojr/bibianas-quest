@@ -7,6 +7,8 @@ extends Control
 signal fight_finished(outcome: int)
 ## Na luta da Descida, o jogador apertou "Continuar" depois do resultado (ADR-0013).
 signal run_fight_done
+## O jogador apertou Cara ou Coroa no lance da moeda (ADR-0014).
+signal coin_called(side: int)
 
 ## Pausa por evento, em segundos, na velocidade 1x.
 const EVENT_DELAY: float = 0.35
@@ -29,6 +31,8 @@ const COLOR_CALM: Color = Color(0.4, 0.42, 0.46)
 var time_scale: float = 1.0
 var data: GameData
 var session: CombatSession
+## Lado usado quando não há como esperar o botão (testes, [member time_scale] = 0).
+var auto_call: int = CoinRules.HEADS
 
 var _busy: bool = false
 var _player_hp: int = 0
@@ -57,6 +61,8 @@ var _player_effects: Label
 var _buttons: Dictionary = {}
 var _coin_overlay: PanelContainer
 var _coin_label: Label
+var _call_row: HBoxContainer
+var _call_buttons: Array[Button] = []
 var _menu: PanelContainer
 var _menu_title: Label
 var _menu_enemies: VBoxContainer
@@ -148,12 +154,14 @@ func _play(events: Array[CombatEvent]) -> void:
 	_refresh_buttons()
 	for event: CombatEvent in events:
 		_apply(event)
+		if event.type == CombatEvent.Type.COIN:
+			# O registro cita o lado escolhido, então só escreve depois da escolha.
+			await _show_coin(event)
+			_push_log(session.describe(event))
+			continue
 		var line: String = session.describe(event)
 		if not line.is_empty():
 			_push_log(line)
-		if event.type == CombatEvent.Type.COIN:
-			await _show_coin(event)
-		elif not line.is_empty():
 			await _wait(EVENT_DELAY)
 	_busy = false
 	_refresh_timeline()
@@ -211,15 +219,32 @@ func _show_intent(move_id: String) -> void:
 		_intent_panel.self_modulate = COLOR_CALM
 
 
-## Lance da moeda (GDD §7): chance primeiro, resultado depois de 1,2 s.
+## Lance da moeda (GDD §7, ADR-0014): o jogador escolhe o lado vendo a chance, a moeda
+## gira por 1,2 s e o resultado mostra o lado em que caiu.
 func _show_coin(event: CombatEvent) -> void:
 	_coin_overlay.visible = true
 	var streak: String = "\nMaré de azar: +%d" % event.extra if event.extra > 0 else ""
-	_coin_label.text = "A moeda gira...\nChance de Cara: %d%%%s" % [event.value, streak]
+	var odds: String = "Chance de acertar: %d%%%s" % [event.value, streak]
+	var called: int = await _ask_call(event.value, odds)
+	session.coin_call = called
+	_coin_label.text = "Você escolheu %s\nA moeda gira...\n%s" % [CombatTexts.side_name(called), odds]
 	await _wait(COIN_DELAY)
-	_coin_label.text = "%s\nChance de Cara: %d%%%s" % [CombatTexts.coin_result(event.flag), event.value, streak]
+	_coin_label.text = "Você escolheu %s\n%s\n%s" % [CombatTexts.side_name(called),
+		CombatTexts.coin_result(called, event.flag), odds]
 	await _wait(EVENT_DELAY * 2.0)
 	_coin_overlay.visible = false
+
+
+## Pede o lado ao jogador e devolve o escolhido. Sem tempo (testes) ou fora da árvore,
+## usa [member auto_call] em vez de esperar o botão.
+func _ask_call(chance: int, odds: String = "") -> int:
+	if time_scale <= 0.0 or not is_inside_tree():
+		return auto_call
+	_coin_label.text = "Escolha o lado da moeda\n%s" % (odds if not odds.is_empty() else "Chance de acertar: %d%%" % chance)
+	_call_row.visible = true
+	var side: int = await coin_called
+	_call_row.visible = false
+	return side
 
 
 func _wait(seconds: float) -> void:
@@ -277,8 +302,8 @@ func _refresh_buttons() -> void:
 		potion.text = session.potion_label()
 	var flee: Button = _buttons["flee"]
 	flee.disabled = not (can_go and session.can_flee())
-	flee.tooltip_text = "Moeda: Cara foge (chance de %d%%)" % session.coin_chance() if session != null else ""
-	(_buttons["skill_0"] as Button).tooltip_text = "Moeda: Cara atordoa (chance de %d%%)" % session.coin_chance() \
+	flee.tooltip_text = "Moeda: acertar o lado foge (chance de %d%%)" % session.coin_chance() if session != null else ""
+	(_buttons["skill_0"] as Button).tooltip_text = "Moeda: acertar o lado atordoa (chance de %d%%)" % session.coin_chance() \
 		if session != null else ""
 
 
@@ -452,11 +477,28 @@ func _build() -> void:
 		_buttons[action] = button
 
 	_coin_overlay = _overlay()
+	var coin_box: VBoxContainer = VBoxContainer.new()
+	coin_box.add_theme_constant_override("separation", 16)
+	coin_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	_coin_overlay.add_child(coin_box)
 	_coin_label = Label.new()
 	_coin_label.add_theme_font_size_override("font_size", 30)
 	_coin_label.add_theme_color_override("font_color", COLOR_COIN)
 	_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_coin_overlay.add_child(_coin_label)
+	_coin_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	coin_box.add_child(_coin_label)
+	_call_row = HBoxContainer.new()
+	_call_row.add_theme_constant_override("separation", 12)
+	_call_row.visible = false
+	coin_box.add_child(_call_row)
+	for side: int in [CoinRules.HEADS, CoinRules.TAILS]:
+		var call_button: Button = Button.new()
+		call_button.text = CombatTexts.side_name(side)
+		call_button.custom_minimum_size = Vector2(0, 80)
+		call_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		call_button.pressed.connect(func() -> void: coin_called.emit(side))
+		_call_row.add_child(call_button)
+		_call_buttons.append(call_button)
 	_coin_overlay.visible = false
 
 	_menu = _overlay()

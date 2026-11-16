@@ -54,4 +54,24 @@ func test_coin_intent_turns_panel_gold() -> void:
 	_screen._show_intent("shovel")
 	assert_eq(_screen._intent_panel.self_modulate, CombatScreen.COLOR_COIN)
 	assert_string_contains(_screen._intent_icon.text, "MOEDA")
-	assert_string_contains(_screen._intent_detail.text, "Chance de Cara")
+	assert_string_contains(_screen._intent_detail.text, "Chance de acertar")
+
+
+## ADR-0014: com tempo normal o lance espera o botão e devolve o lado apertado.
+func test_coin_waits_for_the_player_to_pick_a_side() -> void:
+	_screen.time_scale = 1.0
+	var picked: Array[int] = []
+	var ask: Callable = func() -> void:
+		picked.append(await _screen._ask_call(55))
+	ask.call()
+	assert_true(_screen._call_row.visible, "os botões Cara e Coroa aparecem")
+	assert_true(picked.is_empty(), "sem escolha, a moeda não gira")
+	_screen._call_buttons[1].pressed.emit()
+	assert_eq(picked, [CoinRules.TAILS] as Array[int])
+	assert_false(_screen._call_row.visible)
+
+
+func test_coin_uses_auto_call_without_time() -> void:
+	_screen.auto_call = CoinRules.TAILS
+	var picked: int = await _screen._ask_call(55)
+	assert_eq(picked, CoinRules.TAILS)
