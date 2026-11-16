@@ -1,0 +1,12 @@
+{
+	"format": 1,
+	"combat": [
+		{"id": "shield_bash", "class": "warrior", "name": "Golpe de Escudo", "cost": 6, "effect": "shield_bash", "power": 0.8, "coin": true},
+		{"id": "charge", "class": "warrior", "name": "Investida", "cost": 8, "effect": "charge", "power": 1.5, "coin": false},
+		{"id": "bulwark", "class": "warrior", "name": "Muralha", "cost": 6, "effect": "bulwark", "power": 0.0, "coin": false}
+	],
+	"campfire": [
+		{"id": "sharpen_blade", "class": "warrior", "name": "Afiar Lâmina", "effect": "damage_up", "percent": 15, "combats": 3},
+		{"id": "reinforce_shield", "class": "warrior", "name": "Reforçar Escudo", "effect": "defense_up", "percent": 15, "combats": 3}
+	]
+}

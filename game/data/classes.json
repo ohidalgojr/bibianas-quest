@@ -1,0 +1,15 @@
+{
+	"format": 1,
+	"classes": [
+		{
+			"id": "warrior",
+			"name": "Guerreiro",
+			"stats": {"hp": 130, "mp": 20, "strength": 14, "mind": 5, "defense": 12, "resistance": 6, "speed": 7, "precision": 90, "evasion": 3, "crit": 5, "luck": 0},
+			"passive": "veteran",
+			"skills": ["shield_bash", "charge", "bulwark"],
+			"campfire_skills": ["sharpen_blade", "reinforce_shield"],
+			"starting_weapon": "sword_and_shield",
+			"starting_armor": "old_chainmail"
+		}
+	]
+}

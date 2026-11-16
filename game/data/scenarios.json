@@ -1,0 +1,16 @@
+{
+	"format": 1,
+	"scenarios": [
+		{
+			"id": "abandoned_city",
+			"name": "Cidade Abandonada",
+			"layers": 5,
+			"min_level": 1,
+			"max_level": 6,
+			"common_enemies": ["infected_citizen", "giant_rat", "carrion_crow", "plague_hound"],
+			"elite_enemies": ["rotten_executioner"],
+			"boss": "gravedigger",
+			"weather": ["rain", "fog"]
+		}
+	]
+}

@@ -1,0 +1,79 @@
+{
+	"format": 1,
+	"enemies": [
+		{
+			"id": "infected_citizen", "name": "Cidadão Infectado", "type": "common", "base_level": 1,
+			"stats": {"hp": 48, "strength": 10, "defense": 4, "resistance": 2, "speed": 6, "evasion": 3},
+			"element_mults": {}, "tags": ["diseased"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "attack", "kind": "attack"},
+				{"id": "heavy", "kind": "heavy"},
+				{"id": "attack", "kind": "attack"},
+				{"id": "lunge", "kind": "strong", "power": 1.4}
+			]}]
+		},
+		{
+			"id": "giant_rat", "name": "Rato Grande", "type": "common", "base_level": 1,
+			"stats": {"hp": 36, "strength": 9, "defense": 3, "resistance": 2, "speed": 9, "evasion": 8},
+			"element_mults": {"fire": 1.5}, "tags": ["diseased"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "bite", "kind": "attack"},
+				{"id": "heavy", "kind": "heavy"},
+				{"id": "bite", "kind": "attack"},
+				{"id": "frenzy", "kind": "strong", "power": 1.3}
+			]}]
+		},
+		{
+			"id": "carrion_crow", "name": "Corvo Carniceiro", "type": "common", "base_level": 1,
+			"stats": {"hp": 30, "strength": 8, "defense": 2, "resistance": 4, "speed": 11, "evasion": 14},
+			"element_mults": {"lightning": 1.5}, "tags": [],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "peck", "kind": "attack"},
+				{"id": "dive", "kind": "strong", "power": 1.3},
+				{"id": "peck", "kind": "attack"}
+			]}]
+		},
+		{
+			"id": "plague_hound", "name": "Cão de Peste", "type": "common", "base_level": 1,
+			"stats": {"hp": 42, "strength": 9, "defense": 3, "resistance": 3, "speed": 12, "evasion": 8},
+			"element_mults": {"fire": 1.5}, "tags": ["diseased"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "heavy", "kind": "heavy"},
+				{"id": "bite", "kind": "attack"},
+				{"id": "maul", "kind": "strong", "power": 1.3},
+				{"id": "bite", "kind": "attack"}
+			]}]
+		},
+		{
+			"id": "rotten_executioner", "name": "Carrasco Apodrecido", "type": "elite", "base_level": 2,
+			"stats": {"hp": 95, "strength": 15, "defense": 9, "resistance": 4, "speed": 5, "evasion": 2},
+			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "attack", "kind": "attack"},
+				{"id": "cruel", "kind": "cruel"},
+				{"id": "attack", "kind": "attack"},
+				{"id": "beheading", "kind": "strong", "power": 1.5},
+				{"id": "mend", "kind": "heal", "heal_percent": 15}
+			]}]
+		},
+		{
+			"id": "gravedigger", "name": "O Coveiro", "type": "boss", "base_level": 6,
+			"stats": {"hp": 220, "strength": 15, "defense": 10, "resistance": 8, "speed": 6, "evasion": 3},
+			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
+			"phases": [
+				{"below_hp_percent": 100, "moves": [
+					{"id": "attack", "kind": "attack"},
+					{"id": "shovel", "kind": "cruel"},
+					{"id": "sweep", "kind": "strong", "power": 1.4},
+					{"id": "attack", "kind": "attack"}
+				]},
+				{"below_hp_percent": 50, "moves": [
+					{"id": "grave", "kind": "mortal"},
+					{"id": "shovel", "kind": "cruel"},
+					{"id": "heavy", "kind": "heavy"},
+					{"id": "attack", "kind": "attack"}
+				]}
+			]
+		}
+	]
+}
