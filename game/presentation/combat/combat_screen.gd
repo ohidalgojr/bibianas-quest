@@ -110,6 +110,13 @@ func start_run_fight(run: RunState) -> void:
 	await _play(session.start())
 
 
+## Depuração (TASK-013): vence a luta em andamento na hora.
+func debug_kill() -> void:
+	if _busy or session == null or session.is_over():
+		return
+	await _play(session.combat.debug_kill_enemy())
+
+
 func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 	_menu.visible = false
 	_log.clear()

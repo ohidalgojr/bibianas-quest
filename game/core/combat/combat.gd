@@ -21,6 +21,10 @@ var enemy: Combatant
 var outcome: Outcome = Outcome.ONGOING
 var history: Array[CombatEvent] = []
 
+## Depuração (TASK-013): -1 sorteia normal, 1 força sucesso, 0 força falha na moeda. O
+## sorteio continua acontecendo (os fluxos andam igual); só o resultado muda.
+var forced_coin: int = -1
+
 var _rng: Pcg32
 var _coin_rng: Pcg32
 var _coin: CoinState
@@ -96,6 +100,15 @@ func act(action: Action, skill: CombatSkill = null, item: CombatItem = null) -> 
 				_emit(CombatEvent.Type.FLEE_FAILED, Combatant.PLAYER)
 	_check_end()
 	_advance()
+	return _since(first)
+
+
+## Depuração (TASK-013): derrota o inimigo na hora, pela via normal de vitória.
+func debug_kill_enemy() -> Array[CombatEvent]:
+	var first: int = history.size()
+	if outcome == Outcome.ONGOING:
+		enemy.hp = 0
+		_check_end()
 	return _since(first)
 
 
@@ -302,6 +315,8 @@ func _flip_coin(reason: String) -> bool:
 	var bonus: int = _coin.streak_bonus()
 	var chance: int = CoinRules.chance(player.stats.luck, 0, bonus)
 	var success: bool = _coin_rng.draw_percent(chance)
+	if forced_coin >= 0:
+		success = forced_coin == 1
 	_coin.record(success)
 	_emit(CombatEvent.Type.COIN, Combatant.PLAYER, reason, chance, success, bonus)
 	return success

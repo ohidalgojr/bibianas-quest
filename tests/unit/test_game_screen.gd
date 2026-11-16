@@ -11,6 +11,8 @@ func before_each() -> void:
 	_game.use_thread = false
 	_game.time_scale = 0.0
 	_game.save_enabled = false
+	_game.telemetry_enabled = false
+	_game.debug_enabled = false
 	add_child_autofree(_game)
 
 
@@ -141,3 +143,26 @@ func _play_step(run: RunState) -> void:
 		RunState.Phase.CAMPFIRE:
 			_press(_game, "Descansar")
 			_press(_game, "Seguir")
+
+
+## TASK-013: os atalhos de depuração só agem quando ligados.
+func test_debug_shortcuts_only_work_when_enabled() -> void:
+	_game.new_run(9)
+	_game.debug_give_gold()
+	assert_eq(_game.run.gold, 0, "desligado, nada acontece")
+	_game.debug_enabled = true
+	_game.debug_give_gold()
+	assert_eq(_game.run.gold, 100)
+	_game.debug_cycle_coin()
+	assert_eq(_game._forced_coin, 1)
+	_game.debug_cycle_coin()
+	_game.debug_cycle_coin()
+	assert_eq(_game._forced_coin, -1)
+	var option: MapNode = _game.run.options()[0]
+	option.kind = MapNode.Kind.BATTLE
+	option.enemy_id = "giant_rat"
+	option.level = 1
+	_game.debug_skip_node()
+	assert_eq(_game.run.phase, RunState.Phase.FIGHT)
+	assert_eq(_game.run.combat.outcome, Combat.Outcome.VICTORY, "o nó foi vencido na hora")
+	assert_true(_game._combat._continue.visible, "a tela mostra o resultado")

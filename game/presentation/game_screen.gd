@@ -23,6 +23,11 @@ var runs_played: int = 0
 ## Save em disco (TASK-012, ADR-0017). Os testes desligam ou apontam para uma pasta de teste.
 var save_enabled: bool = true
 var save_dir: String = "user://"
+## Atalhos de depuração (TASK-013, ADR-0018): só em build de desenvolvimento.
+var debug_enabled: bool = OS.is_debug_build()
+## Log local de eventos (TASK-013).
+var telemetry_enabled: bool = true
+var telemetry_dir: String = "user://"
 
 var _thread: Thread
 var _content: Control
@@ -31,6 +36,12 @@ var _combat: CombatScreen
 var _panel: Control
 var _reward_pending: bool = false
 var _seed_counter: int = 0
+var _seed_edit: LineEdit
+var _debug_label: Label
+## -1 moeda normal, 1 força sucesso, 0 força falha (depuração).
+var _forced_coin: int = -1
+var _logged_events: int = 0
+var _telemetry: Telemetry
 
 
 func _ready() -> void:
@@ -43,6 +54,16 @@ func _ready() -> void:
 		var meta: Dictionary = _store().load_meta()
 		echoes = int(meta["echoes"])
 		runs_played = int(meta["runs_played"])
+	_telemetry = Telemetry.new(telemetry_dir)
+	_telemetry.enabled = telemetry_enabled
+	if debug_enabled:
+		_debug_label = Label.new()
+		_debug_label.add_theme_font_size_override("font_size", 12)
+		_debug_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.3))
+		_debug_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_debug_label.z_index = 100
+		add_child(_debug_label)
+		_refresh_debug_label()
 	show_home()
 
 
@@ -69,7 +90,11 @@ func show_home() -> void:
 	box.add_child(_label(_class_text()))
 	if save_enabled and _store().has_run():
 		box.add_child(_button("Continuar Descida", resume_run))
-	box.add_child(_button("Nova Descida", func() -> void: new_run()))
+	if debug_enabled:
+		_seed_edit = LineEdit.new()
+		_seed_edit.placeholder_text = "Semente (depuração; vazio = aleatória)"
+		box.add_child(_seed_edit)
+	box.add_child(_button("Nova Descida", _new_run_from_menu))
 	box.add_child(_button("Luta de teste (depuração)", _show_test_fight))
 
 
@@ -79,6 +104,14 @@ func _class_text() -> String:
 	return "Classe: %s (%s). HP %d, MP %d, FOR %d, DEF %d." % [
 		str(data.classes[CLASS_ID]["name"]), RunState.PLAYER_NAME, stats.max_hp, stats.max_mp, stats.strength,
 		stats.defense]
+
+
+## Nova Descida do menu: em depuração, usa a semente digitada, se houver.
+func _new_run_from_menu() -> void:
+	if debug_enabled and _seed_edit != null and _seed_edit.text.strip_edges().is_valid_int():
+		new_run(_seed_edit.text.strip_edges().to_int())
+	else:
+		new_run()
 
 
 func _store() -> SaveStore:
@@ -101,6 +134,7 @@ func new_run(run_seed: int = -1) -> void:
 	if run_seed < 0:
 		_seed_counter += 1
 		run_seed = int(Time.get_unix_time_from_system()) * 1000 + _seed_counter
+	_logged_events = 0
 	_page("Gerando o mapa...", "Semente %d. Conferindo se há caminho vencível (GDD §5)." % run_seed)
 	if use_thread:
 		_thread = Thread.new()
@@ -116,6 +150,7 @@ func _create_run(run_seed: int) -> RunState:
 
 ## Mostra a tela certa para a fase atual da Descida.
 func _after_action() -> void:
+	_flush_telemetry()
 	match run.phase:
 		RunState.Phase.CHOOSING:
 			# Auto-save a cada nó resolvido, com a Bibiana no mapa (ADR-0017).
@@ -157,10 +192,14 @@ func _show_fight() -> void:
 	_combat.time_scale = time_scale
 	_combat.run_fight_done.connect(_on_fight_done)
 	_set_content(_combat)
+	run.combat.forced_coin = _forced_coin
 	_combat.start_run_fight(run)
 
 
 func _on_fight_done() -> void:
+	if run.combat != null:
+		var node: MapNode = run.current_node()
+		_telemetry.write(Telemetry.fight_lines(run.combat, node.enemy_id, node.level))
 	run.finish_fight()
 	# Depois de uma vitória com loja, a recompensa vem antes dela (TASK-010).
 	_reward_pending = run.phase == RunState.Phase.SHOP
@@ -229,6 +268,68 @@ func _show_test_fight() -> void:
 	screen.data = data
 	screen.time_scale = time_scale
 	_set_content(screen)
+
+
+func _flush_telemetry() -> void:
+	if run == null:
+		return
+	_telemetry.write(Telemetry.run_lines(run, _logged_events))
+	_logged_events = run.history.size()
+
+
+# --- Depuração (TASK-013) ----------------------------------------------------------
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not debug_enabled or not event is InputEventKey or not event.is_pressed() or run == null:
+		return
+	match (event as InputEventKey).keycode:
+		KEY_F1:
+			debug_give_gold()
+		KEY_F2:
+			debug_skip_node()
+		KEY_F3:
+			debug_kill_enemy()
+		KEY_F4:
+			debug_cycle_coin()
+		_:
+			return
+	get_viewport().set_input_as_handled()
+
+
+func debug_give_gold(amount: int = 100) -> void:
+	if debug_enabled and run != null and not run.is_over():
+		run.gold += amount
+
+
+## Pula o nó: escolhe o primeiro destino e, se for luta, vence na hora.
+func debug_skip_node() -> void:
+	if not debug_enabled or run == null or run.phase != RunState.Phase.CHOOSING:
+		return
+	choose_node(run.options()[0].id)
+	if run.phase == RunState.Phase.FIGHT:
+		debug_kill_enemy()
+
+
+func debug_kill_enemy() -> void:
+	if debug_enabled and run != null and run.phase == RunState.Phase.FIGHT and _combat != null:
+		_combat.debug_kill()
+
+
+## Alterna a moeda: normal, sempre sucesso, sempre falha.
+func debug_cycle_coin() -> void:
+	if not debug_enabled:
+		return
+	_forced_coin = {-1: 1, 1: 0, 0: -1}[_forced_coin]
+	if run != null and run.combat != null:
+		run.combat.forced_coin = _forced_coin
+	_refresh_debug_label()
+
+
+func _refresh_debug_label() -> void:
+	if _debug_label == null:
+		return
+	var coin: String = {-1: "normal", 1: "sempre acerta", 0: "sempre erra"}[_forced_coin]
+	_debug_label.text = "DEBUG  F1 +100 ouro  F2 pular nó  F3 matar inimigo  F4 moeda: %s" % coin
 
 
 # --- Montagem ------------------------------------------------------------------------

@@ -103,6 +103,8 @@ func test_game_screen_autosaves_resumes_and_keeps_echoes() -> void:
 	game.use_thread = false
 	game.time_scale = 0.0
 	game.save_dir = DIR
+	game.telemetry_enabled = false
+	game.debug_enabled = false
 	add_child_autofree(game)
 	game.new_run(7)
 	assert_true(_store.has_run(), "o mapa inicial já grava")
@@ -117,6 +119,8 @@ func test_game_screen_autosaves_resumes_and_keeps_echoes() -> void:
 	second.use_thread = false
 	second.time_scale = 0.0
 	second.save_dir = DIR
+	second.telemetry_enabled = false
+	second.debug_enabled = false
 	add_child_autofree(second)
 	second.resume_run()
 	assert_not_null(second.run)
