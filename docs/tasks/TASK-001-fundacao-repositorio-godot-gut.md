@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Em verificação: suíte verde (13/13, Godot 4.7.2, 2026-11-16); faltam F5 em retrato, rodada automática do observador e o commit fechado |
+| Status | Concluída em 2026-11-16 (suíte 13/13 verde, F5 em retrato, observador em laço, commit amendado pelo Orlando); falta só a revisão cruzada do Gemini |
 | Aberta em | 2026-11-15 |
 | Fase | 0. Fundação (GDD §22) |
 | GDD | 20, 21 |
@@ -30,8 +30,8 @@ Deixar o repositório pronto para as tarefas de núcleo: estrutura de pastas do 
 - [x] Observador `tools/watch_tests.ps1` que roda a suíte a cada mudança e grava `reports/last_run.status` e `reports/last_run.txt` (ADR-0005), para o agente rodar os testes sem colar saída.
 - [x] Suíte verde em headless no Godot 4.7: 13/13 em 2026-11-16 (Godot 4.7.2, GUT 9.7.1; ver Verificação).
 - [x] `tools\watch_tests.ps1 -Once` gera `reports\last_run.txt` com o resultado da suíte (exit 0 em 2026-11-16).
-- [ ] O observador, sem `-Once`, roda sozinho depois de uma mudança em `game/` ou `tests/` (pendente: será visto na primeira gravação da TASK-002).
-- [ ] O projeto abre no editor e a janela aparece em retrato ao apertar F5 (pendente: ver Verificação).
+- [x] O observador, sem `-Once`, roda sozinho depois de uma mudança em `game/` ou `tests/` (visto em 2026-11-16 10:16: `reason=arquivos mudaram`, exit 0).
+- [x] O projeto abre no editor e a janela aparece em retrato ao apertar F5 (Orlando, 2026-11-16: janela 540×960 com fundo escuro e o texto "Bibiana's Quest / regras v0").
 
 ## Arquivos afetados
 

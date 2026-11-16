@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Proposto (aguarda a primeira execução no PC do Orlando) |
+| Status | Aceito (2026-11-16: `-Once` e rodada automática verdes no PC do Orlando) |
 | Data | 2026-11-15 |
 | Tarefa | TASK-001 |
 | GDD | 21 (etapa 5) |
@@ -30,4 +30,4 @@ As tarefas 002 a 005 são lógica pura com milhares de sementes, e o agente que 
 
 - **O observador executa, sem confirmação, o GDScript que o agente grava**, com as permissões do usuário do Windows. A proteção é humana: revisar `git diff` depois de cada tarefa, a revisão cruzada (etapa 4) e fechar a janela para parar. O teste de pureza só vigia `game/core/`, não `tests/`.
 - Enquanto a janela estiver fechada, o agente não tem resultado novo e deve pedir ao Orlando que a abra, nunca presumir que está verde.
-- O script não foi executado por nenhum PowerShell real quando foi escrito. Em 2026-11-16 o `-Once` rodou no PC do Orlando e a suíte saiu verde (exit 0, 13/13); falta ver o laço sem `-Once` reagir a uma gravação. O Status passa a Aceito quando `-Once` e uma rodada automática funcionarem no PC do Orlando.
+- O script não foi executado por nenhum PowerShell real quando foi escrito. Em 2026-11-16 o `-Once` rodou no PC do Orlando e a suíte saiu verde (exit 0, 13/13); o laço sem `-Once` também reagiu sozinho a uma mudança de arquivos (10:16, exit 0).
