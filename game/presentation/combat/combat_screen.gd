@@ -276,14 +276,14 @@ func _show_intent(move_id: String) -> void:
 ## gira por 1,2 s e o resultado mostra o lado em que caiu.
 func _show_coin(event: CombatEvent) -> void:
 	_coin_overlay.visible = true
-	var streak: String = "\nMaré de azar: +%d" % event.extra if event.extra > 0 else ""
-	var odds: String = "Chance de acertar: %d%%%s" % [event.value, streak]
+	var odds: String = "Moeda da Sorte: se errar, rejoga!" if session.is_lucky_armed() else ""
 	var called: int = await _ask_call(event.value, odds)
 	session.coin_call = called
 	_coin_label.text = "Você escolheu %s\nA moeda gira...\n%s" % [CombatTexts.side_name(called), odds]
 	await _wait(COIN_DELAY)
-	_coin_label.text = "Você escolheu %s\n%s\n%s" % [CombatTexts.side_name(called),
-		CombatTexts.coin_result(called, event.flag), odds]
+	var again: String = "\nA Moeda da Sorte rejogou o lance!" if event.extra == 1 else ""
+	_coin_label.text = "Você escolheu %s\n%s%s" % [CombatTexts.side_name(called),
+		CombatTexts.coin_result(called, event.flag), again]
 	await _wait(EVENT_DELAY * 2.0)
 	_coin_overlay.visible = false
 
@@ -293,7 +293,7 @@ func _show_coin(event: CombatEvent) -> void:
 func _ask_call(chance: int, odds: String = "") -> int:
 	if time_scale <= 0.0 or not is_inside_tree():
 		return auto_call
-	_coin_label.text = "Escolha o lado da moeda\n%s" % (odds if not odds.is_empty() else "Chance de acertar: %d%%" % chance)
+	_coin_label.text = "Escolha o lado da moeda\n%s" % odds
 	_call_row.visible = true
 	var side: int = await coin_called
 	_call_row.visible = false
@@ -355,9 +355,12 @@ func _refresh_buttons() -> void:
 		potion.text = session.potion_label()
 	var flee: Button = _buttons["flee"]
 	flee.disabled = not (can_go and session.can_flee())
-	flee.tooltip_text = "Moeda: acertar o lado foge (chance de %d%%)" % session.coin_chance() if session != null else ""
-	(_buttons["skill_0"] as Button).tooltip_text = "Moeda: acertar o lado atordoa (chance de %d%%)" % session.coin_chance() \
-		if session != null else ""
+	flee.tooltip_text = "Moeda: acertar o lado foge"
+	(_buttons["skill_0"] as Button).tooltip_text = "Moeda: acertar o lado atordoa"
+	var luck: Button = _buttons["luck"]
+	var coins: int = session.lucky_coins() if session != null else 0
+	luck.disabled = not (can_go and coins > 0)
+	luck.text = "Moeda da Sorte (%d)%s" % [coins, "  ARMADA" if session != null and session.is_lucky_armed() else ""]
 
 
 func _push_log(line: String) -> void:
@@ -516,14 +519,17 @@ func _build() -> void:
 	grid.add_theme_constant_override("v_separation", 8)
 	column.add_child(grid)
 	for entry: Array in [["attack", "Atacar"], ["defend", "Defender"], ["skill_0", "Skill"], ["skill_1", "Skill"],
-			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["flee", "Fugir"], ["speed", "Velocidade 1x"]]:
+			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["flee", "Fugir"], ["luck", "Moeda da Sorte (0)"],
+			["speed", "Velocidade 1x"]]:
 		var button: Button = Button.new()
 		button.text = str(entry[1])
-		button.custom_minimum_size = Vector2(0, 64)
+		button.custom_minimum_size = Vector2(0, 56)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var action: String = str(entry[0])
 		if action == "speed":
 			button.pressed.connect(_toggle_speed)
+		elif action == "luck":
+			button.pressed.connect(_toggle_lucky)
 		else:
 			button.pressed.connect(perform.bind(action))
 		grid.add_child(button)
@@ -604,6 +610,13 @@ func _open_result(title: String) -> void:
 		control.visible = false
 	_continue.visible = true
 	_menu.visible = true
+
+
+## Arma ou desarma a Moeda da Sorte para o próximo lance errado (ADR-0026).
+func _toggle_lucky() -> void:
+	if session != null and not _busy and session.can_act():
+		session.toggle_lucky_coin()
+		_refresh_buttons()
 
 
 func _toggle_speed() -> void:

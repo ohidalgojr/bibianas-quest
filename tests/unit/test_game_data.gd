@@ -58,7 +58,7 @@ func test_prices_follow_gdd_section_15() -> void:
 	for item_id: String in _data.items:
 		var item: Dictionary = _data.items[item_id]
 		var price: int = int(item["price"])
-		if item["slot"] == "consumable":
+		if item["slot"] == "consumable" and price > 0:
 			assert_between(price, 20, 60, item_id)
 		elif item["rarity"] == "common":
 			assert_between(price, 60, 150, item_id)

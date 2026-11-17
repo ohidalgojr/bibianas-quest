@@ -86,7 +86,7 @@ static func fight_lines(combat: Combat, enemy_id: String, level: int) -> Array[D
 				last_coin_failed = not event.flag
 				last_coin_reason = event.label
 				lines.append({"type": "coin", "reason": event.label, "chance": event.value, "success": event.flag,
-					"streak_bonus": event.extra, "enemy": enemy_id})
+					"rerolled": event.extra == 1, "enemy": enemy_id})
 			CombatEvent.Type.DAMAGE:
 				if event.side == Combatant.PLAYER and event.extra <= 0:
 					fatal_label = event.label

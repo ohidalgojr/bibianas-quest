@@ -54,7 +54,7 @@ func test_coin_intent_turns_panel_gold() -> void:
 	_screen._show_intent("shovel")
 	assert_eq(_screen._intent_panel.self_modulate, CombatScreen.COLOR_COIN)
 	assert_string_contains(_screen._intent_icon.text, "MOEDA")
-	assert_string_contains(_screen._intent_detail.text, "Chance de acertar")
+	assert_string_contains(_screen._intent_detail.text, "Escolha Cara ou Coroa")
 
 
 ## ADR-0014: com tempo normal o lance espera o botão e devolve o lado apertado.

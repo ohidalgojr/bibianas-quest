@@ -44,6 +44,10 @@ func reward_view() -> Dictionary:
 			title = "Subiu de nível! %d → %d" % [level_before, run.level()]
 		lines.append_array(stat_changes(reward["before"], reward["after"]))
 	lines.append("Ouro +%d (total %d)." % [gold, run.gold])
+	if bool(reward.get("bad_luck", false)):
+		lines.append("Maré de azar: o achado veio melhor.")
+	if bool(reward.get("lucky_coin", false)):
+		lines.append("Encontrou: Moeda da Sorte.")
 	var consumable: String = str(reward.get("consumable", ""))
 	if not consumable.is_empty():
 		lines.append("Encontrou: %s." % str(run.data.items[consumable]["name"]))

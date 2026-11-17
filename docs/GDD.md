@@ -233,16 +233,12 @@ A moeda é a assinatura do jogo: decide momentos de risco, é sempre avisada ant
 
 ### Regras
 
-```latex
-\text{Chance de acerto}\,(\%) = \text{clamp}(50 + SORTE + \text{mods},\; 15,\; 85)
-```
+**A chance do lance é sempre 50%** e não é exibida: a moeda é só cara ou coroa (ADR-0025, ADR-0026).
 
 - O jogador **escolhe Cara ou Coroa antes de cada lance**, nunca automático. **Acertar o lado é o sucesso** e errar é a falha: a moeda cai no lado escolhido quando o lance dá sucesso e no outro quando dá falha. A escolha é ritual; a chance vem só da fórmula (ADR-0014).
-- SORTE vale +1 ponto percentual por ponto, até +15. Clima, doenças, maldições e itens somam ou subtraem pontos ("mods").
-- A chance real aparece em um tooltip no momento do lance. Sem números escondidos.
-- **Maré de azar:** depois de 3 lances perdidos seguidos, o próximo ganha +10 pontos e o jogo avisa na tela.
-- **Trapaça:** após o aviso e antes do resultado, o jogador pode somar pontos assistindo a um anúncio (+20) ou gastando uma Moeda Viciada (+35). O teto com trapaça é 90%, nunca 100%. No máximo 1 trapaça por combate e 3 por Descida via anúncio.
-- A Moeda Viciada também dropa no jogo (cerca de 1 por cenário, valor a calibrar). Comprar é conveniência, não requisito.
+- **SORTE não mexe na moeda.** Ela influencia o resto do jogo: +1 ponto na chance de equipamento por ponto de SORTE (até +15), raridade dos drops deslocada para o raro, mais ouro nos baús e mais chance de Moeda da Sorte. Inimigos mais difíceis e emboscadas também serão influenciados pela sorte (TASK-025).
+- **Maré de azar:** depois de 3 lances perdidos seguidos, a próxima vitória com drop garante o equipamento com raridade melhor, e a maré zera. É o seguro contra o azar da moeda.
+- **Moeda da Sorte (re-jogada):** item raro, fora da loja, que cai de baús, elites e chefes. O jogador a arma antes do lance; no primeiro lance que cair errado, ele é rejogado uma vez e a moeda é gasta. Nada de trapaça por anúncio nem por item: a chance fica em 50%.
 - Animação de cerca de 1,2 s com som de tique, câmera lenta e vibração. É o momento de maior tensão, então merece polimento.
 
 ### Onde a moeda aparece
@@ -447,8 +443,7 @@ Exemplos de malditos: Anel do Cobrador (+30% de dano, mas perde 5 de ouro por tu
 | Bandagem, Antídoto | Cura sangramento, veneno |
 | Água Benta, Garrafa Incendiária | Dano Sagrado, dano de Fogo |
 | Pó Cego | Debuff de PRE no inimigo |
-| Moeda da Sorte | Uma re-jogada de moeda |
-| Moeda Viciada | Trapaça de +35 pontos na moeda (seção 7) |
+| Moeda da Sorte | Uma re-jogada de moeda, armada antes do lance. Drop raro de baú, elite e chefe; não vende na loja |
 | Lanterna | +1 camada de visão no mapa |
 | Incenso de Cinzas | Afasta um roaming boss por 3 nós (seção 13) |
 | Chave | Abre baús trancados sem moeda |
@@ -684,7 +679,7 @@ Intersticiais e banners ficam fora, porque quebram a tensão do jogo. Dados de m
 | Ponto | Oferta | Limite proposto |
 | --- | --- | --- |
 | Tela de morte | Reviver na mesma batalha com 50% de HP | 1 por cenário |
-| Moeda (seção 7) | Trapaça: +20 pontos de chance | 1 por combate, 3 por Descida |
+| Moeda (seção 7) | (sem oferta: a moeda é 50% fixo; o que o anúncio faz aqui é decisão de monetização futura) | n/a |
 | Baú | Dobrar o ouro do baú | Sem limite fixo por Descida |
 | Loja | Atualizar o estoque de graça | 1 por cenário |
 | Santuário | Bônus diário pequeno (fragmentos de forja) | 1 por dia |
@@ -695,10 +690,10 @@ Boas práticas observadas na indústria: a Kongregate relata como referência ce
 
 | Produto | O que é | Regra de justiça |
 | --- | --- | --- |
-| Pacote de Moedas Viciadas | Itens consumíveis que dão +35 pontos em um lance | Teto de 90% e 1 trapaça por combate; o item também dropa no jogo |
+| Pacote de Moedas da Sorte | Re-jogadas da moeda | A definir: a Moeda da Sorte é drop raro (ADR-0026); vender re-jogada precisa de decisão e de limite |
 | Incenso de Cinzas | Afasta um roaming boss por 3 nós | Teto de 2 usos por Descida |
 | Cinzas Refinadas | Cobre até metade dos fragmentos de forja | Nunca dá item que não possa ser feito sem pagar |
-| Remover anúncios | Tira a oferta de anúncio e substitui por 1 trapaça grátis por Descida | Não remove nenhuma regra de risco |
+| Remover anúncios | Tira a oferta de anúncio e substitui por 1 Moeda da Sorte grátis por Descida | Não remove nenhuma regra de risco |
 | Cosméticos | Penteados, esquema de cores de roupas, visual do tabuleiro | Sem efeito em jogo |
 | Pacote inicial | Alguns consumíveis e cosméticos | Compra única |
 
@@ -896,7 +891,7 @@ A comunicação do núcleo para a apresentação usa eventos (por exemplo, "Dano
 
 - Quatro fluxos de sorteio com sementes separadas: mapa, combate, loot e moeda.
 - A mesma semente e as mesmas escolhas reproduzem a mesma Descida. Isso permite reproduzir bugs, testar balanceamento e fazer a Descida diária no futuro.
-- O lance da moeda usa o fluxo de moeda, e a trapaça só altera a chance antes do sorteio, nunca o resultado depois.
+- O lance da moeda usa o fluxo de moeda, com chance fixa de 50%; a Moeda da Sorte só rejoga um lance errado, dentro do próprio lance.
 
 ### Entidades principais
 
@@ -1056,7 +1051,7 @@ Os maiores riscos são escopo, consistência da arte feita por IA e frustração
 | Dificuldade faz o jogador desistir | Média | Alto | Cenário 1 fácil, mapa sempre vencível, modo mais leve opcional |
 | Regulação (ECA Digital, lojas) | Média | Alto | Sem loot boxes; classificação etária adequada; revisão jurídica antes do soft launch |
 | Licenças de assets (IA e kits abertos) | Média | Alto | Registro por asset (ferramenta ou pacote, data, plano, link); preferir modelos com licença clara; conferir a licença de cada pacote CC0 no download |
-| Percepção de pay-to-win | Média | Médio | Teto de trapaça, itens pagos também dropam, nada exclusivo de pagamento |
+| Percepção de pay-to-win | Média | Médio | Moeda 50% fixa, itens pagos também dropam, nada exclusivo de pagamento |
 | Cópia involuntária de jogos de referência | Baixa | Alto | Prompts sem nomes; revisão de originalidade na etapa 6 |
 | Bugs de geração de mapa | Média | Médio | Teste de propriedade com milhares de sementes; sementes salvas em cada relatório de bug |
 | Esgotamento do autor | Média | Alto | Tarefas pequenas, pipeline automático, marcos curtos com entregas visíveis |
@@ -1129,7 +1124,7 @@ Além dos pontos da seção 16, estas ofertas aparecem em momentos de pausa e d�
 
 - **Peregrino sem Anúncios (compra única):** some qualquer oferta de anúncio e cada uma vira 1 uso gratuito com os mesmos limites. Não dá poder novo, só tira o atrito.
 - **Momento da oferta:** depois da primeira Descida concluída ou de cerca de 10 anúncios assistidos; aparece uma vez, pode ser dispensada e só volta após 14 dias.
-- **Pacote do Peregrino:** remover anúncios, Moedas Viciadas e um cosmético. Pacotes iniciais que removem anúncios e entregam utilidade real reduzem o arrependimento de compra e o tempo até a primeira compra ([fonte](https://mobidictum.com/loyalty-design-long-term-growth-mobile-games/)). O preço fica para o soft launch.
+- **Pacote do Peregrino:** remover anúncios, Moedas da Sorte e um cosmético. Pacotes iniciais que removem anúncios e entregam utilidade real reduzem o arrependimento de compra e o tempo até a primeira compra ([fonte](https://mobidictum.com/loyalty-design-long-term-growth-mobile-games/)). O preço fica para o soft launch.
 - Quem nunca paga nem assiste anúncios continua com o jogo completo.
 
 ### O que fica de fora de propósito

@@ -34,10 +34,10 @@ func test_events_become_portuguese_lines() -> void:
 			lines.append(line)
 	assert_string_contains(lines[0], "A luta começa: Cidadão Infectado, nível 1. Semente 1.")
 	assert_string_contains(" ".join(lines), "Cidadão Infectado prepara:")
-	var coin: CombatEvent = CombatEvent.make(CombatEvent.Type.COIN, Combatant.PLAYER, "heavy", 60, false, 10)
+	var coin: CombatEvent = CombatEvent.make(CombatEvent.Type.COIN, Combatant.PLAYER, "heavy", 50, false, 1)
 	session.coin_call = CoinRules.HEADS
 	assert_eq(session.describe(coin),
-		"Moeda (chance de acertar 60%): você escolheu Cara. Saiu Coroa: errou. Maré de azar: +10.")
+		"Moeda: você escolheu Cara. Saiu Coroa: errou. A Moeda da Sorte rejogou o lance.")
 	var hit: CombatEvent = CombatEvent.make(CombatEvent.Type.DAMAGE, Combatant.ENEMY, "attack", 12, true, 30)
 	assert_eq(session.describe(hit), "Cidadão Infectado sofre 12 de dano, crítico!")
 
@@ -72,7 +72,8 @@ func test_coin_intent_shows_real_chance_and_stakes() -> void:
 	var cruel: Dictionary = session.intent_view("shovel")
 	assert_eq(cruel["icon"], "MOEDA")
 	assert_true(cruel["coin"])
-	assert_string_contains(str(cruel["detail"]), "Chance de acertar: %d%%" % session.coin_chance())
+	assert_string_contains(str(cruel["detail"]), "Escolha Cara ou Coroa")
+	assert_false(str(cruel["detail"]).contains("chance"), "a moeda não mostra chance")
 	assert_string_contains(str(cruel["detail"]), "Acertar: dano -50%. Errar: dano +100%")
 	assert_string_contains(str(session.intent_view("grave")["detail"]), "Errar: dano +150%")
 	var strong: Dictionary = session.intent_view("sweep")

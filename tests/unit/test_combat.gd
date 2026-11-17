@@ -226,9 +226,8 @@ func test_boss_enters_final_phase_at_half_life() -> void:
 	assert_eq(_combat(2, healthy).enemy.phase_index, 0)
 
 
-func test_coin_tooltip_shows_the_real_chance() -> void:
-	var combat: Combat = _combat(1, CombatFixtures.grunt())
-	assert_eq(combat.coin_chance(), 50)
+func test_coin_chance_is_fixed_at_fifty() -> void:
+	assert_eq(CoinRules.chance(), 50)
 
 
 func test_same_seed_and_choices_tell_the_same_story() -> void:

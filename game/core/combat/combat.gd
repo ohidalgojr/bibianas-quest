@@ -27,6 +27,10 @@ var history: Array[CombatEvent] = []
 ## Depuração (TASK-013): -1 sorteia normal, 1 força sucesso, 0 força falha na moeda. O
 ## sorteio continua acontecendo (os fluxos andam igual); só o resultado muda.
 var forced_coin: int = -1
+## Moedas da Sorte disponíveis (a Descida passa o que a Bibiana carrega) e se estão armadas
+## para o próximo lance errado (ADR-0026).
+var lucky_coins: int = 0
+var _reroll_armed: bool = false
 
 var _rng: Pcg32
 var _coin_rng: Pcg32
@@ -117,9 +121,21 @@ func debug_kill_enemy() -> Array[CombatEvent]:
 	return _since(first)
 
 
-## Chance da moeda que o jogo mostra no tooltip agora (GDD §7: sem números escondidos).
-func coin_chance() -> int:
-	return CoinRules.chance(player.stats.luck, 0, _coin.streak_bonus())
+## Moedas da Sorte que ainda podem ser usadas nesta luta (ADR-0026).
+func lucky_coins_left() -> int:
+	return lucky_coins
+
+
+## Arma a Moeda da Sorte: no próximo lance que cair errado, ele é rejogado uma vez.
+func arm_reroll(on: bool) -> bool:
+	if on and lucky_coins <= 0:
+		return false
+	_reroll_armed = on
+	return true
+
+
+func is_reroll_armed() -> bool:
+	return _reroll_armed
 
 
 ## Próximos [param count] turnos, como [constant Combatant.PLAYER] ou [constant Combatant.ENEMY]: a linha do
@@ -356,13 +372,17 @@ func _strike(attacker: Combatant, defender: Combatant, power: float, element: Co
 
 
 func _flip_coin(reason: String) -> bool:
-	var bonus: int = _coin.streak_bonus()
-	var chance: int = CoinRules.chance(player.stats.luck, 0, bonus)
-	var success: bool = _coin_rng.draw_percent(chance)
+	var success: bool = _coin_rng.draw_percent(CoinRules.chance())
+	var rerolled: int = 0
+	if not success and _reroll_armed and lucky_coins > 0:
+		lucky_coins -= 1
+		_reroll_armed = false
+		rerolled = 1
+		success = _coin_rng.draw_percent(CoinRules.chance())
 	if forced_coin >= 0:
 		success = forced_coin == 1
 	_coin.record(success)
-	_emit(CombatEvent.Type.COIN, Combatant.PLAYER, reason, chance, success, bonus)
+	_emit(CombatEvent.Type.COIN, Combatant.PLAYER, reason, CoinRules.chance(), success, rerolled)
 	return success
 
 

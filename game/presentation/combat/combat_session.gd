@@ -144,8 +144,17 @@ func timeline(count: int) -> Array[int]:
 	return combat.preview_turn_order(count)
 
 
-func coin_chance() -> int:
-	return combat.coin_chance()
+## Moedas da Sorte que ainda dá para usar na luta, e se estão armadas (ADR-0026).
+func lucky_coins() -> int:
+	return combat.lucky_coins_left()
+
+
+func is_lucky_armed() -> bool:
+	return combat.is_reroll_armed()
+
+
+func toggle_lucky_coin() -> bool:
+	return combat.arm_reroll(not combat.is_reroll_armed())
 
 
 func move_kind(move_id: String) -> EnemyMove.Kind:
@@ -166,7 +175,7 @@ func intent_view(move_id: String) -> Dictionary:
 		"detail": "",
 	}
 	if move.is_coin():
-		view["detail"] = "Escolha Cara ou Coroa. Chance de acertar: %d%%. %s" % [coin_chance(), CombatTexts.coin_stakes(kind)]
+		view["detail"] = "Escolha Cara ou Coroa. %s" % CombatTexts.coin_stakes(kind)
 	elif kind == EnemyMove.Kind.DEBUFF:
 		view["detail"] = "Se acertar: %s com %d%% de chance (%d%% se você Defender)." % [
 			CombatTexts.effect_label(move.effect), move.effect_chance,
@@ -220,10 +229,10 @@ func describe(event: CombatEvent) -> String:
 				parts.append("%d de MP" % event.extra)
 			return "%s recupera %s." % [who, " e ".join(parts)]
 		CombatEvent.Type.COIN:
-			var coin_line: String = "Moeda (chance de acertar %d%%): você escolheu %s. %s" % [
-				event.value, CombatTexts.side_name(coin_call), CombatTexts.coin_result(coin_call, event.flag)]
-			if event.extra > 0:
-				coin_line += " Maré de azar: +%d." % event.extra
+			var coin_line: String = "Moeda: você escolheu %s. %s" % [
+				CombatTexts.side_name(coin_call), CombatTexts.coin_result(coin_call, event.flag)]
+			if event.extra == 1:
+				coin_line += " A Moeda da Sorte rejogou o lance."
 			return coin_line
 		CombatEvent.Type.EFFECT_ON:
 			return "%s: %s." % [who, CombatTexts.effect_name(event.label)]

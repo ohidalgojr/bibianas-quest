@@ -56,6 +56,19 @@ const DROP_RARITY_WEIGHTS: Dictionary = {
 	"common": {"worn": 30, "common": 55, "uncommon": 15},
 	"elite": {"common": 30, "uncommon": 45, "rare": 25},
 }
+## SORTE e Maré de azar nos drops (ADR-0026): +1 ponto na chance de equipamento por ponto
+## de SORTE (teto +15); por ponto, 2 pontos de peso saem da raridade mais baixa para a mais
+## alta; a Maré de azar garante o drop e move mais 10 pontos de peso.
+const LUCK_DROP_PERCENT_PER_POINT: int = 1
+const LUCK_DROP_CAP: int = 15
+const LUCK_RARITY_SHIFT_PER_POINT: int = 2
+const BAD_LUCK_RARITY_SHIFT: int = 10
+## Moeda da Sorte: chance em % de cair de baú e de elite, mais SORTE (ADR-0026); o chefe sempre solta.
+const LUCKY_COIN_ID: String = "lucky_coin"
+const LUCKY_COIN_CHEST_PERCENT: int = 6
+const LUCKY_COIN_ELITE_PERCENT: int = 8
+## SORTE no ouro de baú: +3% por ponto.
+const LUCK_CHEST_GOLD_PERCENT: int = 3
 ## GDD §15: venda de itens paga 40% do valor.
 const SELL_PERCENT: int = 40
 
@@ -70,8 +83,11 @@ static func echoes(nodes_cleared: int, bosses_defeated: int) -> int:
 
 
 ## Equipamento cai? Só inimigos comuns e elites (chefes dão Alma, fora do protótipo).
-static func equipment_drops(enemy_type: String, loot: Pcg32) -> bool:
-	return DROP_EQUIPMENT_PERCENT.has(enemy_type) and loot.draw_percent(int(DROP_EQUIPMENT_PERCENT[enemy_type]))
+static func equipment_drops(enemy_type: String, loot: Pcg32, luck: int = 0) -> bool:
+	if not DROP_EQUIPMENT_PERCENT.has(enemy_type):
+		return false
+	var bonus: int = clampi(luck * LUCK_DROP_PERCENT_PER_POINT, 0, LUCK_DROP_CAP)
+	return loot.draw_percent(int(DROP_EQUIPMENT_PERCENT[enemy_type]) + bonus)
 
 
 static func consumable_drops(enemy_type: String, loot: Pcg32) -> bool:
@@ -79,8 +95,14 @@ static func consumable_drops(enemy_type: String, loot: Pcg32) -> bool:
 
 
 ## Raridade sorteada pelos pesos do tipo de inimigo.
-static func drop_rarity(enemy_type: String, loot: Pcg32) -> String:
-	var weights: Dictionary = DROP_RARITY_WEIGHTS[enemy_type]
+static func drop_rarity(enemy_type: String, loot: Pcg32, luck: int = 0, extra_shift: int = 0) -> String:
+	var weights: Dictionary = DROP_RARITY_WEIGHTS[enemy_type].duplicate()
+	var rarities: Array = weights.keys()
+	var lowest: String = str(rarities[0])
+	var highest: String = str(rarities[rarities.size() - 1])
+	var shift: int = mini(maxi(luck, 0) * LUCK_RARITY_SHIFT_PER_POINT + extra_shift, int(weights[lowest]))
+	weights[lowest] = int(weights[lowest]) - shift
+	weights[highest] = int(weights[highest]) + shift
 	var total: int = 0
 	for rarity: String in weights:
 		total += int(weights[rarity])
@@ -120,9 +142,10 @@ static func gold_for(level: int, enemy_type: String, variance: float) -> int:
 
 
 ## Ouro de baú: o de uma batalha comum do nível, vezes 1 a 3 (ADR-0011).
-static func chest_gold(level: int, loot: Pcg32) -> int:
+static func chest_gold(level: int, loot: Pcg32, luck: int = 0) -> int:
 	var base: int = gold_drop(level, "common", loot)
-	return base * loot.draw_int(CHEST_MIN_TIMES, CHEST_MAX_TIMES)
+	var gold: int = base * loot.draw_int(CHEST_MIN_TIMES, CHEST_MAX_TIMES)
+	return roundi(gold * (100 + maxi(luck, 0) * LUCK_CHEST_GOLD_PERCENT) / 100.0)
 
 
 ## Nível dos inimigos de uma camada (1 a N), interpolado entre o mínimo e o máximo do

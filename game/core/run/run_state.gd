@@ -225,7 +225,8 @@ func choose_node(node_id: int) -> bool:
 	elif chosen.kind == MapNode.Kind.CHEST:
 		var level: int = RunRules.layer_level(chosen.layer, map.layer_count,
 			int(scenario()["min_level"]), int(scenario()["max_level"]))
-		_gain_gold(RunRules.chest_gold(level, streams.loot()), "chest")
+		_gain_gold(RunRules.chest_gold(level, streams.loot(), player_stats().luck), "chest")
+		_roll_lucky_coin(RunRules.LUCKY_COIN_CHEST_PERCENT)
 		nodes_cleared += 1
 	elif chosen.kind == MapNode.Kind.BONFIRE:
 		embers = RunRules.EMBERS
@@ -294,6 +295,7 @@ func _begin_fight(node: MapNode) -> void:
 		if int(buffs[skill_id]) <= 0:
 			buffs.erase(skill_id)
 	combat = Combat.new(unit, data.make_enemy(node.enemy_id, node.level), streams, coin)
+	combat.lucky_coins = consumable_count(RunRules.LUCKY_COIN_ID)
 	phase = Phase.FIGHT
 	_emit(RunEvent.Type.FIGHT_STARTED, node.enemy_id, node.level)
 	combat.start()
@@ -304,6 +306,9 @@ func _used_in_fight(item_id: String) -> int:
 		return 0
 	var used: int = 0
 	for event: CombatEvent in combat.history:
+		# Moeda da Sorte gasta: o lance foi rejogado (ADR-0026).
+		if item_id == RunRules.LUCKY_COIN_ID and event.type == CombatEvent.Type.COIN and event.extra == 1:
+			used += 1
 		if event.type == CombatEvent.Type.ACTION and event.side == Combatant.PLAYER and event.label == item_id:
 			used += 1
 	return used
@@ -433,10 +438,17 @@ func _roll_drops(enemy_type: String) -> void:
 	last_reward["drop"] = ""
 	last_reward["consumable"] = ""
 	if enemy_type == "boss":
+		if total_consumables() < RunRules.MAX_CONSUMABLES:
+			_grant_lucky_coin()
 		return
 	var loot: Pcg32 = streams.loot()
-	if RunRules.equipment_drops(enemy_type, loot):
-		var rarity: String = RunRules.drop_rarity(enemy_type, loot)
+	var luck: int = player_stats().luck
+	var bad_luck: bool = coin.bad_luck()
+	if bad_luck or RunRules.equipment_drops(enemy_type, loot, luck):
+		var rarity: String = RunRules.drop_rarity(enemy_type, loot, luck, RunRules.BAD_LUCK_RARITY_SHIFT if bad_luck else 0)
+		if bad_luck:
+			coin.losses_in_row = 0
+			last_reward["bad_luck"] = true
 		var pool: Array[String] = _drop_pool(rarity, false)
 		if pool.is_empty():
 			pool = _drop_pool("common", false)
@@ -448,7 +460,23 @@ func _roll_drops(enemy_type: String) -> void:
 		consumables[found] = consumable_count(found) + 1
 		_emit(RunEvent.Type.ITEM_GAINED, found, 1)
 		last_reward["consumable"] = found
+	if enemy_type == "elite":
+		_roll_lucky_coin(RunRules.LUCKY_COIN_ELITE_PERCENT)
 	last_reward["drop"] = pending_drop
+
+
+## Moeda da Sorte (ADR-0026): chance em % mais SORTE; respeita o limite da mochila.
+func _roll_lucky_coin(percent: int) -> void:
+	if total_consumables() >= RunRules.MAX_CONSUMABLES:
+		return
+	if streams.loot().draw_percent(percent + maxi(player_stats().luck, 0)):
+		_grant_lucky_coin()
+
+
+func _grant_lucky_coin() -> void:
+	consumables[RunRules.LUCKY_COIN_ID] = consumable_count(RunRules.LUCKY_COIN_ID) + 1
+	_emit(RunEvent.Type.ITEM_GAINED, RunRules.LUCKY_COIN_ID, 1)
+	last_reward["lucky_coin"] = true
 
 
 ## Ids com preço, em ordem, de uma raridade de equipamento (ou os consumíveis de cura).

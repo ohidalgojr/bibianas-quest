@@ -2,6 +2,7 @@
 	"format": 1,
 	"items": [
 		{"id": "murky_potion", "name": "Poção Turva", "slot": "consumable", "rarity": "common", "price": 30, "heal_hp_percent": 30, "heal_mp_percent": 0},
+		{"id": "lucky_coin", "name": "Moeda da Sorte", "slot": "consumable", "rarity": "rare", "price": 0, "heal_hp_percent": 0, "heal_mp_percent": 0, "reroll": true},
 		{"id": "dirty_ether", "name": "Éter Sujo", "slot": "consumable", "rarity": "common", "price": 25, "heal_hp_percent": 0, "heal_mp_percent": 50},
 		{"id": "sword_and_shield", "name": "Espada e Escudo", "slot": "weapon", "rarity": "worn", "price": 0, "stats": {}},
 		{"id": "old_chainmail", "name": "Cota de Malha Velha", "slot": "armor", "rarity": "worn", "price": 0, "stats": {}},
