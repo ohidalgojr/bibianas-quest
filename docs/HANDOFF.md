@@ -69,7 +69,7 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
 
 ## Congelamento por feedback (2026-11-16)
 
-O Orlando jogou uma Descida completa e pediu **nenhuma implementação nova** até os pontos serem corrigidos. O feedback (F-005 a F-017), as decisões D1 a D6 que dependem dele e o agrupamento proposto em tarefas estão no fim de `docs/FEEDBACK.md`. A TASK-014 (exportação) também espera. Ao retomar, comece pelas decisões D1 a D6.
+**Levantado em 2026-11-16:** o Orlando respondeu D1 a D6 (ADR-0025) e o trabalho segue pelas TASK-021 a TASK-025, uma por vez, na ordem do ADR. Antes: o Orlando jogou uma Descida completa e pediu **nenhuma implementação nova** até os pontos serem corrigidos. O feedback (F-005 a F-017), as decisões D1 a D6 que dependem dele e o agrupamento proposto em tarefas estão no fim de `docs/FEEDBACK.md`. A TASK-014 (exportação) também espera. Ao retomar, comece pelas decisões D1 a D6.
 
 ## Pendências do Orlando
 

@@ -156,3 +156,16 @@ A abrir só depois de o Orlando decidir D1 a D6:
 ## Para analisar com dados reais
 
 O Orlando joga com `telemetry.log` ligado (build de depuração). Se ele enviar o arquivo (em `%APPDATA%\Godot\app_userdata\<nome do projeto>\telemetry.log`), dá para medir moedas por luta, ouro por Descida, nós percorridos e a causa de cada morte, e calibrar F-005, F-016 e F-017 com jogada de pessoa, não só com bot.
+
+## Respostas do Orlando às decisões D1 a D6 (2026-11-16)
+
+Registradas e decididas no **ADR-0025**. Resumo:
+
+- **D1:** a moeda é cara ou coroa, 50% fixo e sem número. SORTE, Maré de azar e eventos passam a influenciar drops raros, baús, inimigos mais difíceis e emboscadas. A re-jogada vira drop raro (baú, mini boss, roaming boss, mutado, chefe).
+- **D2:** uma fogueira garantida por Descida; as demais exigem lenha (rara, cai de inimigos e baús, cara na loja).
+- **D3:** ouro aleatório mas suficiente para o mínimo de equipamento; mapas mais longos e balanceados para o jogador chegar preparado.
+- **D4:** design de inimigos aceito como papel de agente, sem aprovação prévia do Orlando.
+- **D5:** multiplicador de baú aleatório e moderado, sem recompensa absurda.
+- **D6:** crítico como está, mas visível e manipulável por eventos de mapa, skills e itens.
+
+O congelamento acabou: as tarefas TASK-021 a TASK-025 (tabela no ADR-0025) seguem em ordem, uma por vez.
