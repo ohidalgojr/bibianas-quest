@@ -169,3 +169,18 @@ Registradas e decididas no **ADR-0025**. Resumo:
 - **D6:** crítico como está, mas visível e manipulável por eventos de mapa, skills e itens.
 
 O congelamento acabou: as tarefas TASK-021 a TASK-025 (tabela no ADR-0025) seguem em ordem, uma por vez.
+
+## 2026-11-16, nova rodada de jogo
+
+### F-018: o gameplay está um pouco chato; as jogadas de moeda são repetitivas, sem ansiedade, e os inimigos parecem não ter inteligência
+
+- **Status:** aberto (só anotado, sem implementação).
+- **Fala do Orlando:** "gameplay um pouco chato, jogadas de moeda muito repetitivas, não tem aquela ansiedade pra ocorrer esse tipo de evento, parece que os inimigos não tem o mínimo de inteligência".
+- **O que isso aponta, lendo o código:**
+  - **Moeda repetitiva e sem ansiedade:** o lance é sempre o mesmo ritual (escolher o lado, girar 1,2 s, resultado), sem variação de consequência por inimigo e sem expectativa antes do lance. O aviso de um turno antes diz "MOEDA" e nada mais. A ansiedade de Fear & Hunger vem de o jogador saber o que está em jogo e não poder prever o resultado; hoje a aposta é só "+50% de dano".
+  - **Inimigos sem inteligência:** a IA é um ciclo fixo de golpes com 25% de variação (GDD §6), que não olha o estado da luta. O inimigo não reage a vida baixa do jogador, a Defender, a debuffs, a poções, à própria vida nem ao jogador estar em Fúria. Os golpes são genéricos e o mesmo golpe aparece em inimigos diferentes.
+- **Relação:** F-006 (moeda só dano), F-012 (moedas temáticas), F-013 (inimigo único), F-017 (frequência da moeda), F-014 (moeda 50/50 e re-jogada). Reforça a TASK-025 (identidade dos inimigos), que deve incluir IA reativa, e pede revisão do **ritmo e da apresentação da moeda** (TASK-024 ou nova tarefa).
+- **Direções a avaliar (propostas, não decididas):**
+  - **IA com regras de reação:** cada inimigo ganha 2 ou 3 condições próprias (por exemplo: cura quando abaixo de 40% de vida; golpe forte quando o jogador está fraco; tenta contra-atacar quando o jogador usa Defender duas vezes seguidas; foge ou chama reforço). As condições entram na ficha de cada inimigo (F-013) e são avisadas no ícone de intenção.
+  - **Tensão da moeda:** poucas moedas, mas cada uma com consequência única e visível antes do lance ("Leptospirose: -15% do HP máximo até a fogueira"), mostrar o risco concreto, variar a apresentação por inimigo (som, animação, tempo de espera), e dar ao jogador algo a decidir antes do lance (Defender, Moeda da Sorte, item).
+  - **Variedade:** alternar entre moeda do inimigo, moeda de evento do mapa e moeda de baú, em vez de sempre o mesmo lance de combate.
