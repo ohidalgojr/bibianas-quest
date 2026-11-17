@@ -173,6 +173,8 @@ func _button(text: String, action: Callable) -> Button:
 	var button: Button = Button.new()
 	button.text = text
 	button.custom_minimum_size = Vector2(0, 56)
+	# Texto longo quebra de linha em vez de alargar o painel além da tela.
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button.pressed.connect(action)
 	_box.add_child(button)
 	return button
