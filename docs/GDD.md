@@ -345,11 +345,12 @@ Dentro da Descida, a Bibiana cresce por Poder, um número contínuo que sobe a c
 ### Poder
 
 ```latex
-\Delta Poder = 0{,}15 \times N_{inimigo} \times m_{tipo}
+\Delta Poder = 0{,}4 \times N_{inimigo} \times m_{tipo}
 ```
 
 - m\_tipo: comum 1, elite 1,5, mini boss 2,5, roaming boss 3, chefe 4.
 - Poder inicial: 1,0. Fugir de um combate não dá Poder.
+- **Nível da Bibiana** é a parte inteira do Poder (Poder 2,4 é nível 2). É só um rótulo: aparece no mapa e a recompensa anuncia "Subiu de nível!". O coeficiente passou de 0,15 para 0,4 no protótipo (ADR-0023), porque com 0,15 uma luta comum mudava 1 ou 2 pontos de HP e a Bibiana não parecia crescer; o mapa do MVP tem poucas lutas por cenário.
 - Atributos crescem de forma contínua com o Poder: HP +10% por ponto acima de 1; FOR e MEN +8%; DEF e RES +6%; VEL +2%. PRE, ESQ e SORTE vêm dos equipamentos e do clima, não do Poder.
 - Comparando com o nível dos inimigos, uma Descida completa de 3 cenários termina com Poder em torno de 45 se o jogador vencer quase tudo. Valores de partida, a calibrar na seção 23.
 

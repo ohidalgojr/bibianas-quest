@@ -136,6 +136,11 @@ func bosses_defeated() -> int:
 	return scenario_index + (1 if phase == Phase.VICTORY else 0)
 
 
+## Nível da Bibiana agora (ADR-0023).
+func level() -> int:
+	return RunRules.level_of(power)
+
+
 ## Ecos desta Descida; só valem depois do fim (ADR-0016).
 func echoes_earned() -> int:
 	if not is_over():

@@ -31,6 +31,7 @@ func _init(run_state: RunState) -> void:
 func reward_view() -> Dictionary:
 	var reward: Dictionary = run.last_reward
 	var lines: Array[String] = []
+	var title: String = "Vitória!"
 	var power: float = float(reward.get("power", 0.0))
 	var gold: int = int(reward.get("gold", 0))
 	if not reward.is_empty():
@@ -38,12 +39,15 @@ func reward_view() -> Dictionary:
 		lines.append("%s (nível %d) foi derrotado. Inimigos derrotados: %d." % [
 			enemy_name, int(reward["level"]), run.enemies_defeated])
 		lines.append("Poder %.2f → %.2f" % [run.power - power, run.power])
+		var level_before: int = RunRules.level_of(run.power - power)
+		if run.level() > level_before:
+			title = "Subiu de nível! %d → %d" % [level_before, run.level()]
 		lines.append_array(stat_changes(reward["before"], reward["after"]))
 	lines.append("Ouro +%d (total %d)." % [gold, run.gold])
 	var consumable: String = str(reward.get("consumable", ""))
 	if not consumable.is_empty():
 		lines.append("Encontrou: %s." % str(run.data.items[consumable]["name"]))
-	return {"title": "Vitória!", "power": power, "gold": gold, "lines": lines, "drop": drop_view()}
+	return {"title": title, "power": power, "gold": gold, "lines": lines, "drop": drop_view()}
 
 
 ## O equipamento caído, à espera de decisão; vazio se não há ([constant RunRules]).

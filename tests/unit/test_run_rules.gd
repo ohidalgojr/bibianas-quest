@@ -2,14 +2,14 @@ extends GutTest
 ## Fórmulas da Descida: Poder (GDD §9), ouro (§15), baú e nível por camada (ADR-0011).
 
 
-## GDD §9: delta de Poder = 0,15 × N × m_tipo.
+## GDD §9: delta de Poder = 0,4 × N × m_tipo (ADR-0023).
 func test_power_gain_formula_gdd_section_9() -> void:
-	assert_almost_eq(RunRules.power_gain(1, "common"), 0.15, 0.0001)
-	assert_almost_eq(RunRules.power_gain(4, "common"), 0.60, 0.0001)
-	assert_almost_eq(RunRules.power_gain(4, "elite"), 0.90, 0.0001)
-	assert_almost_eq(RunRules.power_gain(6, "boss"), 3.60, 0.0001)
-	assert_almost_eq(RunRules.power_gain(2, "mini_boss"), 0.75, 0.0001)
-	assert_almost_eq(RunRules.power_gain(2, "roaming_boss"), 0.90, 0.0001)
+	assert_almost_eq(RunRules.power_gain(1, "common"), 0.4, 0.0001)
+	assert_almost_eq(RunRules.power_gain(4, "common"), 1.6, 0.0001)
+	assert_almost_eq(RunRules.power_gain(4, "elite"), 2.4, 0.0001)
+	assert_almost_eq(RunRules.power_gain(6, "boss"), 9.6, 0.0001)
+	assert_almost_eq(RunRules.power_gain(2, "mini_boss"), 2.0, 0.0001)
+	assert_almost_eq(RunRules.power_gain(2, "roaming_boss"), 2.4, 0.0001)
 
 
 ## GDD §15: moedas = round(6 × N × U(0,8; 1,2) × m_tipo).
@@ -69,3 +69,11 @@ func test_echoes_by_depth_and_bosses() -> void:
 	assert_eq(RunRules.echoes(0, 0), 0)
 	assert_eq(RunRules.echoes(6, 0), 6 * RunRules.ECHOES_PER_NODE)
 	assert_eq(RunRules.echoes(10, 2), 10 * RunRules.ECHOES_PER_NODE + 2 * RunRules.ECHOES_PER_BOSS)
+
+
+## ADR-0023: o nível é a parte inteira do Poder.
+func test_level_is_the_integer_part_of_power() -> void:
+	assert_eq(RunRules.level_of(1.0), 1)
+	assert_eq(RunRules.level_of(1.99), 1)
+	assert_eq(RunRules.level_of(2.0), 2)
+	assert_eq(RunRules.level_of(3.4), 3)

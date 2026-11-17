@@ -3,8 +3,8 @@ extends RefCounted
 ## Fórmulas e números da Descida (GDD §9, §12 e §15). Leituras no ADR-0011. Mudar
 ## qualquer número daqui exige ADR e subir [constant CoreVersion.RULES_VERSION].
 
-## GDD §9: delta de Poder = 0,15 × N × m_tipo.
-const POWER_PER_LEVEL: float = 0.15
+## GDD §9: delta de Poder = 0,4 × N × m_tipo (era 0,15; ADR-0023).
+const POWER_PER_LEVEL: float = 0.4
 const STARTING_POWER: float = 1.0
 ## GDD §15: moedas por inimigo = round(6 × N × U(0,8; 1,2) × m_tipo).
 const GOLD_PER_LEVEL: float = 6.0
@@ -96,6 +96,11 @@ static func sell_value(price: int) -> int:
 
 static func type_multiplier(enemy_type: String) -> float:
 	return float(TYPE_MULTIPLIERS.get(enemy_type, 1.0))
+
+
+## Nível da Bibiana: parte inteira do Poder (ADR-0023). Só rótulo; os atributos seguem o Poder.
+static func level_of(power: float) -> int:
+	return floori(power)
 
 
 static func power_gain(level: int, enemy_type: String) -> float:

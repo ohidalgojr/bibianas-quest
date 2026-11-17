@@ -50,6 +50,7 @@ func test_death_by_coin_flag_follows_the_fatal_blow() -> void:
 	unit.hp = 20
 	var combat: Combat = Combat.new(unit, _data.make_enemy("gravedigger", 6), RngStreams.new(5), CoinState.new())
 	combat.forced_coin = 0
+	combat.enemy.stats.strength = 80
 	combat.start()
 	var guard: int = 0
 	while combat.outcome == Combat.Outcome.ONGOING and guard < 400:

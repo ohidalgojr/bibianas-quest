@@ -77,7 +77,7 @@ func test_victory_gives_power_gold_and_opens_shop() -> void:
 	var hp_after_fight: int = run.combat.player.hp
 	var old_max: int = run.player_stats().max_hp
 	assert_true(run.finish_fight())
-	assert_almost_eq(run.power, 1.0 + 0.15 * 3, 0.0001)
+	assert_almost_eq(run.power, 1.0 + 0.4 * 3, 0.0001)
 	assert_between(run.gold, 14, 22, "6 × 3 × U(0,8; 1,2)")
 	var new_max: int = run.player_stats().max_hp
 	assert_eq(run.hp, hp_after_fight + new_max - old_max, "o crescimento não cura nem fere (ADR-0011)")
@@ -98,7 +98,8 @@ func test_hp_and_mp_persist_between_fights() -> void:
 	var hp_end: int = run.combat.player.hp
 	run.finish_fight()
 	run.leave_shop()
-	assert_between(run.hp, hp_end, hp_end + 2, "a mesma vida da luta anterior, mais o crescimento do Poder")
+	var growth: int = run.player_stats().max_hp - 130
+	assert_eq(run.hp, hp_end + growth, "a mesma vida da luta anterior, mais o crescimento do HP máximo pelo Poder")
 	var carried_hp: int = run.hp
 	var carried_mp: int = run.mp
 	var next: MapNode = _force_option(run, MapNode.Kind.BATTLE)
@@ -256,7 +257,7 @@ func test_beating_the_boss_wins_the_run() -> void:
 	_win(run)
 	run.finish_fight()
 	assert_eq(run.phase, RunState.Phase.VICTORY)
-	assert_almost_eq(run.power, 1.0 + 0.15 * 6 * 4, 0.0001, "Poder ×4 do chefe (GDD §9)")
+	assert_almost_eq(run.power, 1.0 + 0.4 * 6 * 4, 0.0001, "Poder ×4 do chefe (GDD §9)")
 
 
 func test_two_scenarios_move_to_the_next_map() -> void:
