@@ -67,6 +67,10 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
 - Testes: `tests/unit/`. Rodar com `tools\run_tests.ps1` (Windows) ou `tools/run_tests.sh`.
 - `bibianas-quest.bundle` na raiz serviu só para trazer o commit da TASK-001. Está no `.gitignore` e pode ser apagado.
 
+## Congelamento por feedback (2026-11-16)
+
+O Orlando jogou uma Descida completa e pediu **nenhuma implementação nova** até os pontos serem corrigidos. O feedback (F-005 a F-017), as decisões D1 a D6 que dependem dele e o agrupamento proposto em tarefas estão no fim de `docs/FEEDBACK.md`. A TASK-014 (exportação) também espera. Ao retomar, comece pelas decisões D1 a D6.
+
 ## Pendências do Orlando
 
 1. Conectar o addon do Blender (aba BlenderMCP, tecla `N`) quando for usar o Blender.
@@ -77,7 +81,7 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
 6. Revisão cruzada do Gemini, TASK-001 a 013 e 015.
 7. **TASK-014:** instalar os templates de exportação (Editor > Projeto > Exportar > Gerenciar templates), rodar `tools\export_web.ps1 -Serve` e abrir o link; para o celular, instalar JDK e Android SDK (`docs/PLAYTEST.md`).
 8. **Sessão de 20 minutos no celular** e a ficha de `docs/PLAYTEST.md`.
-9. **Feedback de design (`docs/FEEDBACK.md`):** F-001 e F-002 atendidos (TASK-016); F-003 depende da escolha entre drops, marcos ou curva do Poder (pergunta do ADR-0021).
+9. **Feedback de design (`docs/FEEDBACK.md`), F-005 a F-017 e decisões D1 a D6 (ver o congelamento acima).** Antes: F-001 e F-002 atendidos (TASK-016); F-003 depende da escolha entre drops, marcos ou curva do Poder (pergunta do ADR-0021).
 
 ## Falta (ordem combinada; o roteiro completo e as mudanças propostas estão em `docs/ROADMAP-MVP.md`)
 

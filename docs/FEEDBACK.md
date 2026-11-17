@@ -39,3 +39,120 @@ Propostas, a decidir com o Orlando depois da TASK-014 (portão da Fase 1):
   1. **TASK-018, drops e equipamento:** inimigos soltam equipamento e consumíveis; a recompensa pergunta "Equipar ou Vender"; novos itens de arma, armadura e relíquia, com raridade.
   2. **TASK-019, ganho de status:** a Bibiana sobe de nível de forma discreta, com ganho de atributos que se vê.
   3. **TASK-020, skills na loja:** novas skills do Guerreiro à venda, com mais espaços de skill no combate.
+
+## 2026-11-16, primeira jogada completa (depois da TASK-020)
+
+**Congelamento:** o Orlando pediu só documentar. Nenhum item abaixo foi implementado; todos estão com status "Aberto". Os pontos precisam ser decididos e corrigidos antes de qualquer tarefa nova (a TASK-014, de exportação, também espera). As falas estão registradas como ditas; as seções "Hoje" e as observações são da leitura do código, do GDD e do simulador.
+
+### F-005: o dinheiro está escasso, mal dá para comprar algo na loja
+
+- **Status:** aberto.
+- **Hoje:** ouro por luta = 6 × nível × U(0,8 a 1,2) × m_tipo. Uma luta de nível 1 a 2 dá de 6 a 21 moedas. Preços: Poção Turva 30, Éter Sujo 25, equipamento comum de 90 a 140, incomum de 150 a 190, skills de 100 a 140. O relatório do simulador mostra 173 a 194 de ouro no fim da Descida, mas isso inclui o chefe (6 × 6 × 4 = cerca de 144); antes do chefe sobram perto de 40 a 60, menos que o item mais barato da loja. O mapa tem baús (de 1 a 3 vezes o ouro de uma luta comum), mas só 2 a 3 lutas por Descida.
+- **Relação:** F-016 (fraco no chefe), F-015 (baú), GDD §15 ("o jogador nunca consegue comprar tudo", meta de ouro para cerca de 60% do que se quer comprar ao fim do cenário). Hoje é bem menos que isso.
+- **Direções:** subir o ouro por luta e por baú, baratear itens, ou aumentar o número de lutas e baús por mapa. Qualquer uma pede ADR e nova rodada do simulador.
+
+### F-006: os golpes de moeda são simplórios (só dano alto); deveriam causar debuffs
+
+- **Status:** aberto.
+- **Hoje:** Pesado (Coroa: dano +50%), Cruel (Coroa: dano +100%) e Mortal (Coroa: dano +150%) só mudam dano. O GDD §7 prevê debuff ou risco de doença na Coroa do Cruel; o ADR-0008 (decisão 8) deixou isso para depois. A TASK-016 criou golpes de debuff com chance própria (Veneno, Fraqueza), mas fora da moeda e só no Coveiro.
+- **Relação:** F-012 (moedas temáticas por inimigo), F-013 (inimigo único), F-002 (atendido em parte).
+- **Direção do Orlando:** a moeda deveria carregar efeito, não só número.
+
+### F-007: o MP do Guerreiro está curto, e as skills não têm descrição nem números
+
+- **Status:** aberto.
+- **Hoje:** o Guerreiro tem 20 de MP, que não cresce com o Poder (o GDD §9 só escala HP, FOR, MEN, DEF, RES e VEL). Defender devolve 10% do MP máximo, ou seja 2. Cada skill custa de 4 a 8. O Éter Sujo (restaura 50% do MP) existe na loja, mas não tem uso em combate. Os botões de skill mostram só "Nome (custo MP)"; não há tooltip de efeito, dano ou chance.
+- **Relação:** F-008 (dano e chance visíveis).
+- **Direções:** MP máximo crescendo com o Poder ou com equipamento, retorno de MP por ação, uso do Éter em combate, e uma descrição curta em toda skill.
+
+### F-008: mostrar o dano aproximado da skill e a chance de acertar (inspirado em Darkest Dungeon)
+
+- **Status:** aberto.
+- **Pedido:** exibir faixa de dano (exemplo: 20-40) e chance de acerto antes de escolher a ação.
+- **Hoje:** o motor já calcula tudo: acerto = PRE (90 de base mais bônus) menos ESQ do alvo, variação de dano de 0,9 a 1,1, crítico ×1,5 e defesa do alvo. A tela não mostra nada disso. O motor precisa de uma função de "previsão" (mínimo, máximo, chance de acerto, chance de crítico) sem sortear, para a tela só ler.
+- **Relação:** F-007 (descrição das skills), F-011 (crítico), GDD §7 (sem números escondidos).
+
+### F-009: poder se curar na fogueira; analisar se ela deve aparecer antes do chefe ou a cada X nós
+
+- **Status:** aberto; precisa de análise de distribuição.
+- **Hoje:** a fogueira já cura: Descansar custa 3 das 6 Brasas e recupera 40% de HP e MP (GDD §12, ADR-0011). Mas a regra do mapa (GDD §5, ADR-0007) só garante uma fogueira na penúltima camada, em pelo menos uma das três opções, e nunca duas ligadas. Uma rota que não escolhe a fogueira nunca a vê, e o jogador pode chegar ao chefe sem ter passado por uma. Falta confirmar se, na jogada, a fogueira apareceu e se ficou claro que Descansar cura.
+- **A analisar:** quantas fogueiras por mapa, em quais camadas ("antes do chefe" ou "a cada X nós") e quanto cada uma cura. Usar o simulador e o `telemetry.log` do Orlando.
+
+### F-010: ligar a fogueira a um recurso raro (drop de inimigo ou baú), também à venda, mas caro
+
+- **Status:** aberto; é decisão de design e mexe no GDD.
+- **Pedido:** para compensar ter mais fogueiras, o uso delas deve depender de um item raro, que cai de inimigos ou baús e também pode ser comprado na loja a preço alto. A fogueira vira um recurso pensado.
+- **Hoje:** o GDD §12 trata a fogueira como nó seguro e gratuito, com Brasas limitadas por visita. As Brasas já são o recurso, mas vêm de graça com o nó.
+- **Conflito a decidir:** o item substitui as Brasas, é a "chave" para acender o nó, ou só amplia as Brasas?
+
+### F-011: implementar mecânica de ataque crítico
+
+- **Status:** aberto; verificar o que o Orlando percebeu.
+- **Hoje:** o crítico já existe no motor: chance igual ao atributo CRIT (5% do Guerreiro), dano ×1,5 (GDD §6), linha no registro ("crítico!") e número dourado com "!" na luta. Na prática 5% quase não aparece, e o jogador não tem como aumentar a chance (só a Adaga de Osso e a Machadinha Enferrujada dão CRIT).
+- **Direções:** é questão de visibilidade (efeito mais forte, chance na previsão do F-008) e de acesso (mais fontes de CRIT, skills que crítam), não de criar do zero.
+
+### F-012: os golpes de moeda devem ser temáticos por inimigo
+
+- **Status:** aberto.
+- **Exemplo do Orlando:** o rato pode passar leptospirose e reduzir o HP em 15%.
+- **Hoje:** os golpes de moeda são genéricos (Pesado, Cruel, Mortal), com a mesma consequência em todo inimigo. Doenças (GDD §11) ainda não existem no código.
+- **Relação:** F-006, F-013. Exige o sistema de doenças e debuffs de combate (Veneno e Fraqueza já existem; falta persistência entre lutas e cura).
+
+### F-013: cada inimigo deve ser único ("puts, o inimigo X de novo"), inspirado forte em Fear & Hunger
+
+- **Status:** aberto.
+- **Pedido:** cada inimigo causa um medo diferente, para o jogador reconhecer e odiar cada um. O Orlando sugeriu deixar uma tarefa para um agente de design de inimigos enriquecer o processo, ou outra forma dentro da pipeline.
+- **Hoje:** os 4 inimigos comuns, a elite e o chefe diferem em números e no ciclo de golpes, mas todos usam os mesmos golpes genéricos; não há identidade mecânica, de aviso nem de texto por inimigo.
+- **Proposta de processo (a decidir):** um papel de design de inimigos na pipeline do GDD §21, como parte da etapa 1 de cada inimigo: uma ficha `docs/enemies/ENEMY-NN-nome.md` (modelo a criar), com fantasia e medo, mecânica assinatura (golpe de moeda temático, debuff, regra própria), aviso e contra-jogo, drops, texto de aviso e ícone. Um agente de design preenche a ficha, o Orlando aprova, e só então abre-se a tarefa de código. Não mexe no GDD sem ADR.
+
+### F-014: a moeda não deve mostrar chance; seria sempre 50% cara ou coroa; o reroll vira drop raro
+
+- **Status:** aberto; **conflita com o GDD §7 e com o ADR-0014**, precisa de decisão do Orlando.
+- **Pedido:** tirar a chance de acerto da tela e fixar 50/50. Transformar o reroll da moeda em drop raro de baú, mini boss, roaming boss, inimigo mutado e chefe.
+- **Hoje:** chance = 50 + SORTE (até +15) + mods, limitada a 15 a 85; Maré de azar (+10 depois de 3 perdas); trapaça de +20 (anúncio) ou +35 (Moeda Viciada) até 90. O GDD §7 pede "a chance real aparece em um tooltip, sem números escondidos". A re-jogada é passiva do Clérigo e item Moeda da Sorte (GDD §7 e §10). As relíquias com SORTE (Amuleto Gasto +4, Sino do Coveiro +8) existem por causa da chance variável.
+- **O que quebra se for 50/50:** SORTE, a Maré de azar, a trapaça e as relíquias de SORTE perdem o sentido ou precisam de outro papel (por exemplo, SORTE melhorar drops). O princípio "sem números escondidos" também muda. Se a chance fica fixa, não há o que mostrar.
+- **O que combina:** a re-jogada como item raro (a Moeda da Sorte já está no GDD §10) dá peso a cada lance e valor aos itens de baú.
+
+### F-015: mais mecânicas de loop viciantes; o baú poderia multiplicar o loot com anúncio, Moeda da Sorte ou item
+
+- **Status:** aberto.
+- **Hoje:** o GDD §16 já prevê "dobrar o ouro do baú" por anúncio opcional (sem limite fixo), e o §26 lista ganchos de hábito (morte que ensina, votos, descida diária, Brasa Acesa). Nada disso está implementado; o baú do protótipo só dá ouro.
+- **Pedido novo:** o baú multiplicar o loot (não só o ouro), com anúncio, Moeda da Sorte ou item parecido. Cuidado com o GDD §16: anúncio é sempre opcional e nada pago dá poder exclusivo.
+
+### F-016: a Bibiana chega bem fraca ao chefe; o caminho talvez esteja curto
+
+- **Status:** aberto; é a leitura de causa do F-005 e do F-015.
+- **Hipótese do Orlando:** pobreza de loot e dinheiro para equipar, e poucos nós para acumular experiência.
+- **Dados:** o mapa tem 5 camadas e o bot passa por cerca de 5 a 6 nós por Descida (menos de 3 lutas antes do chefe). O GDD prevê 5 a 9 nós e 8 a 12 minutos por cenário. O simulador diz que o bot mediano vence o chefe 65% das vezes, mas o bot não joga como uma pessoa (gasta o ouro de outro jeito, não lê o aviso). O resultado humano diverge do simulado.
+- **Relação:** F-005, F-009, F-015. A calibração deve usar o `telemetry.log` do Orlando como referência, não só o bot.
+
+### F-017: as jogadas de moeda estão muito frequentes
+
+- **Status:** aberto.
+- **Hoje:** o inimigo usa um golpe de moeda com ao menos 2 golpes de intervalo (TASK-016), mas há outras fontes de moeda: o Golpe de Escudo do jogador (moeda a cada uso, escolha de lado obrigatória) e o Fugir. Cada moeda exige escolher o lado e esperar o giro de 1,2 s, então de 3 a 5 moedas numa luta de chefe cansam.
+- **Relação:** F-001 (ritmo do chefe), F-014 (peso de cada lance). Menos moedas, com mais peso por moeda, é coerente com a ideia do reroll raro.
+
+## Conflitos com o GDD e decisões que dependem do Orlando
+
+| # | Pergunta | Itens | O que muda |
+| --- | --- | --- | --- |
+| D1 | A chance da moeda fica fixa em 50%, sem exibir? E o que acontece com SORTE, Maré de azar e trapaça? | F-014 | GDD §7 e §10, ADR-0014 e as relíquias de SORTE |
+| D2 | A fogueira passa a exigir um item raro? O item substitui as Brasas, é a chave do nó ou amplia as Brasas? | F-009, F-010 | GDD §12 e a regra de mapa (ADR-0007) |
+| D3 | Quanto de ouro e quantos nós por cenário? | F-005, F-016 | GDD §5, §15 e a meta de 60% do ouro desejado |
+| D4 | Aceita um papel de design de inimigos na pipeline, com ficha por inimigo? | F-013 | GDD §21 (novo papel) e `docs/enemies/` |
+| D5 | Baú com multiplicador por anúncio, Moeda da Sorte ou item: com que limite? | F-015 | GDD §16 e §26 |
+| D6 | Crítico: só visibilidade e mais fontes de CRIT, ou mecânica nova? | F-011 | GDD §6 |
+
+## Agrupamento proposto em tarefas (nada aberto ainda)
+
+A abrir só depois de o Orlando decidir D1 a D6:
+
+1. **Economia e ritmo da Descida** (F-005, F-016, F-015): ouro, preço, número de nós e baús.
+2. **Legibilidade do combate** (F-007, F-008, F-011): descrição das skills, previsão de dano e chance, crítico visível, MP.
+3. **Fogueira como recurso** (F-009, F-010): distribuição no mapa e item raro.
+4. **Moeda: peso e frequência** (F-014, F-017, F-001): 50/50, reroll como drop raro, menos lances.
+5. **Identidade dos inimigos** (F-006, F-012, F-013): processo de design de inimigos, ficha, golpes de moeda temáticos e doenças.
+
+## Para analisar com dados reais
+
+O Orlando joga com `telemetry.log` ligado (build de depuração). Se ele enviar o arquivo (em `%APPDATA%\Godot\app_userdata\<nome do projeto>\telemetry.log`), dá para medir moedas por luta, ouro por Descida, nós percorridos e a causa de cada morte, e calibrar F-005, F-016 e F-017 com jogada de pessoa, não só com bot.
