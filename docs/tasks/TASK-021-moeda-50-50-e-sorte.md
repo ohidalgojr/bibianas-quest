@@ -34,7 +34,7 @@ A moeda passa a ser só cara ou coroa: 50% fixo, sem exibir chance. SORTE e Mar�
 
 ## Verificação
 
-2026-11-16: `toolsun_tests.ps1`, 33 scripts, 260/260. Simulador regras v9: mediano 64,7%, mortes por moeda 15,1% (ADR-0026).
+2026-11-16: `tools\run_tests.ps1`, 33 scripts, 260/260. Simulador regras v9: mediano 64,7%, mortes por moeda 15,1% (ADR-0026).
 
 ## Revisão cruzada
 
