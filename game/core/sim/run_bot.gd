@@ -102,7 +102,7 @@ static func fight(run: RunState, bot: Pcg32, profile: Profile) -> void:
 
 
 static func _median_turn(run: RunState, combat: Combat, bot: Pcg32) -> void:
-	var skills: Array[CombatSkill] = run.data.class_skills(run.class_id)
+	var skills: Array[CombatSkill] = run.skills()
 	var danger: bool = combat.enemy.intent != null and combat.enemy.intent.is_dangerous()
 	if combat.player.hp * 100 < combat.player.stats.max_hp * 35 and run.available_in_fight(POTION_ID) > 0:
 		combat.act(Combat.Action.ITEM, null, run.data.combat_item(POTION_ID))
@@ -149,6 +149,8 @@ static func shop(run: RunState, profile: Profile) -> void:
 			run.buy(item_id)
 		elif slot != "consumable" and run.gold - run.item_price(item_id) >= 30:
 			run.buy(item_id)
+	if not run.skill_offer.is_empty() and run.gold - run.data.skill_price(run.skill_offer) >= 30:
+		run.buy_skill()
 	run.leave_shop()
 
 

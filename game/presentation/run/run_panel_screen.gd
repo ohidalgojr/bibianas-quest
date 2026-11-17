@@ -112,6 +112,18 @@ func _render_shop() -> void:
 			panels.buy(item_id)
 			_render())
 		buy.disabled = not bool(entry["can_buy"])
+	var skill: Dictionary = view["skill"]
+	if not skill.is_empty():
+		var skill_title: Label = _text("Skill: %s (%d MP). %s. %s" % [str(skill["name"]), int(skill["cost"]),
+			str(skill["description"]), str(skill["slots"])], 16)
+		skill_title.add_theme_color_override("font_color", Color(0.75, 0.6, 0.95))
+		var learn_label: String = "Aprender %s: %d ouro" % [str(skill["name"]), int(skill["price"])]
+		if not bool(skill["can_buy"]):
+			learn_label += " (%s)" % str(skill["reason"])
+		var learn: Button = _button(learn_label, func() -> void:
+			panels.buy_skill()
+			_render())
+		learn.disabled = not bool(skill["can_buy"])
 	var reroll: Button = _button("Atualizar loja: %d ouro" % int(view["reroll_cost"]), func() -> void:
 		panels.reroll()
 		_render())

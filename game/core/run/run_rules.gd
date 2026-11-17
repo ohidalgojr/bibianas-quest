@@ -35,6 +35,8 @@ const SHOP_CONSUMABLES: int = 2
 ## GDD §15: atualizar custa 15 na primeira vez e mais 10 a cada nova vez no mesmo nó.
 const REROLL_FIRST: int = 15
 const REROLL_STEP: int = 10
+## GDD §8: espaços de skill de combate no protótipo (ADR-0024).
+const MAX_SKILLS: int = 5
 ## GDD §10: até 8 consumíveis.
 const MAX_CONSUMABLES: int = 8
 ## ADR-0011: a Descida começa com 2 Poções Turvas.

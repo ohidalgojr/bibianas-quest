@@ -103,7 +103,46 @@ func shop_view() -> Dictionary:
 		"reroll_cost": run.reroll_cost(),
 		"can_reroll": run.phase == RunState.Phase.SHOP and run.gold >= run.reroll_cost(),
 		"bag": "Mochila: %d/%d" % [run.total_consumables(), RunRules.MAX_CONSUMABLES],
+		"skill": skill_view(),
 	}
+
+
+## A skill à venda (ADR-0024), ou vazio se não há.
+func skill_view() -> Dictionary:
+	if run.skill_offer.is_empty():
+		return {}
+	var skill: CombatSkill = run.data.combat_skill(run.skill_offer)
+	var price: int = run.data.skill_price(run.skill_offer)
+	var reason: String = ""
+	if run.learned_skills.size() >= RunRules.MAX_SKILLS:
+		reason = "Espaços de skill cheios"
+	elif run.gold < price:
+		reason = "Ouro insuficiente"
+	return {
+		"id": skill.id,
+		"name": skill.display_name,
+		"cost": skill.cost,
+		"price": price,
+		"description": skill_text(skill),
+		"can_buy": run.can_buy_skill(),
+		"reason": reason,
+		"slots": "Skills: %d/%d" % [run.learned_skills.size(), RunRules.MAX_SKILLS],
+	}
+
+
+static func skill_text(skill: CombatSkill) -> String:
+	match skill.effect:
+		CombatSkill.Effect.POWER_STRIKE:
+			return "Golpe de %.1f×FOR" % skill.power
+		CombatSkill.Effect.WAR_CRY:
+			return "FOR e MEN +%d%% por %d turnos" % [roundi(CombatEffect.EMPOWER_ATTACK * 100.0), CombatEffect.EMPOWER_TURNS]
+		CombatSkill.Effect.MEND:
+			return "Recupera %d%% do HP" % CombatEffect.MEND_PERCENT
+	return "Skill da classe"
+
+
+func buy_skill() -> bool:
+	return run.buy_skill()
 
 
 func item_view(item_id: String) -> Dictionary:

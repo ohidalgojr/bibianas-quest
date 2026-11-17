@@ -31,6 +31,9 @@ var buffs: Dictionary = {}
 var embers: int = 0
 var shop_offer: Array[String] = []
 var shop_rerolls: int = 0
+## Skills de combate aprendidas, em ordem, e a skill à venda na loja (ADR-0024).
+var learned_skills: Array[String] = []
+var skill_offer: String = ""
 var combat: Combat
 var nodes_cleared: int = 0
 ## Inimigos derrotados na Descida e o que a última vitória rendeu (ADR-0021): quem, nível,
@@ -60,6 +63,8 @@ func _init(game_data: GameData, run_seed: int, run_class: String = "warrior", ru
 		for scenario_id: String in data.scenarios:
 			scenario_ids.append(scenario_id)
 	var entry: Dictionary = data.classes[class_id]
+	for skill_id: Variant in entry["skills"]:
+		learned_skills.append(str(skill_id))
 	equipment["weapon"] = str(entry["starting_weapon"])
 	equipment["armor"] = str(entry["starting_armor"])
 	for item_id: String in RunRules.STARTING_ITEMS:
@@ -146,6 +151,31 @@ func echoes_earned() -> int:
 	if not is_over():
 		return 0
 	return RunRules.echoes(nodes_cleared, bosses_defeated())
+
+
+## Skills aprendidas, prontas para o combate.
+func skills() -> Array[CombatSkill]:
+	var found: Array[CombatSkill] = []
+	for skill_id: String in learned_skills:
+		found.append(data.combat_skill(skill_id))
+	return found
+
+
+func can_buy_skill() -> bool:
+	if phase != Phase.SHOP or skill_offer.is_empty() or learned_skills.size() >= RunRules.MAX_SKILLS:
+		return false
+	return gold >= data.skill_price(skill_offer)
+
+
+func buy_skill() -> bool:
+	if not can_buy_skill():
+		return false
+	var price: int = data.skill_price(skill_offer)
+	gold -= price
+	learned_skills.append(skill_offer)
+	_emit(RunEvent.Type.SPENT, skill_offer, price)
+	skill_offer = ""
+	return true
 
 
 func consumable_count(item_id: String) -> int:
@@ -391,6 +421,7 @@ func leave_shop() -> bool:
 	sell_drop()
 	phase = Phase.CHOOSING
 	shop_offer.clear()
+	skill_offer = ""
 	_emit(RunEvent.Type.SHOP, "leave", 0)
 	return true
 
@@ -442,7 +473,19 @@ func _open_shop() -> void:
 	phase = Phase.SHOP
 	shop_rerolls = 0
 	_stock_shop()
+	_stock_skill()
 	_emit(RunEvent.Type.SHOP, "open", shop_offer.size())
+
+
+## Uma skill da classe ainda não aprendida, sorteada no fluxo de loot (ADR-0024).
+func _stock_skill() -> void:
+	skill_offer = ""
+	var pool: Array[String] = []
+	for skill_id: String in data.shop_skill_ids(class_id):
+		if not learned_skills.has(skill_id):
+			pool.append(skill_id)
+	if not pool.is_empty():
+		skill_offer = pool[streams.loot().draw_index(pool.size())]
 
 
 ## Sorteia no fluxo de loot 2 equipamentos e 2 consumíveis entre os itens com preço.

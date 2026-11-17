@@ -29,6 +29,9 @@ const SKILL_EFFECTS: Dictionary = {
 	"shield_bash": CombatSkill.Effect.SHIELD_BASH,
 	"charge": CombatSkill.Effect.CHARGE,
 	"bulwark": CombatSkill.Effect.BULWARK,
+	"power_strike": CombatSkill.Effect.POWER_STRIKE,
+	"war_cry": CombatSkill.Effect.WAR_CRY,
+	"mend": CombatSkill.Effect.MEND,
 }
 
 var errors: PackedStringArray = PackedStringArray()
@@ -84,6 +87,22 @@ func class_skills(class_id: String) -> Array[CombatSkill]:
 	for skill_id: Variant in _entry(classes, class_id)["skills"]:
 		skills.append(combat_skill(str(skill_id)))
 	return skills
+
+
+## Skills da classe à venda na loja (preço maior que zero), em ordem (ADR-0024).
+func shop_skill_ids(class_id: String) -> Array[String]:
+	var found: Array[String] = []
+	var ids: Array = combat_skills.keys()
+	ids.sort()
+	for skill_id: Variant in ids:
+		var entry: Dictionary = combat_skills[skill_id]
+		if str(entry["class"]) == class_id and int(entry["price"]) > 0:
+			found.append(str(skill_id))
+	return found
+
+
+func skill_price(skill_id: String) -> int:
+	return int(_entry(combat_skills, skill_id)["price"])
 
 
 func combat_skill(skill_id: String) -> CombatSkill:

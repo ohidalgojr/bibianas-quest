@@ -55,7 +55,7 @@ static func for_run(run_state: RunState) -> CombatSession:
 	session.run = run_state
 	session.enemy_id = node.enemy_id
 	session.combat = run_state.combat
-	session.skills = run_state.data.class_skills(run_state.class_id)
+	session.skills = run_state.skills()
 	session._learn_moves(run_state.combat.enemy)
 	return session
 

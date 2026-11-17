@@ -312,6 +312,9 @@ Valores de partida para o protótipo, a calibrar com simulação.
 | Guerreiro | Golpe de Escudo (\*) | 6 MP | Dano 0,8×FOR + moeda: Cara atordoa o inimigo por 1 turno |
 | Guerreiro | Investida | 8 MP | Dano 1,5×FOR; DEF -20% por 1 turno |
 | Guerreiro | Muralha | 6 MP | 2 turnos: DEF +50% e reflete 20% do dano físico |
+| Guerreiro (loja) | Golpe Giratório | 5 MP | Dano 1,3×FOR. Comprada na loja por 120 moedas (ADR-0024) |
+| Guerreiro (loja) | Grito de Guerra | 4 MP | 3 turnos: FOR e MEN +25%. Loja, 100 moedas (ADR-0024) |
+| Guerreiro (loja) | Segundo Fôlego | 6 MP | Recupera 25% do HP máximo. Loja, 140 moedas (ADR-0024) |
 | Mago | Lança Arcana (\*) | 8 MP | Dano neutro 1,4×MEN |
 | Mago | Raio Rachado (\*) | 14 MP | Dano de Raio 2,0×MEN; forte na chuva |
 | Mago | Corrosão (\*) | 10 MP | Debuff: DEF e RES -25% por 3 turnos |
@@ -653,6 +656,7 @@ A economia deve ser apertada: o jogador nunca consegue comprar tudo o que quer, 
 ### Loja após cada batalha
 
 - 5 itens: 2 equipamentos, 2 consumíveis e 1 especial (maldito, skill rara ou item de utilidade como Lanterna).
+- **No protótipo (ADR-0024):** o especial é uma skill de combate da classe que o jogador ainda não tem, sorteada a cada visita. Até 5 skills por Descida (as 3 iniciais mais 2 compradas). Itens raros não entram na loja (ADR-0022).
 - Atualizar o estoque (reroll) custa 15 moedas na primeira vez, mais 10 em cada nova atualização no mesmo nó.
 - O curandeiro (seção 11) aparece na mesma tela.
 - Preços básicos: consumível 20 a 60; equipamento comum 60 a 150; raro 250 a 600, escalando com o cenário.

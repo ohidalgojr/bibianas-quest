@@ -134,8 +134,11 @@ func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 	_enemy_hp_bar.max_value = session.combat.enemy.stats.max_hp
 	_player_hp_bar.max_value = session.combat.player.stats.max_hp
 	_player_mp_bar.max_value = session.combat.player.stats.max_mp
-	for index: int in session.skills.size():
-		(_buttons["skill_%d" % index] as Button).text = session.skill_label(index)
+	for index: int in RunRules.MAX_SKILLS:
+		var skill_button: Button = _buttons["skill_%d" % index]
+		skill_button.visible = index < session.skills.size()
+		if index < session.skills.size():
+			skill_button.text = session.skill_label(index)
 	_refresh_bars()
 
 
@@ -152,7 +155,7 @@ func perform(action: String) -> void:
 			events = session.use_potion()
 		"flee":
 			events = session.flee()
-		"skill_0", "skill_1", "skill_2":
+		"skill_0", "skill_1", "skill_2", "skill_3", "skill_4":
 			events = session.use_skill(int(action.substr(6)))
 	if events.is_empty():
 		return
@@ -343,7 +346,7 @@ func _refresh_buttons() -> void:
 	var can_go: bool = session != null and not _busy and session.can_act()
 	(_buttons["attack"] as Button).disabled = not can_go
 	(_buttons["defend"] as Button).disabled = not can_go
-	for index: int in 3:
+	for index: int in RunRules.MAX_SKILLS:
 		var skill_ready: bool = can_go and session.can_use_skill(index)
 		(_buttons["skill_%d" % index] as Button).disabled = not skill_ready
 	var potion: Button = _buttons["potion"]
@@ -513,7 +516,7 @@ func _build() -> void:
 	grid.add_theme_constant_override("v_separation", 8)
 	column.add_child(grid)
 	for entry: Array in [["attack", "Atacar"], ["defend", "Defender"], ["skill_0", "Skill"], ["skill_1", "Skill"],
-			["skill_2", "Skill"], ["potion", "Poção"], ["flee", "Fugir"], ["speed", "Velocidade 1x"]]:
+			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["flee", "Fugir"], ["speed", "Velocidade 1x"]]:
 		var button: Button = Button.new()
 		button.text = str(entry[1])
 		button.custom_minimum_size = Vector2(0, 64)

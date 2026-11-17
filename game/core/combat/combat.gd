@@ -315,6 +315,12 @@ func _use_skill(skill: CombatSkill) -> void:
 			_apply_effect(player, CombatEffect.Kind.ARMOR_DOWN, 1)
 		CombatSkill.Effect.BULWARK:
 			_apply_effect(player, CombatEffect.Kind.BULWARK, 2)
+		CombatSkill.Effect.POWER_STRIKE:
+			_strike(player, enemy, skill.power, CombatFormulas.Element.PHYSICAL, 1.0, skill.id)
+		CombatSkill.Effect.WAR_CRY:
+			_apply_effect(player, CombatEffect.Kind.EMPOWERED, CombatEffect.EMPOWER_TURNS)
+		CombatSkill.Effect.MEND:
+			_restore(player, roundi(player.stats.max_hp * CombatEffect.MEND_PERCENT / 100.0), 0)
 
 
 ## Resolve um golpe. Devolve o dano causado, ou -1 se errou. Ordem fixa dos sorteios:

@@ -3,7 +3,7 @@ extends RefCounted
 ## Efeito temporário em uma unidade. A duração conta turnos de quem tem o efeito e cai
 ## no início de cada turno dela (ADR-0008).
 
-enum Kind { DEFENDING, BULWARK, ARMOR_DOWN, SLOWED, POISON, WEAKENED }
+enum Kind { DEFENDING, BULWARK, ARMOR_DOWN, SLOWED, POISON, WEAKENED, EMPOWERED }
 
 ## Muralha: DEF +50% e reflete 20% do dano físico (GDD §8).
 const BULWARK_DEFENSE: float = 0.5
@@ -23,7 +23,12 @@ const WEAK_TURNS: int = 3
 ## Defender corta pela metade a chance de um debuff de golpe (ADR-0020).
 const DEFEND_CHANCE_FACTOR: float = 0.5
 
-const LABELS: Array[String] = ["defending", "bulwark", "armor_down", "slowed", "poison", "weakened"]
+## Grito de Guerra: FOR e MEN +25% por 3 turnos; Segundo Fôlego cura 25% do HP (ADR-0024).
+const EMPOWER_ATTACK: float = 0.25
+const EMPOWER_TURNS: int = 3
+const MEND_PERCENT: int = 25
+
+const LABELS: Array[String] = ["defending", "bulwark", "armor_down", "slowed", "poison", "weakened", "empowered"]
 
 ## Duração padrão do efeito de debuff de um golpe.
 static func debuff_turns(effect_kind: Kind) -> int:

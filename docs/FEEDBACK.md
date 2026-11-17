@@ -33,7 +33,7 @@ Propostas, a decidir com o Orlando depois da TASK-014 (portão da Fase 1):
 
 ### F-004: faltam as mecânicas básicas de um roguelike RPG: ganho de status, drops e magias na loja
 
-- **Status:** em andamento. Escolhida pelo Orlando como direção do F-003 (drops dos inimigos) e ampliada.
+- **Status:** atendido nas TASK-018, 019 e 020 (ADR-0022, 0023 e 0024); falta o Orlando confirmar jogando. Escolhida pelo Orlando como direção do F-003 (drops dos inimigos) e ampliada.
 - **Pedido (três pontos):** (1) ganho de status que se sinta, (2) drops de inimigos, (3) novas magias (skills) para comprar na loja.
 - **Plano, uma tarefa por ponto, nesta ordem:**
   1. **TASK-018, drops e equipamento:** inimigos soltam equipamento e consumíveis; a recompensa pergunta "Equipar ou Vender"; novos itens de arma, armadura e relíquia, com raridade.

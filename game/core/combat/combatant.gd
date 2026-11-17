@@ -92,9 +92,12 @@ func effective_mind() -> float:
 
 
 func _weakened(value: int) -> float:
+	var result: float = float(value)
+	if has_effect(CombatEffect.Kind.EMPOWERED):
+		result *= 1.0 + CombatEffect.EMPOWER_ATTACK
 	if has_effect(CombatEffect.Kind.WEAKENED):
-		return value * (1.0 - CombatEffect.WEAK_ATTACK)
-	return float(value)
+		result *= 1.0 - CombatEffect.WEAK_ATTACK
+	return result
 
 
 func effective_resistance() -> float:

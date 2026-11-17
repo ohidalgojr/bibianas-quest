@@ -15,7 +15,7 @@ const DEBUFF_EFFECT_IDS: PackedStringArray = ["poison", "weakened"]
 const ELEMENTS: PackedStringArray = ["physical", "fire", "lightning", "holy", "shadow"]
 const ITEM_SLOTS: PackedStringArray = ["consumable", "weapon", "offhand", "armor", "head", "relic"]
 const RARITIES: PackedStringArray = ["worn", "common", "uncommon", "rare", "cursed", "soul", "rival"]
-const SKILL_EFFECTS: PackedStringArray = ["shield_bash", "charge", "bulwark"]
+const SKILL_EFFECTS: PackedStringArray = ["shield_bash", "charge", "bulwark", "power_strike", "war_cry", "mend"]
 const CAMPFIRE_EFFECTS: PackedStringArray = ["damage_up", "defense_up"]
 const PASSIVES: PackedStringArray = ["veteran"]
 
@@ -125,6 +125,7 @@ func _check_combat_skill(entry: Variant, class_ids: Dictionary) -> void:
 	if _number_field(data, "power", path) < 0.0:
 		_error(path, "power não pode ser negativo")
 	_bool_field(data, "coin", path)
+	_check_min(_int_field(data, "price", path), 0, path, "price")
 
 
 func _check_campfire_skill(entry: Variant, class_ids: Dictionary) -> void:

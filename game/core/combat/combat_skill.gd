@@ -3,7 +3,7 @@ extends RefCounted
 ## Skill de combate. Os números vêm do GDD §8; quando os dados das classes existirem
 ## (TASK-005), eles saem deste arquivo.
 
-enum Effect { SHIELD_BASH, CHARGE, BULWARK }
+enum Effect { SHIELD_BASH, CHARGE, BULWARK, POWER_STRIKE, WAR_CRY, MEND }
 
 var id: String = ""
 var display_name: String = ""
