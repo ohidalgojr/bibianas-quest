@@ -22,11 +22,15 @@ var maps_discarded: int = 0
 var passed: bool = false
 
 
-## Custo de um nó na rota: nível do inimigo, elite pesando o dobro, mutado ×1,5 e emboscada ×1,2;
-## baú e fogueira custam zero.
+## Custo de um nó na rota: nível do inimigo, mini boss ×2,5, elite ×2, mutado ×1,5 e emboscada ×1,2;
+## evento custa metade do nível; baú e fogueira custam zero.
 static func node_cost(node: MapNode) -> float:
+	if node.kind == MapNode.Kind.EVENT:
+		return 0.5 * maxi(node.level, 1)
 	if not node.is_fight():
 		return 0.0
+	if node.kind == MapNode.Kind.MINI_BOSS:
+		return 2.5 * node.level
 	if node.kind == MapNode.Kind.ELITE:
 		return 2.0 * node.level
 	var mult: float = 1.5 if node.is_mutated() else (1.2 if node.kind == MapNode.Kind.AMBUSH else 1.0)
@@ -71,6 +75,8 @@ static func probe_from(run: RunState, probe_seed: int) -> RunState:
 	probe.equipment = run.equipment.duplicate()
 	probe.buffs = run.buffs.duplicate()
 	probe.first_chest_opened = run.first_chest_opened
+	probe.event_crit_bonus = run.event_crit_bonus
+	probe.event_crit_combats = run.event_crit_combats
 	return probe
 
 
@@ -94,13 +100,15 @@ func check(run: RunState, config: MapConfig, runs: int, target: float, attempt: 
 
 ## Suavização (GDD §5): baixa em 1 o nível dos inimigos do caminho (menos o chefe, sem
 ## passar do mínimo do cenário), limpa mutação e emboscada na rota segura e troca a batalha
-## de maior nível por um baú, se isso não quebrar as regras do mapa.
+## de maior nível por um baú, se isso não quebrar as regras do mapa nem deixar a rota sem lutas.
 static func smooth(graph: MapGraph, config: MapConfig, route: PackedInt32Array, min_level: int) -> void:
 	var swap: MapNode = null
+	var fight_count: int = 0
 	for node_id: int in route:
 		var node: MapNode = graph.node_by_id(node_id)
 		if not node.is_fight() or node.kind == MapNode.Kind.BOSS:
 			continue
+		fight_count += 1
 		node.level = maxi(node.level - 1, min_level)
 		if node.is_mutated():
 			node.mutation = ""
@@ -109,7 +117,7 @@ static func smooth(graph: MapGraph, config: MapConfig, route: PackedInt32Array, 
 		if node.layer >= 2 and (node.kind == MapNode.Kind.BATTLE or node.kind == MapNode.Kind.AMBUSH) \
 				and (swap == null or node.level > swap.level):
 			swap = node
-	if swap == null:
+	if swap == null or fight_count < 4:
 		return
 	var old_kind: MapNode.Kind = swap.kind
 	var old_enemy: String = swap.enemy_id

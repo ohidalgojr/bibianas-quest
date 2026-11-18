@@ -159,6 +159,8 @@ func _after_action() -> void:
 			_show_map()
 			if not run.last_chest.is_empty():
 				_show_chest()
+			elif not run.last_event_result.is_empty():
+				_show_event()
 		RunState.Phase.FIGHT:
 			_show_fight()
 		RunState.Phase.SHOP:
@@ -170,6 +172,9 @@ func _after_action() -> void:
 		RunState.Phase.CAMPFIRE:
 			_show_map()
 			_show_campfire()
+		RunState.Phase.EVENT:
+			_show_map()
+			_show_event()
 		RunState.Phase.VICTORY, RunState.Phase.DEFEAT:
 			_show_result()
 
@@ -208,7 +213,7 @@ func _on_fight_done() -> void:
 	_after_action()
 
 
-## Recompensa, loja e fogueira (TASK-010, ADR-0015): painéis por cima do mapa.
+## Recompensa, loja, fogueira e evento (TASK-010, TASK-028): painéis por cima do mapa.
 func _show_reward() -> void:
 	var screen: RunPanelScreen = _open_panel()
 	screen.show_reward()
@@ -241,9 +246,19 @@ func _show_campfire() -> void:
 		_after_action())
 
 
+func _show_event() -> void:
+	var screen: RunPanelScreen = _open_panel()
+	screen.forced_coin = _forced_coin
+	screen.show_event()
+	screen.closed.connect(func() -> void:
+		screen.panels.close_event()
+		_after_action())
+
+
 func _open_panel() -> RunPanelScreen:
 	var screen: RunPanelScreen = RunPanelScreen.new()
 	screen.panels = RunPanels.new(run)
+	screen.forced_coin = _forced_coin
 	_panel = screen
 	_content.add_child(screen)
 	return screen

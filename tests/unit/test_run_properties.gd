@@ -1,8 +1,9 @@
 extends GutTest
 ## Descidas inteiras jogadas pelo bot de regras (ADR-0011): toda Descida termina, o
-## estado nunca fica inválido e a mesma semente reproduz a mesma Descida.
+## estado nunca fica inválido e a mesma semente reproduz a mesma Descida. Amostra enxuta
+## enquanto o foco está no MVP jogável com gráficos e som.
 
-const RUNS: int = 120
+const RUNS: int = 20
 
 var _data: GameData
 
@@ -66,7 +67,7 @@ func _check_profile(profile: RunBot.Profile) -> void:
 
 
 func test_same_seed_same_run() -> void:
-	for run_seed: int in 20:
+	for run_seed: int in 5:
 		var first: String = RunBot.summary(RunBot.play(_data, run_seed))
 		assert_eq(RunBot.summary(RunBot.play(_data, run_seed)), first, "semente %d" % run_seed)
 	assert_ne(RunBot.summary(RunBot.play(_data, 1)), RunBot.summary(RunBot.play(_data, 2)), "sementes diferentes variam")

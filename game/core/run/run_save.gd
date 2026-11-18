@@ -35,6 +35,9 @@ static func to_dict(run: RunState) -> Dictionary:
 		"first_chest_opened": run.first_chest_opened,
 		"learned_skills": run.learned_skills,
 		"diseases": run.diseases,
+		"seen_events": run.seen_events,
+		"event_crit_bonus": run.event_crit_bonus,
+		"event_crit_combats": run.event_crit_combats,
 		"streams": run.streams.snapshot(),
 		"coin": {"losses_in_row": run.coin.losses_in_row, "flips": run.coin.flips, "heads": run.coin.heads},
 	}
@@ -70,6 +73,11 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	run.nodes_cleared = int(saved["nodes_cleared"])
 	run.enemies_defeated = int(saved.get("enemies_defeated", 0))
 	run.first_chest_opened = bool(saved.get("first_chest_opened", false))
+	run.event_crit_bonus = int(saved.get("event_crit_bonus", 0))
+	run.event_crit_combats = int(saved.get("event_crit_combats", 0))
+	if saved.has("seen_events"):
+		for event_id: Variant in saved["seen_events"]:
+			run.seen_events.append(str(event_id))
 	if saved.has("diseases"):
 		for disease_id: Variant in saved["diseases"]:
 			run.diseases.append(str(disease_id))

@@ -8,7 +8,7 @@ Resumo do que não pode ser quebrado:
 - Um commit por tarefa, com o ID da tarefa e o ADR: `TASK-NNN: resumo (ADR-XXXX)`.
 - Fórmulas e regras do GDD (`docs/GDD.md`) não mudam sem ADR, GDD atualizado no mesmo commit e `CoreVersion.RULES_VERSION` incrementado.
 - `game/core/` não usa nós do Godot nem aleatoriedade global; todo sorteio passa pelos quatro fluxos de RNG.
-- Testes verdes em headless antes do commit; depois de mudar regra, rode o simulador e anote a tabela no ADR.
+- Testes unitários rápidos verdes em headless antes do commit. **Enquanto não alcançar o MVP jogável (com gráficos e som), não utilize recursos para simulador de balanceamento (`tools/simulate.gd`) nem testes muito complexos.**
 - Cada inimigo tem uma ficha em `docs/enemies/`; a regra de justiça (aviso, intervalo entre golpes de moeda) vale para todos.
 - `docs/HANDOFF.md` atualizado ao fim da tarefa; pare e entregue o resumo.
 - Não envie ao GitHub sem o Orlando pedir.

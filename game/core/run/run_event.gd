@@ -17,8 +17,11 @@ extends RefCounted
 ## - DROP: label = id do equipamento caído (decisão pendente na loja).
 ## - SOLD: label = id do item; value = ouro recebido.
 ## - ENDED: value = 1 vitória, 0 derrota.
+## - EVENT: label = id do evento; value = id do nó.
+## - EVENT_CHOICE: label = id_evento:id_escolha; value = índice da escolha.
+## - EVENT_COIN: label = id da escolha; value = 1 sucesso, 0 falha.
 
-enum Type { SCENARIO, NODE, FIGHT_STARTED, FIGHT_ENDED, POWER, GOLD, SPENT, ITEM_USED, ITEM_GAINED, EQUIPPED, CAMPFIRE, SHOP, ENDED, DROP, SOLD }
+enum Type { SCENARIO, NODE, FIGHT_STARTED, FIGHT_ENDED, POWER, GOLD, SPENT, ITEM_USED, ITEM_GAINED, EQUIPPED, CAMPFIRE, SHOP, ENDED, DROP, SOLD, EVENT, EVENT_CHOICE, EVENT_COIN }
 
 var type: Type = Type.SCENARIO
 var label: String = ""

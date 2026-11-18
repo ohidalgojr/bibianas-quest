@@ -1,0 +1,251 @@
+{
+	"format": 1,
+	"events": [
+		{
+			"id": "weeping_bell",
+			"title": "O Sino Rachado da Praça",
+			"scenario": "abandoned_city",
+			"description": "Um sino de bronze caído no calçamento ainda vibra sozinho. O timbre afia os sentidos de quem encosta a lâmina nele, mas o eco pode estilhaçar a calma.",
+			"choices": [
+				{
+					"id": "resonate_blade",
+					"label": "Encostar a lâmina no bronze (Moeda)",
+					"coin": true,
+					"heads": {
+						"text": "O timbre limpo percorre o aço: seus golpes enxergam cada brecha.",
+						"crit_bonus": 12,
+						"crit_combats": 3
+					},
+					"tails": {
+						"text": "O badalo racha num zunido surdo que entorpece os pulsos.",
+						"crit_bonus": -5,
+						"crit_combats": 2,
+						"hp_percent": -10
+					}
+				},
+				{
+					"id": "steady_grind",
+					"label": "Raspar limalha de bronze na lâmina",
+					"coin": false,
+					"outcome": {
+						"text": "Você recolhe o pó metálico sem tocar o badalo, afiando o fio com cautela.",
+						"crit_bonus": 6,
+						"crit_combats": 2
+					}
+				},
+				{
+					"id": "leave_square",
+					"label": "Seguir em silêncio pela sarjeta",
+					"coin": false,
+					"outcome": {
+						"text": "Você evita o sino e recolhe algumas moedas esquecidas entre as pedras.",
+						"gold": 12
+					}
+				}
+			]
+		},
+		{
+			"id": "plague_wagon",
+			"title": "Carroça do Boticário",
+			"scenario": "abandoned_city",
+			"description": "Uma carroça tombada cheira a vinagre e ervas queimadas. Entre frascos quebrados, um cofre de ferro segue trancado ao lado de ratos mortos.",
+			"choices": [
+				{
+					"id": "force_lockbox",
+					"label": "Arrombar o cofre entre os ratos (Moeda)",
+					"coin": true,
+					"heads": {
+						"text": "O fecho cede de primeira: moedas e uma Moeda da Sorte intacta no veludo.",
+						"gold": 35,
+						"item": "lucky_coin"
+					},
+					"tails": {
+						"text": "O ferro enferrujado rasga a luva na imundície dos ratos, mas você salva algumas moedas.",
+						"gold": 15,
+						"disease": "leptospirosis"
+					}
+				},
+				{
+					"id": "gather_vials",
+					"label": "Recolher um frasco intacto da beirada",
+					"coin": false,
+					"outcome": {
+						"text": "Você separa uma Poção Turva sem encostar nos cadáveres.",
+						"item": "murky_potion"
+					}
+				},
+				{
+					"id": "split_planks",
+					"label": "Arrancar tábuas secas da carroça",
+					"coin": false,
+					"outcome": {
+						"text": "A madeira resinada ainda serve para alimentar uma fogueira.",
+						"item": "firewood"
+					}
+				}
+			]
+		},
+		{
+			"id": "blind_herald",
+			"title": "O Arauto Cego",
+			"scenario": "abandoned_city",
+			"description": "Um velho de olhos costurados estende uma balança de osso num beco: 'Vinte moedas pelo óleo que desperta o fio da espada, ou tente a sorte nos meus dados'.",
+			"choices": [
+				{
+					"id": "buy_oil",
+					"label": "Pagar 20 de ouro pelo óleo de amolar",
+					"cost_gold": 20,
+					"coin": false,
+					"outcome": {
+						"text": "O óleo escuro faz a lâmina cantar e clareia a mente.",
+						"crit_bonus": 10,
+						"crit_combats": 3,
+						"mp_percent": 25
+					}
+				},
+				{
+					"id": "wager_coin",
+					"label": "Apostar com a moeda do Arauto (Moeda)",
+					"coin": true,
+					"heads": {
+						"text": "O Arauto ri baixo e entrega uma bolsa pesada de moedas.",
+						"gold": 40
+					},
+					"tails": {
+						"text": "Ele some na névoa levando parte da sua bolsa e deixando um corte frio.",
+						"gold": -15,
+						"hp_percent": -10
+					}
+				},
+				{
+					"id": "rest_alley",
+					"label": "Recusar a oferta e descansar à sombra",
+					"coin": false,
+					"outcome": {
+						"text": "Você aproveita o beco silencioso para recuperar o fôlego.",
+						"hp_percent": 15,
+						"mp_percent": 25
+					}
+				}
+			]
+		},
+		{
+			"id": "fountain_of_ash",
+			"title": "Fonte de Cinza e Sal",
+			"scenario": "abandoned_city",
+			"description": "A água da fonte da praça corre morna sobre pedras de sal. Quem bebe às vezes purga a febre do sangue, às vezes engole cinza.",
+			"choices": [
+				{
+					"id": "drink_deep",
+					"label": "Beber do filete salgado (Moeda)",
+					"coin": true,
+					"heads": {
+						"text": "A água salobra limpa o sangue, purga a febre e fecha os cortes.",
+						"disease": "cure",
+						"hp_percent": 35
+					},
+					"tails": {
+						"text": "O fundo estava turvo de cinza velha, revirando o estômago.",
+						"hp_percent": -15
+					}
+				},
+				{
+					"id": "wash_wounds",
+					"label": "Apenas lavar os ferimentos com sal",
+					"coin": false,
+					"outcome": {
+						"text": "O sal arde nos cortes, mas estanca o sangramento com segurança.",
+						"hp_percent": 20
+					}
+				}
+			]
+		},
+		{
+			"id": "gallows_tree",
+			"title": "A Forca da Encruzilhada",
+			"scenario": "abandoned_city",
+			"description": "Três cordas balançam num patíbulo de carvalho seco. Um condenado ainda traz uma bolsa presa ao cinto e um frasco de éter.",
+			"choices": [
+				{
+					"id": "climb_gallows",
+					"label": "Subir no patíbulo para cortar a bolsa (Moeda)",
+					"coin": true,
+					"heads": {
+						"text": "A tábua aguenta o seu peso: você recolhe o ouro e o Éter Sujo.",
+						"gold": 40,
+						"item": "dirty_ether"
+					},
+					"tails": {
+						"text": "O alçapão cede sob o seu pé; você cai, mas agarra algumas moedas.",
+						"gold": 15,
+						"hp_percent": -15
+					}
+				},
+				{
+					"id": "blood_vow",
+					"label": "Jurar vingança pelos caídos (gasta 10% de HP)",
+					"cost_hp_percent": 10,
+					"coin": false,
+					"outcome": {
+						"text": "O juramento endurece o espírito e deixa o pulso firme para o abate.",
+						"power": 0.25,
+						"crit_bonus": 8,
+						"crit_combats": 2
+					}
+				},
+				{
+					"id": "search_base",
+					"label": "Vasculhar o chão sob o patíbulo",
+					"coin": false,
+					"outcome": {
+						"text": "Você junta moedas caídas sem subir nas tábuas podres.",
+						"gold": 18
+					}
+				}
+			]
+		},
+		{
+			"id": "abandoned_armory",
+			"title": "Forja Fria da Guarda",
+			"scenario": "abandoned_city",
+			"description": "Dentro de um posto de guarda queimado, uma pedra de amolar de pedal ainda gira e restam tiras de couro curtido na bancada.",
+			"choices": [
+				{
+					"id": "spin_grindstone",
+					"label": "Girar a roda de amolar com força total (Moeda)",
+					"coin": true,
+					"heads": {
+						"text": "Fagulhas douradas deixam a arma mortal e afiada para os próximos encontros.",
+						"crit_bonus": 15,
+						"crit_combats": 3,
+						"buff": "sharpen_blade"
+					},
+					"tails": {
+						"text": "A pedra trava no meio do giro e lasca a ponta da lâmina.",
+						"crit_bonus": -6,
+						"crit_combats": 2
+					}
+				},
+				{
+					"id": "reinforce_straps",
+					"label": "Reforçar as tiras da armadura",
+					"coin": false,
+					"outcome": {
+						"text": "Você ajusta as fivelas e descansa junto à fornalha morna.",
+						"buff": "reinforce_shield",
+						"hp_percent": 15
+					}
+				},
+				{
+					"id": "collect_scrap",
+					"label": "Juntar pontas de lança e fivelas de ferro",
+					"coin": false,
+					"outcome": {
+						"text": "O ferro aproveitável vale boas moedas na mão do mercador.",
+						"gold": 25
+					}
+				}
+			]
+		}
+	]
+}

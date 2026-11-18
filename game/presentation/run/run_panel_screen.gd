@@ -7,6 +7,7 @@ extends Control
 signal closed
 
 var panels: RunPanels
+var forced_coin: int = -1
 
 var _box: VBoxContainer
 var _mode: String = ""
@@ -59,6 +60,12 @@ func show_campfire() -> void:
 		_render()
 
 
+func show_event() -> void:
+	_mode = "event"
+	if _box != null:
+		_render()
+
+
 func _render() -> void:
 	for child: Node in _box.get_children():
 		_box.remove_child(child)
@@ -72,6 +79,8 @@ func _render() -> void:
 			_render_chest()
 		"campfire":
 			_render_campfire()
+		"event":
+			_render_event()
 
 
 func _render_reward() -> void:
@@ -195,6 +204,33 @@ func _render_campfire() -> void:
 			detail += ". Ativa por mais %d lutas" % int(entry["left"])
 		_text(detail, 16)
 	_button("Seguir", func() -> void: closed.emit())
+
+
+func _render_event() -> void:
+	var view: Dictionary = panels.event_view()
+	if view.is_empty():
+		return
+	_title(str(view["title"]))
+	_text(str(view["description"]), 18)
+	if bool(view["resolved"]):
+		for line: Variant in view["result_lines"]:
+			var eff: Label = _text(str(line), 17)
+			eff.add_theme_color_override("font_color", Color(0.85, 0.8, 0.55))
+		var drop: Dictionary = view["drop"]
+		if not drop.is_empty():
+			_render_drop(drop)
+		_button("Seguir (vende o drop)" if not drop.is_empty() else "Seguir", func() -> void: closed.emit())
+		return
+	for choice: Dictionary in view["choices"]:
+		var idx: int = int(choice["index"])
+		var label: String = str(choice["label"])
+		var can_pick: bool = bool(choice["can_choose"])
+		if not can_pick:
+			label += " (%s)" % str(choice["reason"])
+		var btn: Button = _button(label, func() -> void:
+			panels.choose_event_option(idx, CoinRules.HEADS, forced_coin)
+			_render())
+		btn.disabled = not can_pick
 
 
 func _title(text: String) -> void:

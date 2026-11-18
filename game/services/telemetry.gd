@@ -59,6 +59,12 @@ static func run_lines(run: RunState, from: int) -> Array[Dictionary]:
 				lines.append({"type": "sold", "item": event.label, "gold": event.value})
 			RunEvent.Type.SCENARIO:
 				lines.append({"type": "scenario", "id": event.label, "index": event.value})
+			RunEvent.Type.EVENT:
+				lines.append({"type": "event", "id": event.label, "node": event.value})
+			RunEvent.Type.EVENT_CHOICE:
+				lines.append({"type": "event_choice", "choice": event.label, "index": event.value})
+			RunEvent.Type.EVENT_COIN:
+				lines.append({"type": "event_coin", "choice": event.label, "success": event.value == 1})
 			RunEvent.Type.ENDED:
 				lines.append({"type": "run_end", "victory": event.value == 1})
 	return lines

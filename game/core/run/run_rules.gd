@@ -44,7 +44,7 @@ const CHEST_BOOST_WEIGHTS: Array[int] = [50, 35, 15]
 ## fogueira, garantidos; os outros são raros (drops, chefe, loja). Chance em % de cair, mais SORTE.
 const FIREWOOD_PER_MAP: int = 1
 const FIREWOOD_ID: String = "firewood"
-const FIREWOOD_DROP_PERCENT: Dictionary = {"common": 5, "mutated": 15, "elite": 20}
+const FIREWOOD_DROP_PERCENT: Dictionary = {"common": 5, "mutated": 15, "elite": 20, "mini_boss": 100}
 const FIREWOOD_CHEST_PERCENT: int = 15
 ## Tratar uma doença na fogueira custa 1 Brasa (GDD §11 e §12, ADR-0030).
 const TREAT_COST: int = 1
@@ -60,15 +60,16 @@ const STARTING_ITEMS: Dictionary = {"murky_potion": 2}
 const ECHOES_PER_NODE: int = 1
 const ECHOES_PER_BOSS: int = 5
 
-## GDD §10 e §11: chance de equipamento por inimigo (mutados têm drop melhor, ADR-0032).
-const DROP_EQUIPMENT_PERCENT: Dictionary = {"common": 12, "mutated": 30, "elite": 35}
+## GDD §10, §11 e §13: chance de equipamento por inimigo (mutados têm drop melhor, ADR-0032; mini boss 100% raro, ADR-0033).
+const DROP_EQUIPMENT_PERCENT: Dictionary = {"common": 12, "mutated": 30, "elite": 35, "mini_boss": 100}
 ## Consumível que cura HP: não está no GDD, proposta do ADR-0022.
-const DROP_CONSUMABLE_PERCENT: Dictionary = {"common": 30, "mutated": 45, "elite": 50}
-## GDD §10 e §11: o raro vem de elites e de inimigos mutados; pesos por raridade (ADR-0022, ADR-0032).
+const DROP_CONSUMABLE_PERCENT: Dictionary = {"common": 30, "mutated": 45, "elite": 50, "mini_boss": 65}
+## GDD §10, §11 e §13: o raro vem de elites, mutados e mini boss (100% raro no mini boss; ADR-0022, ADR-0032, ADR-0033).
 const DROP_RARITY_WEIGHTS: Dictionary = {
 	"common": {"worn": 30, "common": 55, "uncommon": 15},
 	"mutated": {"common": 35, "uncommon": 45, "rare": 20},
 	"elite": {"common": 30, "uncommon": 45, "rare": 25},
+	"mini_boss": {"rare": 100},
 }
 ## SORTE e Maré de azar nos drops (ADR-0026): +1 ponto na chance de equipamento por ponto
 ## de SORTE (teto +15); por ponto, 2 pontos de peso saem da raridade mais baixa para a mais
@@ -77,19 +78,25 @@ const LUCK_DROP_PERCENT_PER_POINT: int = 1
 const LUCK_DROP_CAP: int = 15
 const LUCK_RARITY_SHIFT_PER_POINT: int = 2
 const BAD_LUCK_RARITY_SHIFT: int = 10
-## Moeda da Sorte: chance em % de cair de baú, mutado e elite, mais SORTE (ADR-0026, ADR-0032); o chefe sempre solta.
+## Moeda da Sorte: chance em % de cair de baú, mutado e elite, mais SORTE (ADR-0026, ADR-0032); o mini boss e o chefe sempre soltam (ADR-0033).
 const LUCKY_COIN_ID: String = "lucky_coin"
 const LUCKY_COIN_CHEST_PERCENT: int = 6
 const LUCKY_COIN_ELITE_PERCENT: int = 8
 const LUCKY_COIN_MUTATED_PERCENT: int = 12
+const LUCKY_COIN_MINI_BOSS_PERCENT: int = 100
 ## SORTE no ouro de baú: +3% por ponto.
 const LUCK_CHEST_GOLD_PERCENT: int = 3
 ## GDD §15: venda de itens paga 40% do valor.
 const SELL_PERCENT: int = 40
 
-## ADR-0011: elite um nível acima da camada; eventos fora do protótipo.
+## ADR-0011 e ADR-0033: elite e mini boss um nível acima da camada; eventos ligados com peso 9 (GDD §5).
 const ELITE_LEVEL_BONUS: int = 1
-const PROTOTYPE_EVENT_WEIGHT: int = 0
+const PROTOTYPE_EVENT_WEIGHT: int = 9
+## Mini boss (GDD §5 e §13, ADR-0033): 0 ou 1 por mapa, chance cresce com a profundidade (45% em 6 camadas).
+const MINI_BOSS_BASE_PERCENT: int = 35
+const MINI_BOSS_PER_LAYER_PERCENT: int = 10
+const MINI_BOSS_MIN_LAYER: int = 4
+const MINI_BOSS_LEVEL_BONUS: int = 1
 ## Inimigos mutados e emboscadas influenciados por SORTE e Maré de azar (D1, GDD §5 e §11, ADR-0032):
 ## nunca nas duas primeiras camadas, no máximo 1 mutado por camada, nível +1. SORTE baixa ou
 ## Maré de azar aumenta a chance de mutados e emboscadas; SORTE alta ajuda a avistar e evitar emboscadas.
@@ -239,3 +246,9 @@ static func ambush_avoid_chance(luck: int = 0, bad_luck: bool = false) -> int:
 	if bad_luck or luck <= 0:
 		return 0
 	return clampi(luck * (-AMBUSH_LUCK_PER_POINT), 0, 75)
+
+
+## Chance (%) de aparecer 1 mini boss no cenário, crescendo com a profundidade (GDD §5, ADR-0033).
+static func mini_boss_chance(layers: int) -> int:
+	return clampi(MINI_BOSS_BASE_PERCENT + maxi(layers - 5, 0) * MINI_BOSS_PER_LAYER_PERCENT, 0, 90)
+

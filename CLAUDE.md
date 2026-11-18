@@ -20,7 +20,7 @@ Leia nesta ordem antes de qualquer trabalho:
 6. **O núcleo fala com a apresentação por eventos**, nunca chamando cenas. A dependência só vai de `presentation` e `services` para `core`.
 7. **Testes verdes antes do commit.** Regra nova no núcleo vem com teste; fórmula do GDD vem com teste de fórmula que cita a seção.
 8. **Ao terminar a tarefa, atualize `docs/HANDOFF.md`** (feito, onde está, falta, decisões) e pare para o resumo.
-9. **Mudou regra, rode o simulador** e registre a tabela no ADR (comando em `docs/HANDOFF.md`, "Pontos de atenção"). Metas: jogador mediano com 55% a 65% de vitória, mortes por moeda até 25%, nenhum mapa sem rota vencível, Descida criada em menos de 2 s no PC.
+9. **Foco no MVP jogável (gráficos e som): não gastar recursos com simulador de balanceamento nem testes complexos.** Enquanto o MVP jogável de verdade (com gráficos dark fantasy, tabuleiro visual e som) não estiver concluído, **ignore testes de balanceamento (`tools/simulate.gd`) e não crie testes de propriedade/simulação pesados**. Mantenha apenas testes unitários diretos e rápidos para validar que as mecânicas funcionam sem erros; o balanceamento fino será feito depois que o jogo estiver jogável de verdade.
 10. **Cada inimigo tem uma ficha** em `docs/enemies/` (modelo em `_modelo.md`) antes ou junto do código dele, e a regra de justiça vale para todos: golpe perigoso avisado um turno antes, ao menos 2 golpes entre golpes de moeda, Golpe Mortal só em chefe.
 11. **Não envie ao GitHub sem o Orlando pedir** e nunca reescreva histórico publicado. Branch `main`, histórico linear.
 12. **Uma revisão por outro modelo** (etapa 4, GDD §21): quem escreveu não revisa o próprio trabalho. `docs/REVIEW-CHECKLIST.md` lista o que conferir.

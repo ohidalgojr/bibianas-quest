@@ -125,8 +125,11 @@ func _node_button(node: Dictionary) -> Button:
 	box.bg_color = color
 	box.set_corner_radius_all(8)
 	if state == MapView.State.OPTION:
-		box.border_color = COLOR_EDGE_LIT
+		box.border_color = Color(0.85, 0.2, 0.2) if bool(node.get("mini_boss", false)) else COLOR_EDGE_LIT
 		box.set_border_width_all(4)
+	elif bool(node.get("mini_boss", false)) and state == MapView.State.FOG:
+		box.border_color = Color(0.85, 0.2, 0.2)
+		box.set_border_width_all(3)
 	for style: String in ["normal", "hover", "pressed", "disabled", "focus"]:
 		button.add_theme_stylebox_override(style, box)
 	if state == MapView.State.PAST:

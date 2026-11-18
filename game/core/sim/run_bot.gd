@@ -34,6 +34,8 @@ static func play(data: GameData, run_seed: int, profile: Profile = Profile.MEDIA
 				shop(run, profile)
 			RunState.Phase.CAMPFIRE:
 				campfire(run, profile)
+			RunState.Phase.EVENT:
+				event(run, bot, profile)
 	return run
 
 
@@ -59,6 +61,8 @@ static func play_route(run: RunState, route: PackedInt32Array, run_seed: int, pr
 				shop(run, profile)
 			RunState.Phase.CAMPFIRE:
 				campfire(run, profile)
+			RunState.Phase.EVENT:
+				event(run, bot, profile)
 	return run
 
 
@@ -66,7 +70,7 @@ static func hp_percent(run: RunState) -> int:
 	return roundi(100.0 * run.hp / run.player_stats().max_hp)
 
 
-## Fogueira se ferido, baú, depois a luta de menor nível; elite e mutado só com vida alta.
+## Fogueira se ferido, baú, evento, depois a luta de menor nível; elite, mini boss e mutado só com vida alta.
 static func pick_node(run: RunState, profile: Profile) -> int:
 	var careful: bool = profile == Profile.CAREFUL
 	var rest_below: int = 75 if careful else 60
@@ -81,10 +85,14 @@ static func pick_node(run: RunState, profile: Profile) -> int:
 				score = 0 if health < rest_below else 12
 			MapNode.Kind.CHEST:
 				score = 1
+			MapNode.Kind.EVENT:
+				score = 4
 			MapNode.Kind.AMBUSH:
 				score = 11 + option.level
 			MapNode.Kind.ELITE:
 				score = 13 + option.level if health > elite_above else 40
+			MapNode.Kind.MINI_BOSS:
+				score = 14 + option.level if health > elite_above else 45
 		if option.is_mutated():
 			score = (12 + option.level) if health > elite_above else 35
 		if best_id == -1 or score < best_score:
@@ -186,6 +194,39 @@ static func campfire(run: RunState, profile: Profile) -> void:
 	for skill_id: String in run.campfire_skills():
 		run.use_campfire_skill(skill_id)
 	run.leave_campfire()
+
+
+## Cuidadoso evita custos de vida/moeda se ferido; mediano arrisca com vida >= 55%.
+static func event(run: RunState, bot: Pcg32, profile: Profile) -> void:
+	var ev: Dictionary = run.current_event()
+	if ev.is_empty():
+		return
+	var raw_choices: Array = ev["choices"]
+	var valid: Array[int] = []
+	var safe_valid: Array[int] = []
+	for i: int in raw_choices.size():
+		if run.can_choose_event_option(i):
+			valid.append(i)
+			var ch: Dictionary = raw_choices[i]
+			if not bool(ch.get("coin", false)) and int(ch.get("cost_hp_percent", 0)) == 0:
+				safe_valid.append(i)
+	if valid.is_empty():
+		return
+	var chosen: int = valid[valid.size() - 1]
+	var health: int = hp_percent(run)
+	if profile == Profile.CAREFUL:
+		if health >= 70 and not safe_valid.is_empty():
+			chosen = safe_valid[0]
+		elif not safe_valid.is_empty():
+			chosen = safe_valid[safe_valid.size() - 1]
+	else:
+		if health >= 55 and bot.draw_percent(70):
+			chosen = valid[0]
+		elif not safe_valid.is_empty():
+			chosen = safe_valid[bot.draw_index(safe_valid.size())]
+	run.choose_event_option(chosen, CoinRules.HEADS)
+	_handle_drop(run)
+	run.last_event_result = {}
 
 
 ## Resumo comparável de uma Descida, para conferir reprodução por semente.

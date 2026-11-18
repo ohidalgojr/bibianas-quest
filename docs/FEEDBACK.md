@@ -203,8 +203,9 @@ Tudo abaixo está **implementado e testado, mas ainda não jogado pelo Orlando**
 | F-007, F-008, F-011 combate legível, crítico | TASK-024 | previsão de dano, acerto e crítico; descrição das skills; atacar devolve MP; Éter em combate; crítico por item e skill |
 | F-006, F-012, F-013, F-018 inimigos únicos, moeda temática, IA | TASK-025 | fichas por inimigo, consequência da coroa, Leptospirose, reações |
 | F-017 moeda frequente | TASK-016 e 025 | intervalo de 2 golpes; o Corvo agora usa moeda (mais lances contra ele) |
+| Eventos de mapa, D6 (CRIT) e mini boss | TASK-028 | 6 eventos na Cidade Abandonada (com moeda e modificador de CRIT), mini boss Carcereiro do Sino anunciado com raro + Galhos Secos + Moeda da Sorte |
 
-**Ainda aberto:** evento de mapa que mexa no crítico e mini boss (TASK-028), roaming boss, anúncio de verdade, e calibrar tudo com o `telemetry.log` do Orlando.
+**Ainda aberto:** roaming boss, anúncio de verdade, e calibrar tudo com o `telemetry.log` do Orlando.
 
 ## 2026-11-18, pedido de design
 

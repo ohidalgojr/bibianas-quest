@@ -133,9 +133,9 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 | Batalha | 49% | Inimigo comum, nível próximo do nível do cenário |
 | Elite | 10% (sobe com o cenário) | Não aparece nos primeiros 30% das camadas. Mais Poder e melhor drop |
 | Baú | 14% (ADR-0027) | Dinheiro, item ou armadilha com moeda. Nunca dois em sequência |
-| Evento | 9% | Escolha com risco e recompensa; usa moeda em parte dos casos |
+| Evento | 9% (ADR-0033) | Escolha com risco e recompensa; usa moeda em parte dos casos e pode alterar CRIT por alguns combates |
 | Fogueira | Garantida (seção 12) | Nunca duas fogueiras ligadas entre si |
-| Mini boss | 0 ou 1 por cenário (chance cresce com a profundidade) | Anunciado. Recompensa rara garantida |
+| Mini boss | 0 ou 1 por cenário (chance cresce com a profundidade; ADR-0033) | Anunciado pelo sino rachado na segunda metade do mapa. Recompensa rara, Galhos Secos e Moeda da Sorte garantidos |
 | Chefe | 1 por cenário | Nó final |
 | Inimigo emboscado | 18% (restante) | Avisado no mapa ("Emboscada (age 1º)"): o inimigo começa com Carga cheia (age primeiro, sem golpe de moeda sem aviso) e a Bibiana inicia com Guarda aberta (DEF -20%) por 1 turno (ADR-0032) |
 
@@ -188,7 +188,7 @@ O combate é 1 contra 1, em janela própria, com ordem de turnos por Ritmo e tod
 | Defender | Reduz o dano em 50% até o próximo turno, devolve 10% do MP e reduz a penalidade de golpes de moeda (seção 7) | Nenhum | Não |
 | Item | Cura, MP (Éter Sujo, usável em combate), remoção de debuff ou dano | 1 item | Não |
 | Roubar | Skill de furto (a do Ladino ou "Truque de Mão" aprendido) | MP | Sim |
-| Fugir | Sai do combate e perde o nó | Nenhum | Sim, base 50%; Ladino +25%. Chefes não permitem fuga |
+| Fugir | Sai do combate e perde o nó | Nenhum | Sim, base 50%; Ladino +25%. Chefes e mini bosses não permitem fuga |
 
 ### Ordem de turnos
 
@@ -216,7 +216,7 @@ HP, MP, FOR, MEN, DEF, RES, VEL, PRE, ESQ, CRIT e SORTE. Equipamentos e Poder al
 
 ### Previsão das ações (ADR-0029)
 
-Antes de agir, o jogador vê nos botões o que a ação faz: faixa de dano (mínimo e máximo, sem crítico), chance de acerto e chance de crítico (inspirado em Darkest Dungeon), além do MP devolvido ao atacar. As skills que não dão dano mostram o efeito (por exemplo, "cura 32 de HP"), e toda skill tem uma dica com a descrição completa. O crítico (CRIT, dano ×1,5) continua como está, mas fica visível e pode ser aumentado por itens (Garra Afiada, +8), por skills de fogueira (Afiar o Fio) e, quando existirem, por eventos de mapa.
+Antes de agir, o jogador vê nos botões o que a ação faz: faixa de dano (mínimo e máximo, sem crítico), chance de acerto e chance de crítico (inspirado em Darkest Dungeon), além do MP devolvido ao atacar. As skills que não dão dano mostram o efeito (por exemplo, "cura 32 de HP"), e toda skill tem uma dica com a descrição completa. O crítico (CRIT, dano ×1,5) continua como está, mas fica visível e pode ser aumentado por itens (Garra Afiada, +8), por skills de fogueira (Afiar o Fio) e por eventos de mapa (ADR-0033).
 
 ### IA dos inimigos
 
@@ -463,7 +463,7 @@ Exemplos de malditos: Anel do Cobrador (+30% de dano, mas perde 5 de ouro por tu
 ### Drops e inventário
 
 - Inimigos sempre dão moedas. Chance de equipamento: 12% comum, 35% elite, garantido raro em mini boss (valores iniciais).
-- **No protótipo (ADR-0022, ADR-0032):** inimigos comuns, mutados e elites soltam também um consumível de cura (30%, 45% e 50%). A chance base de equipamento é 12% comum, 30% mutado e 35% elite. A raridade do equipamento sai de pesos: comum 30% gasto, 55% comum, 15% incomum; mutado 35% comum, 45% incomum, 20% raro; elite 30% comum, 45% incomum, 25% raro. Inimigos mutados também têm 12% de chance (+SORTE) de soltar Moeda da Sorte e 15% (+SORTE) de soltar Galhos Secos. O chefe não solta equipamento. Itens raros só caem; não entram na loja. O jogador decide na hora: Equipar (o item trocado é vendido a 40%) ou Vender o drop a 40% (seção 15); sair da loja vende o drop pendente.
+- **No protótipo (ADR-0022, ADR-0032, ADR-0033):** inimigos comuns, mutados, elites e mini bosses soltam também um consumível de cura (30%, 45%, 50% e 65%). A chance base de equipamento é 12% comum, 30% mutado, 35% elite e **100% mini boss**. A raridade do equipamento sai de pesos: comum 30% gasto, 55% comum, 15% incomum; mutado 35% comum, 45% incomum, 20% raro; elite 30% comum, 45% incomum, 25% raro; mini boss **100% raro**. Inimigos mutados também têm 12% de chance (+SORTE) de soltar Moeda da Sorte e 15% (+SORTE) de soltar Galhos Secos; o mini boss garante **1 Galho Seco e 1 Moeda da Sorte (100%)**. O chefe não solta equipamento. Itens raros só caem; não entram na loja. O jogador decide na hora: Equipar (o item trocado é vendido a 40%) ou Vender o drop a 40% (seção 15); sair da loja vende o drop pendente.
 - O nível do item acompanha o cenário. Qualidade vem de pesos de raridade que sobem com a profundidade.
 - Inventário: 8 consumíveis e 6 equipamentos reserva. Passou disso, o jogador vende algo na hora.
 - Ao morrer, o jogador perde tudo o que carrega na Descida. Nada do inventário vai para o Santuário, a não ser Almas e o que foi forjado.
@@ -478,7 +478,7 @@ Inimigos podem passar doenças que duram entre combates e só saem com dinheiro,
 
 ### Doenças
 
-**Implementadas (ADR-0030):** a **Leptospirose** tira 15% do HP máximo, vem do golpe de moeda do Rato Grande, persiste entre combates, aparece no mapa e se trata na fogueira por 1 Brasa. As demais doenças da tabela abaixo seguem como proposta.
+**Implementadas (ADR-0030, ADR-0033):** a **Leptospirose** e o **Pulmão de Cinza** (`ash_lung`) tiram 15% do HP máximo, vêm do golpe de moeda do Rato Grande ou de eventos de mapa, persistem entre combates, aparecem no mapa e se tratam na fogueira por 1 Brasa (ou em eventos de purificação). As demais doenças da tabela abaixo seguem como proposta.
 
 | Doença | Efeito | Fonte típica | Custo base de cura |
 | --- | --- | --- | --- |
@@ -544,7 +544,7 @@ A fogueira é o respiro do jogo: um nó seguro onde a Bibiana gasta Brasas limit
 ### Regras
 
 - Cada fogueira dá 6 Brasas (valor inicial). Ao entrar, o jogador escolhe ações até gastar as Brasas ou sair.
-- **Armar a fogueira gasta Galhos Secos (ADR-0028).** O nó de fogueira abre apagado: sem armá-la não há Brasas, e as Brasas seguem sendo o recurso das ações do acampamento. Cada mapa garante os Galhos Secos de **uma** fogueira. Para armar mais, o jogador precisa de Galhos extras, que são raros: inimigos comuns 5%, elites 20%, baús 15% (mais SORTE), o chefe sempre 1 (e o mini boss, quando existir), ou a loja a 120 moedas. Entrar no nó e sair sem armar não gasta nada, então o jogador pode guardar os Galhos para a fogueira de antes do chefe: é a escolha de estratégia, sacrificar ouro e coleta por mais uma fogueira, ou usar o recurso em outra coisa.
+- **Armar a fogueira gasta Galhos Secos (ADR-0028).** O nó de fogueira abre apagado: sem armá-la não há Brasas, e as Brasas seguem sendo o recurso das ações do acampamento. Cada mapa garante os Galhos Secos de **uma** fogueira. Para armar mais, o jogador precisa de Galhos extras, que são raros: inimigos comuns 5%, elites 20%, baús 15% (mais SORTE), o mini boss sempre 1 e o chefe sempre 1, ou a loja a 120 moedas. Entrar no nó e sair sem armar não gasta nada, então o jogador pode guardar os Galhos para a fogueira de antes do chefe: é a escolha de estratégia, sacrificar ouro e coleta por mais uma fogueira, ou usar o recurso em outra coisa.
 - O número de fogueiras acompanha a profundidade do mapa (ADR-0028): 1 até 5 camadas; de 6 em diante, uma a cada 3 camadas, com ao menos 2 (6 e 7 camadas: 2; 8 a 10: 3; 11 e 12: 4). A penúltima camada sempre oferece uma, e as outras ficam a pelo menos 2 camadas de qualquer fogueira, para nunca ficarem ligadas. Sempre há, portanto, mais de um lugar para armar.
 - Roaming bosses não entram em fogueiras, mas o tempo continua passando (seção 13).
 
@@ -588,8 +588,8 @@ Há três níveis de ameaça: o chefe do cenário, o mini boss anunciado e o roa
 
 ### Mini bosses
 
-- Entram no mapa com anúncio: o sino toca ao gerar o cenário e um aviso marca a rota. São opcionais.
-- São desafios grandes com uma regra própria. Recompensa: equipamento raro garantido, Poder ×2,5 e fragmento de Alma.
+- Entram no mapa com anúncio: o sino toca ao gerar o cenário e um aviso marca a rota na segunda metade do mapa (0 ou 1 por cenário; chance `35% + 10% × max(camadas - 5, 0)` até 75%, ADR-0033). São opcionais (sempre há ao menos uma saída calma de cada nó anterior).
+- No cenário 1 (Cidade Abandonada), o mini boss é o **Carcereiro do Sino (`bell_warden`)**, anunciado pelo sino rachado. Recompensa: **equipamento raro garantido**, **1 Galho Seco**, **1 Moeda da Sorte**, Poder ×2,5, ouro ×2,5 e fragmento de Alma.
 - Não permitem fuga, para o risco ser uma decisão tomada antes de entrar.
 
 ### Roaming bosses (Nemesis)

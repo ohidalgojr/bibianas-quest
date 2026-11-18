@@ -57,6 +57,8 @@ func run_one(run_seed: int) -> RunState:
 				RunBot.shop(run, profile)
 			RunState.Phase.CAMPFIRE:
 				RunBot.campfire(run, profile)
+			RunState.Phase.EVENT:
+				RunBot.event(run, bot, profile)
 	runs += 1
 	power_total += run.power
 	gold_total += run.gold
@@ -153,7 +155,7 @@ func report(title: String) -> String:
 	lines.append("")
 	lines.append("| Inimigo | Lutas | Turnos por luta | Vitórias |")
 	lines.append("| --- | --- | --- | --- |")
-	for enemy_type: String in ["common", "mutated", "elite", "boss"]:
+	for enemy_type: String in ["common", "mutated", "elite", "mini_boss", "boss"]:
 		if fight_stats.has(enemy_type):
 			lines.append("| %s | %d | %.1f | %.1f%% |" % [enemy_type, int(fight_stats[enemy_type][0]),
 				turns_per_fight(enemy_type), fight_win_rate(enemy_type)])
