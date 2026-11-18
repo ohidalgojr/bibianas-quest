@@ -157,14 +157,34 @@ static func _type_label(enemy_type: String) -> String:
 
 
 static func _coin_move_summary(raw: Dictionary) -> String:
+	var names: Dictionary = {
+		"feverish_hug": "Abraço Febril",
+		"filthy_bite": "Mordida Imunda",
+		"eye_peck": "Bicada no Olho",
+		"unrelenting_fangs": "Presas Incansáveis",
+		"guillotine": "Guilhotina",
+		"deafening_toll": "Badalo Ensurdecedor",
+		"shovel": "Pazada",
+		"grave": "Enterro",
+	}
+	var effects: Dictionary = {
+		"weakened": "Fraqueza",
+		"blinded": "Cegueira",
+		"slowed": "Lentidão",
+		"cursed": "Maldição",
+		"leptospirosis": "Leptospirose",
+	}
 	for phase: Dictionary in raw.get("phases", []):
 		for move: Dictionary in phase.get("moves", []):
-			var intent: String = str(move.get("intent", ""))
-			if intent.begins_with("coin_"):
-				var tail: String = str(move.get("tail_effect", ""))
-				if tail.is_empty():
-					return "%s (dano extra na Coroa)" % str(move["name"])
-				return "%s (Coroa: %s)" % [str(move["name"]), tail]
+			var kind: String = str(move.get("kind", ""))
+			if kind in ["heavy", "cruel", "mortal"]:
+				var move_id: String = str(move.get("id", ""))
+				var label: String = str(names.get(move_id, str(move.get("name", move_id))))
+				var fail: String = str(move.get("fail_effect", move.get("fail_disease", "")))
+				if fail.is_empty():
+					return "%s (dano extra na Coroa)" % label
+				var fail_label: String = str(effects.get(fail, fail))
+				return "%s (Coroa: %s)" % [label, fail_label]
 	return "Sem golpe de moeda"
 
 

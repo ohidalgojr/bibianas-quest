@@ -21,7 +21,9 @@ func _ready() -> void:
 	add_child(dim)
 	var panel: PanelContainer = PanelContainer.new()
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.05, 0.05, 0.08, 0.97)
+	style.bg_color = Color(0.06, 0.065, 0.09, 0.98)
+	style.border_color = VisualTheme.COLOR_BORDER_BRONZE
+	style.set_border_width_all(2)
 	style.set_corner_radius_all(8)
 	style.set_content_margin_all(16)
 	panel.add_theme_stylebox_override("panel", style)

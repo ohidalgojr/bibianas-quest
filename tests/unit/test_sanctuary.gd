@@ -28,9 +28,9 @@ func test_catalog_respects_permanent_numeric_bonus_cap() -> void:
 	assert_eq(SanctuaryRules.catalog().size(), 4)
 	assert_eq(SanctuaryRules.wing_catalog("library").size(), 2)
 	assert_eq(SanctuaryRules.wing_catalog("arsenal").size(), 2)
-	assert_le(SanctuaryRules.IRON_SKIN_HP_PERCENT, SanctuaryRules.MAX_PERMANENT_BONUS_PERCENT,
+	assert_lte(SanctuaryRules.IRON_SKIN_HP_PERCENT, SanctuaryRules.MAX_PERMANENT_BONUS_PERCENT,
 		"bônus permanente de HP respeita o teto de +10% do GDD §9")
-	assert_le(SanctuaryRules.IRON_SKIN_DEF_PERCENT, SanctuaryRules.MAX_PERMANENT_BONUS_PERCENT,
+	assert_lte(SanctuaryRules.IRON_SKIN_DEF_PERCENT, SanctuaryRules.MAX_PERMANENT_BONUS_PERCENT,
 		"bônus permanente de DEF respeita o teto de +10% do GDD §9")
 
 

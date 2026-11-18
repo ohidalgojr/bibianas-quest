@@ -89,10 +89,16 @@ func _process(_delta: float) -> void:
 # --- Telas -------------------------------------------------------------------------
 
 func show_home() -> void:
-	var box: VBoxContainer = _page("Bibiana's Quest", "Protótipo cinza, regras v%d" % CoreVersion.RULES_VERSION)
+	var box: VBoxContainer = _page("Bibiana's Quest", "Cidade Abandonada — MVP Dark Fantasy (regras v%d)" % CoreVersion.RULES_VERSION)
 	if not data.is_valid():
 		box.add_child(_label("Dados inválidos. Veja o console."))
 		return
+	var portrait_center: CenterContainer = CenterContainer.new()
+	var portrait: VisualTheme.PortraitCanvas = VisualTheme.PortraitCanvas.new()
+	portrait.custom_minimum_size = Vector2(96, 96)
+	portrait.configure_player(1.0)
+	portrait_center.add_child(portrait)
+	box.add_child(portrait_center)
 	box.add_child(_label("Ecos: %d    Descidas: %d    Santuário: %d/%d" % [
 		echoes, runs_played, meta_unlocks.size(), SanctuaryRules.UPGRADES.size()]))
 	box.add_child(_label(_class_text()))

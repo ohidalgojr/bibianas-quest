@@ -1,18 +1,20 @@
 # HANDOFF
 
-Atualizado em 2026-11-18. **Estado:** TASK-001 a 013, TASK-015 a 030 concluídas e revisadas; TASK-014 (exportação) em verificação, esperando o Orlando; suíte 311/311; `RULES_VERSION` = 17. Quem chega agora (qualquer agente: Claude, Gemini ou outro) lê este arquivo, depois `CLAUDE.md` (inclusive "Lições e armadilhas"), depois a tarefa que vai fazer em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md`.
+Atualizado em 2026-11-18 (`TASK-031` validada, commitada e enviada para `origin/main` para sincronização com o Claude).
+- **`TASK-029` (`b08098f`), `TASK-026` (`09b6a04`), `TASK-027` (`35d06b4`), `TASK-028` (`5ccfeb6`), `TASK-030` (`9fa4254`) e `TASK-031`**: **100% concluídas, validadas (315/315 testes em 40 scripts) e enviadas para `origin/main`**.
+- **Nota de numeração**: As `TASK-030` (calibração) e `TASK-031` (portão da Fase 1) criadas pelo Claude no branch `claude/verificacao-tarefas-mvp-9f6f72` serão renumeradas pelo Claude para `TASK-032` e `TASK-033` após conferir os commits em `origin/main`.
 
 ## Estado em um olhar
 
 | Item | Valor |
 | --- | --- |
-| Jogo | RPG tático de turnos roguelite, Godot 4.7, protótipo 2D em retrato: menu com Santuário (Biblioteca, Arsenal e Códice/Bestiário), mapa de 6 camadas com névoa, combate com moeda, emboscadas e inimigos mutados, eventos de mapa, mini boss anunciado, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
+| Jogo | RPG tático de turnos roguelite, Godot 4.7, MVP Dark Fantasy 2D em retrato com gráficos vetoriais e áudio procedural (`SoundFx`): menu com Santuário (Biblioteca, Arsenal e Códice/Bestiário), tabuleiro visual com estradas curvas, brasões e peão da Bibiana com os 9 estágios da mecha (GDD §9), combate com silhuetas de personagem/inimigos, medalhão giratório de Cara/Coroa, emboscadas e inimigos mutados, eventos de mapa, mini boss anunciado, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
 | Classe | só o Guerreiro (Bibiana); 3 skills iniciais, 3 à venda, 5 espaços |
 | Cenário | só a Cidade Abandonada: 4 inimigos comuns (com mutações temáticas Inchado, Voraz, Fantasma e Espinhoso), 1 elite (Carrasco Apodrecido), 1 mini boss anunciado (Carcereiro do Sino), chefe O Coveiro (2 fases), 6 eventos temáticos; cada inimigo com ficha em `docs/enemies/` |
-| Regras | `RULES_VERSION` = 17 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0034 |
+| Regras | `RULES_VERSION` = 17 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0035 |
 | Equilíbrio (simulador, regras v15) | bot mediano vence 66,0% (meta 55% a 65%), cuidadoso 72,0%, 1ª Descida 49,3% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 13,7% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,28 s para criar a Descida |
-| Testes | 311 em 39 scripts, cerca de 11 s |
-| Git | `main` enviada ao GitHub (`ohidalgojr/bibianas-quest`); histórico linear; um commit por tarefa |
+| Testes | 315 em 40 scripts, cerca de 11 s |
+| Git | `main` sincronizado com `origin/main` até `TASK-031` |
 | Nunca testado por pessoa | tudo depois da TASK-009 foi jogado só por bots e testes; o Orlando jogou uma Descida na TASK-020 e deu o feedback de `docs/FEEDBACK.md` |
 
 ## Como retomar (qualquer agente)
@@ -80,6 +82,7 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
 - **TASK-027, sorte, emboscadas e inimigos mutados** (concluída em 2026-11-18, suíte 303/303; `RULES_VERSION` = 15). Quatro mutações temáticas em dados (`bloated` Inchado, `voracious` Voraz, `phantom` Fantasma, `thorny` Espinhoso) visíveis no mapa antes da luta nas camadas 3..6 (máx. 1 por camada), com nível +1, Poder ×1,5, tabela própria de drops com 20% de raros e 12% (+SORTE) de Moeda da Sorte; nó de emboscada com ataque inicial do inimigo (sem moeda surpresa) e Guarda aberta no bote; SORTE e Maré de azar influenciando a chance de mutação e a conversão/evitação de emboscadas na camada revelada. ADR-0032.
 - **TASK-028, eventos de mapa e mini boss** (concluída em 2026-11-18, suíte 306/306; `RULES_VERSION` = 16). 6 eventos temáticos na Cidade Abandonada (`game/data/events.json`) com 2 a 3 escolhas, custos, cara ou coroa e manipulação de CRIT por alguns combates (pedido D6); peso do nó de evento ativado (`PROTOTYPE_EVENT_WEIGHT = 9`); mini boss anunciado **Carcereiro do Sino** (`bell_warden`, ficha `ENEMY-07-carcereiro-do-sino.md`) na segunda metade do mapa com equipamento raro garantido, Galhos Secos e Moeda da Sorte. ADR-0033.
 - **TASK-030, Santuário e meta-progresso** (concluída em 2026-11-18, suíte 311/311; `RULES_VERSION` = 17). `SanctuaryRules` (núcleo puro) e `SanctuaryScreen` acessíveis no menu inicial e no fim da Descida: Biblioteca (*Tomo do Grito de Guerra* e *Manual do Fio Afiado*), Arsenal (*Bênção da Malha Antiga*, +8% HP/DEF dentro do teto de +10% do GDD §9, e *Fardo do Viajante*) e Códice (Bestiário com os 7 inimigos, seus golpes de moeda, reações e contadores persistentes de vitórias e quedas em `meta.json`). ADR-0034.
+- **TASK-031, apresentação Dark Fantasy, tabuleiro visual e áudio procedural** (concluída em 2026-11-18, suíte 315/315; `RULES_VERSION` = 17). `VisualTheme` (`game/presentation/visual_theme.gd`) com a paleta Dark Fantasy, os 9 estágios de Poder e cor da mecha da Bibiana (GDD §9), `PortraitCanvas` (silhuetas vetoriais da Bibiana e dos 7 inimigos + auras de mutação), `CoinMedallion` (medalhão Cara/Coroa com símbolos distintos, GDD §19), `MapScreen` com estradas curvas de calçamento, praças iluminadas, brasões por tipo de nó e peão da Bibiana, e `SoundFx` (`game/services/sound_fx.gd`) gerando 11 efeitos sonoros procedurais em `AudioStreamWAV`. ADR-0035.
 - ADR-0004 aprovado; ADR-0005 aceito (observador funcionando em laço).
 
 ## Onde está
@@ -104,9 +107,9 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 3 | TASK-027 | Sorte, emboscadas e inimigos mutados | concluída | concluída em 2026-11-18 (ADR-0032) |
 | 4 | TASK-028 | Eventos de mapa e mini boss | concluída | concluída em 2026-11-18 (ADR-0033) |
 | 5 | TASK-030 | Santuário e meta-progresso (Biblioteca, Arsenal, Códice/Bestiário) | concluída | concluída em 2026-11-18 (ADR-0034) |
-| 6 | TASK-031 | Apresentação Dark Fantasy, Tabuleiro Visual e Áudio Procedural | agente | deixar o jogo com "cara de jogo de verdade" com gráficos e som (GDD §3, §5, §6, §9, §17-19) |
+| 6 | TASK-031 | Apresentação Dark Fantasy, Tabuleiro Visual e Áudio Procedural | concluída | concluída em 2026-11-18 (ADR-0035) |
 | 7 | TASK-014 | Exportação Web e Android e sessão de 20 minutos no celular | **Orlando** | templates, JDK e SDK só na máquina dele |
-| 8 | calibração | Ajustar números com o `telemetry.log` do Orlando (ouro, Coveiro, moeda por luta, mortes) | agente, depois do MVP jogável | feito somente após o MVP com gráficos e som estar jogável |
+| 8 | calibração | Ajustar números com o `telemetry.log` do Orlando (ouro, Coveiro, moeda por luta, mortes) | agente, depois do playtest do MVP | feito somente após o Orlando jogar o MVP com gráficos e som |
 | 9 | monetização | Anúncio de verdade, o que o anúncio faz com a moeda, vender Moeda da Sorte? | Orlando decide | GDD §16; hoje o anúncio do baú é simulado |
 
 Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
