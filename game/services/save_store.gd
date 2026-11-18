@@ -40,16 +40,37 @@ func clear_run() -> void:
 		DirAccess.remove_absolute(dir + RUN_FILE)
 
 
-func save_meta(echoes: int, runs_played: int) -> bool:
-	return _write(META_FILE, {"format": META_FORMAT, "echoes": echoes, "runs_played": runs_played})
+func save_meta(echoes: int, runs_played: int, unlocks: Array = [], bestiary: Dictionary = {}) -> bool:
+	var clean_unlocks: Array[String] = []
+	for id: Variant in unlocks:
+		clean_unlocks.append(str(id))
+	return _write(META_FILE, {
+		"format": META_FORMAT,
+		"echoes": echoes,
+		"runs_played": runs_played,
+		"unlocks": clean_unlocks,
+		"bestiary": bestiary.duplicate(true),
+	})
 
 
-## {echoes, runs_played}; zeros se não há meta ou o formato não bate.
+## {echoes, runs_played, unlocks, bestiary}; zeros/vazios se não há meta ou o formato não bate.
 func load_meta() -> Dictionary:
 	var saved: Dictionary = _read(META_FILE)
 	if int(saved.get("format", -1)) != META_FORMAT:
-		return {"echoes": 0, "runs_played": 0}
-	return {"echoes": int(saved.get("echoes", 0)), "runs_played": int(saved.get("runs_played", 0))}
+		return {"echoes": 0, "runs_played": 0, "unlocks": [], "bestiary": {}}
+	var unlocks: Array[String] = []
+	if saved.get("unlocks", []) is Array:
+		for id: Variant in saved["unlocks"]:
+			unlocks.append(str(id))
+	var bestiary: Dictionary = {}
+	if saved.get("bestiary", {}) is Dictionary:
+		bestiary = (saved["bestiary"] as Dictionary).duplicate(true)
+	return {
+		"echoes": int(saved.get("echoes", 0)),
+		"runs_played": int(saved.get("runs_played", 0)),
+		"unlocks": unlocks,
+		"bestiary": bestiary,
+	}
 
 
 func _write(file_name: String, content: Dictionary) -> bool:

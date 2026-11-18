@@ -17,9 +17,11 @@ var use_thread: bool = true
 ## Repassado à tela de combate: 0 deixa a animação instantânea.
 var time_scale: float = 1.0
 var run: RunState
-## Ecos acumulados e Descidas jogadas desde que o jogo abriu. O save é da TASK-012.
+## Ecos acumulados, Descidas jogadas, desbloqueios do Santuário e Bestiário (TASK-012, TASK-030).
 var echoes: int = 0
 var runs_played: int = 0
+var meta_unlocks: Array[String] = []
+var bestiary: Dictionary = {}
 ## Save em disco (TASK-012, ADR-0017). Os testes desligam ou apontam para uma pasta de teste.
 var save_enabled: bool = true
 var save_dir: String = "user://"
@@ -34,6 +36,7 @@ var _content: Control
 var _map: MapScreen
 var _combat: CombatScreen
 var _panel: Control
+var _sanctuary: SanctuaryScreen
 var _reward_pending: bool = false
 var _seed_counter: int = 0
 var _seed_edit: LineEdit
@@ -54,6 +57,10 @@ func _ready() -> void:
 		var meta: Dictionary = _store().load_meta()
 		echoes = int(meta["echoes"])
 		runs_played = int(meta["runs_played"])
+		meta_unlocks.clear()
+		for id: Variant in meta.get("unlocks", []):
+			meta_unlocks.append(str(id))
+		bestiary = (meta.get("bestiary", {}) as Dictionary).duplicate(true)
 	_telemetry = Telemetry.new(telemetry_dir)
 	_telemetry.enabled = telemetry_enabled
 	if debug_enabled:
@@ -86,7 +93,8 @@ func show_home() -> void:
 	if not data.is_valid():
 		box.add_child(_label("Dados inválidos. Veja o console."))
 		return
-	box.add_child(_label("Ecos: %d    Descidas: %d" % [echoes, runs_played]))
+	box.add_child(_label("Ecos: %d    Descidas: %d    Santuário: %d/%d" % [
+		echoes, runs_played, meta_unlocks.size(), SanctuaryRules.UPGRADES.size()]))
 	box.add_child(_label(_class_text()))
 	if save_enabled and _store().has_run():
 		box.add_child(_button("Continuar Descida", resume_run))
@@ -95,7 +103,26 @@ func show_home() -> void:
 		_seed_edit.placeholder_text = "Semente (depuração; vazio = aleatória)"
 		box.add_child(_seed_edit)
 	box.add_child(_button("Nova Descida", _new_run_from_menu))
+	box.add_child(_button("Santuário (Ecos: %d)" % echoes, func() -> void: show_sanctuary()))
 	box.add_child(_button("Luta de teste (depuração)", _show_test_fight))
+
+
+func show_sanctuary(tab_id: String = "library") -> SanctuaryScreen:
+	_clear()
+	_sanctuary = SanctuaryScreen.new()
+	_sanctuary.data = data
+	_sanctuary.echoes = echoes
+	_sanctuary.unlocks = meta_unlocks.duplicate()
+	_sanctuary.bestiary = bestiary.duplicate(true)
+	_sanctuary.active_tab = tab_id
+	_sanctuary.upgrade_purchased.connect(func(_uid: String) -> void:
+		echoes = _sanctuary.echoes
+		meta_unlocks = _sanctuary.unlocks.duplicate()
+		if save_enabled:
+			_store().save_meta(echoes, runs_played, meta_unlocks, bestiary))
+	_sanctuary.closed.connect(show_home)
+	_set_content(_sanctuary)
+	return _sanctuary
 
 
 ## Escolha de classe do MVP: só o Guerreiro (roteiro da TASK-011).
@@ -145,7 +172,7 @@ func new_run(run_seed: int = -1) -> void:
 
 
 func _create_run(run_seed: int) -> RunState:
-	return RunState.new(data, run_seed, CLASS_ID, [], map_check_runs, null, runs_played == 0)
+	return RunState.new(data, run_seed, CLASS_ID, [], map_check_runs, null, runs_played == 0, meta_unlocks)
 
 
 ## Mostra a tela certa para a fase atual da Descida.
@@ -272,9 +299,11 @@ func _show_result() -> void:
 	var earned: int = run.echoes_earned()
 	echoes += earned
 	runs_played += 1
+	bestiary = SanctuaryRules.record_run_in_bestiary(
+		bestiary, run.defeated_enemy_ids, "" if victory else run.defeated_by_id)
 	if save_enabled:
 		_store().clear_run()
-		_store().save_meta(echoes, runs_played)
+		_store().save_meta(echoes, runs_played, meta_unlocks, bestiary)
 	var summary: Dictionary = run.end_summary(echoes)
 	var title: String = "Vitória! O chefe caiu." if victory else "A Bibiana caiu."
 	var box: VBoxContainer = _page(title, "Semente %d." % run.streams.run_seed)
@@ -284,6 +313,7 @@ func _show_result() -> void:
 	box.add_child(_label(str(summary["accomplished_line"])))
 	box.add_child(_label(str(summary["next_line"])))
 	box.add_child(_button("Outra Descida", func() -> void: new_run()))
+	box.add_child(_button("Santuário (Ecos: %d)" % echoes, func() -> void: show_sanctuary()))
 	box.add_child(_button("Início", show_home))
 	run_ended.emit(victory)
 

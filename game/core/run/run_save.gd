@@ -38,6 +38,8 @@ static func to_dict(run: RunState) -> Dictionary:
 		"seen_events": run.seen_events,
 		"event_crit_bonus": run.event_crit_bonus,
 		"event_crit_combats": run.event_crit_combats,
+		"meta_unlocks": run.meta_unlocks,
+		"defeated_enemy_ids": run.defeated_enemy_ids,
 		"streams": run.streams.snapshot(),
 		"coin": {"losses_in_row": run.coin.losses_in_row, "flips": run.coin.flips, "heads": run.coin.heads},
 	}
@@ -61,7 +63,8 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	var scenarios: Array[String] = []
 	for scenario_id: Variant in saved["scenario_ids"]:
 		scenarios.append(str(scenario_id))
-	var run: RunState = RunState.new(data, streams.run_seed, str(saved["class_id"]), scenarios, 0, map, bool(saved.get("first_run", false)))
+	var unlocks: Array = saved.get("meta_unlocks", []) if saved.get("meta_unlocks", []) is Array else []
+	var run: RunState = RunState.new(data, streams.run_seed, str(saved["class_id"]), scenarios, 0, map, bool(saved.get("first_run", false)), unlocks)
 	run.streams = streams
 	run.scenario_index = int(saved["scenario_index"])
 	run.current_node_id = int(saved["current_node_id"])
@@ -75,6 +78,9 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	run.first_chest_opened = bool(saved.get("first_chest_opened", false))
 	run.event_crit_bonus = int(saved.get("event_crit_bonus", 0))
 	run.event_crit_combats = int(saved.get("event_crit_combats", 0))
+	if saved.has("defeated_enemy_ids"):
+		for enemy_id: Variant in saved["defeated_enemy_ids"]:
+			run.defeated_enemy_ids.append(str(enemy_id))
 	if saved.has("seen_events"):
 		for event_id: Variant in saved["seen_events"]:
 			run.seen_events.append(str(event_id))

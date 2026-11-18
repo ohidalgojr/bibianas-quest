@@ -389,9 +389,9 @@ O Santuário é o menu entre Descidas, em estilo de acampamento. Os Ecos ganhos 
 
 | Parte do Santuário | O que faz |
 | --- | --- |
-| Biblioteca | Desbloqueia skills de combate e de fogueira no pool aleatório |
-| Arsenal | Desbloqueia equipamentos e consumíveis no pool de drops |
-| Códice | Bestiário, lore e conquistas |
+| Biblioteca | Desbloqueia skills de combate e de fogueira no pool aleatório. No MVP (ADR-0034): *Tomo do Grito de Guerra* (12 Ecos, começa a Descida com Grito de Guerra) e *Manual do Fio Afiado* (16 Ecos, acender uma fogueira concede também Afiar o Fio por 2 lutas) |
+| Arsenal | Desbloqueia equipamentos e consumíveis no pool de drops e bênçãos iniciais. No MVP (ADR-0034): *Bênção da Malha Antiga* (15 Ecos, +8% de HP máx. e +8% de DEF base) e *Fardo do Viajante* (18 Ecos, +35 de ouro inicial e 1 Éter Sujo extra) |
+| Códice | Bestiário, lore e conquistas. No MVP (ADR-0034): catálogo dos 7 inimigos da Cidade Abandonada com golpe de moeda temático, reação e contadores persistentes de vitórias e quedas da Bibiana |
 | Forja de Almas | Troca Almas de chefe por equipamentos exclusivos (seção 13) |
 | Cemitério de Rivais | Lista de roaming bosses que mataram a Bibiana (seção 13) |
 

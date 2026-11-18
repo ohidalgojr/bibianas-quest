@@ -64,6 +64,9 @@ var defeated_by_move: String = ""
 ## Primeira Descida (runs_played == 0; F-019, ADR-0031): elementos garantidos e Ecos em dobro.
 var first_run: bool = false
 var first_chest_opened: bool = false
+## Melhorias do Santuário ativas nesta Descida e IDs dos inimigos vencidos para o Códice (ADR-0034).
+var meta_unlocks: Array[String] = []
+var defeated_enemy_ids: Array[String] = []
 var history: Array[RunEvent] = []
 ## Simulações da checagem de vencibilidade de cada mapa (GDD §5; 0 desliga).
 var winnability_runs: int = 0
@@ -73,10 +76,15 @@ var map_check: Winnability
 
 
 func _init(game_data: GameData, run_seed: int, run_class: String = "warrior", run_scenarios: Array[String] = [],
-		map_check_runs: int = 0, given_map: MapGraph = null, is_first_run: bool = false) -> void:
+		map_check_runs: int = 0, given_map: MapGraph = null, is_first_run: bool = false,
+		run_unlocks: Array = []) -> void:
 	data = game_data
 	winnability_runs = map_check_runs
 	first_run = is_first_run
+	for unlock_id: Variant in run_unlocks:
+		var uid: String = str(unlock_id)
+		if not meta_unlocks.has(uid):
+			meta_unlocks.append(uid)
 	streams = RngStreams.new(run_seed)
 	class_id = run_class
 	scenario_ids = run_scenarios.duplicate()
@@ -86,10 +94,16 @@ func _init(game_data: GameData, run_seed: int, run_class: String = "warrior", ru
 	var entry: Dictionary = data.classes[class_id]
 	for skill_id: Variant in entry["skills"]:
 		learned_skills.append(str(skill_id))
+	if meta_unlocks.has("tome_of_fury") and not learned_skills.has(SanctuaryRules.FURY_STARTING_SKILL) and learned_skills.size() < RunRules.MAX_SKILLS:
+		learned_skills.append(SanctuaryRules.FURY_STARTING_SKILL)
 	equipment["weapon"] = str(entry["starting_weapon"])
 	equipment["armor"] = str(entry["starting_armor"])
 	for item_id: String in RunRules.STARTING_ITEMS:
 		consumables[item_id] = int(RunRules.STARTING_ITEMS[item_id])
+	if meta_unlocks.has("pack_of_provisions"):
+		gold += SanctuaryRules.PROVISIONS_STARTING_GOLD
+		if total_consumables() < RunRules.MAX_CONSUMABLES:
+			consumables[SanctuaryRules.PROVISIONS_STARTING_ITEM] = consumable_count(SanctuaryRules.PROVISIONS_STARTING_ITEM) + 1
 	var stats: Stats = player_stats()
 	hp = stats.max_hp
 	mp = stats.max_mp
@@ -139,6 +153,9 @@ func stats_with(item_id: String) -> Stats:
 
 func _stats_for(worn: Dictionary) -> Stats:
 	var stats: Stats = data.class_stats(class_id).scaled_for_power(power)
+	if meta_unlocks.has("blessing_iron_skin"):
+		stats.max_hp = roundi(stats.max_hp * (1.0 + SanctuaryRules.IRON_SKIN_HP_PERCENT / 100.0))
+		stats.defense = roundi(stats.defense * (1.0 + SanctuaryRules.IRON_SKIN_DEF_PERCENT / 100.0))
 	for slot: String in worn:
 		var mods: Dictionary = data.items[worn[slot]].get("stats", {})
 		for key: String in mods:
@@ -574,6 +591,7 @@ func finish_fight() -> bool:
 			_gain_power(power_gain)
 			_gain_gold(RunRules.gold_drop(node.level, enemy_type, streams.loot()), "fight")
 			enemies_defeated += 1
+			defeated_enemy_ids.append(node.enemy_id)
 			last_reward = {"enemy_id": node.enemy_id, "mutation": node.mutation, "level": node.level,
 				"power": power_gain, "gold": gold - gold_before, "before": stats_before, "after": player_stats()}
 			_roll_drops(enemy_type)
@@ -638,6 +656,9 @@ func light_campfire() -> bool:
 	_emit(RunEvent.Type.ITEM_USED, RunRules.FIREWOOD_ID, 1)
 	campfire_lit = true
 	embers = RunRules.EMBERS
+	if meta_unlocks.has("tome_of_edge") and data.campfire_skills.has(SanctuaryRules.EDGE_CAMPFIRE_BUFF):
+		buffs[SanctuaryRules.EDGE_CAMPFIRE_BUFF] = maxi(
+			int(buffs.get(SanctuaryRules.EDGE_CAMPFIRE_BUFF, 0)), SanctuaryRules.EDGE_CAMPFIRE_COMBATS)
 	_emit(RunEvent.Type.CAMPFIRE, "lit", embers)
 	return true
 
