@@ -67,7 +67,7 @@ func test_path_and_past_layers_after_moving() -> void:
 func test_header_shows_run_numbers() -> void:
 	var view: MapView = _view()
 	var header: String = view.header()
-	assert_string_contains(header, "Cidade Abandonada, camada 0 de 5")
+	assert_string_contains(header, "Cidade Abandonada, camada 0 de 6")
 	assert_string_contains(header, "Nível 1 (Poder 1.00)   Ouro 0   Derrotados 0")
 	assert_string_contains(header, "FOR 14")
 	assert_string_contains(header, "HP 130/130   MP 20/20   Poções 2")

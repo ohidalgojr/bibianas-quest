@@ -112,7 +112,7 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 
 ### Estrutura
 
-- O cenário tem N camadas de nós mais o chefe: 5 camadas no cenário 1, crescendo até 9 no cenário 5.
+- O cenário tem N camadas de nós mais o chefe: 6 camadas no cenário 1, crescendo até 10 no cenário 5 (ADR-0027).
 - Cada camada tem largura W (4 para 5 a 6 camadas, 5 para 7 a 9). Cada nó liga a 3 nós consecutivos da camada seguinte, em uma janela deslizante limitada às bordas. Assim há sempre 3 opções, e a rota escolhida muda quais 3 opções aparecem depois.
 - As duas últimas camadas convergem para o portal do chefe. A penúltima sempre oferece uma fogueira em pelo menos uma das três opções.
 - Caminhos ligam os nós no tabuleiro isométrico (seção 17); a Bibiana caminha por eles até o inimigo.
@@ -128,9 +128,9 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 
 | Nó | Frequência inicial | Regra |
 | --- | --- | --- |
-| Batalha | 55% | Inimigo comum, nível próximo do nível do cenário |
+| Batalha | 49% | Inimigo comum, nível próximo do nível do cenário |
 | Elite | 10% (sobe com o cenário) | Não aparece nos primeiros 30% das camadas. Mais Poder e melhor drop |
-| Baú | 8% | Dinheiro, item ou armadilha com moeda. Nunca dois em sequência |
+| Baú | 14% (ADR-0027) | Dinheiro, item ou armadilha com moeda. Nunca dois em sequência |
 | Evento | 9% | Escolha com risco e recompensa; usa moeda em parte dos casos |
 | Fogueira | Garantida (seção 12) | Nunca duas fogueiras ligadas entre si |
 | Mini boss | 0 ou 1 por cenário (chance cresce com a profundidade) | Anunciado. Recompensa rara garantida |
@@ -523,7 +523,7 @@ A fogueira é o respiro do jogo: um nó seguro onde a Bibiana gasta Brasas limit
 ### Regras
 
 - Cada fogueira dá 6 Brasas (valor inicial). Ao entrar, o jogador escolhe ações até gastar as Brasas ou sair.
-- Mapas de 5 camadas ou mais têm pelo menos 1 fogueira, na segunda metade, e a penúltima camada sempre oferece uma. Mapas de 8 camadas ou mais têm 2. (Interpretação do briefing, pergunta aberta na seção 25.)
+- Mapas de 5 camadas ou mais têm pelo menos 1 fogueira, na segunda metade, e a penúltima camada sempre oferece uma. Mapas de 6 camadas ou mais têm 2 (ADR-0027); a segunda fogueira só acende com lenha (ADR-0028).
 - Roaming bosses não entram em fogueiras, mas o tempo continua passando (seção 13).
 
 ### Ações
@@ -641,11 +641,11 @@ A economia deve ser apertada: o jogador nunca consegue comprar tudo o que quer, 
 ### Fontes e valores iniciais
 
 ```latex
-\text{Moedas por inimigo} = \text{round}(6 \times N_{inimigo} \times U(0{,}8;\,1{,}2) \times m_{tipo})
+\text{Moedas por inimigo} = \text{round}(10 \times N_{inimigo} \times U(0{,}8;\,1{,}2) \times m_{tipo})
 ```
 
 - m\_tipo: comum 1, elite 1,5, mini boss 2,5, chefe 4, roaming boss 3.
-- Baús dão de 1 a 3 vezes o ouro de uma batalha comum do nível do cenário.
+- Baús dão de 1 a 3 vezes o ouro de uma batalha comum do nível do cenário. O baú abre num painel em que o jogador pode multiplicá-lo uma vez, por Moeda da Sorte ou por anúncio opcional: o multiplicador é sorteado entre ×1,25 (50%), ×1,5 (35%) e ×2 (15%), e o ×2 também rende uma poção (ADR-0027). O objetivo é o jogador chegar ao chefe com ouro para ao menos uma peça de equipamento e uma poção.
 - Venda de itens paga 40% do valor.
 
 ### Loja após cada batalha
@@ -680,7 +680,7 @@ Intersticiais e banners ficam fora, porque quebram a tensão do jogo. Dados de m
 | --- | --- | --- |
 | Tela de morte | Reviver na mesma batalha com 50% de HP | 1 por cenário |
 | Moeda (seção 7) | (sem oferta: a moeda é 50% fixo; o que o anúncio faz aqui é decisão de monetização futura) | n/a |
-| Baú | Dobrar o ouro do baú | Sem limite fixo por Descida |
+| Baú | Multiplicar o ouro do baú, sorteio de ×1,25 a ×2 (ADR-0027) | Uma vez por baú |
 | Loja | Atualizar o estoque de graça | 1 por cenário |
 | Santuário | Bônus diário pequeno (fragmentos de forja) | 1 por dia |
 

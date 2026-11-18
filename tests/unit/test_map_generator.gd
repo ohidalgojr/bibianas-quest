@@ -72,8 +72,8 @@ func test_different_seeds_give_different_maps() -> void:
 
 func test_golden_maps_pin_the_generation() -> void:
 	# Se estes textos mudarem, as Descidas gravadas mudaram: exige ADR e RULES_VERSION.
-	assert_eq(_generate(12345, MapConfig.for_scenario(1)).signature(), "5x4@1/BVAB/VBAC/BBEB/BFBA/BEVB")
-	assert_eq(_generate(12345, MapConfig.for_scenario(5)).signature(), "9x5@2/VABVB/ACVBC/ABBBB/EVBVE/EBFBB/CBBAA/EBABV/EAFVB/EBBAC")
+	assert_eq(_generate(12345, MapConfig.for_scenario(1)).signature(), "6x4@1/VABV/BACV/CEFB/BBVB/CFVB/EBBB")
+	assert_eq(_generate(12345, MapConfig.for_scenario(5)).signature(), "10x5@2/VABVB/ACVBC/BAVBB/CVBVC/BBVBA/BBFAA/BBEBV/CAVBC/ABFBB/EEBBA")
 
 
 func test_generation_only_spends_the_map_stream() -> void:
@@ -115,7 +115,7 @@ func test_kind_frequencies_stay_near_the_gdd_starting_values() -> void:
 	gut.p("batalha %.1f%%, emboscada %.1f%%, baú %.1f%%, evento %.1f%%, elite %.1f%% das camadas liberadas" % [battle, ambush, chest, event, elite])
 	assert_between(battle, 52.0, 66.0, "batalha (GDD: 55%, sobe onde elite e baú são barrados)")
 	assert_between(ambush, 15.0, 24.0, "emboscada (GDD: 18%)")
-	assert_between(chest, 4.0, 10.0, "baú (GDD: 8%, cai por nunca vir em sequência)")
+	assert_between(chest, 8.0, 16.0, "baú (peso 14, cai por nunca vir em sequência; ADR-0027)")
 	assert_between(event, 6.0, 13.0, "evento (GDD: 9%)")
 	assert_between(elite, 8.0, 13.0, "elite nas camadas liberadas (GDD: 10%)")
 	assert_eq(counts.size(), 5, "só os cinco tipos sorteados aparecem")
@@ -126,5 +126,5 @@ func test_route_to_the_boss_exists_on_generated_maps() -> void:
 	for run_seed: int in 300:
 		var graph: MapGraph = _generate(run_seed, MapConfig.for_scenario(5))
 		var route: PackedInt32Array = graph.safest_route(cost)
-		assert_eq(route.size(), 10, "9 camadas e o chefe")
+		assert_eq(route.size(), 11, "10 camadas e o chefe")
 		assert_eq(route[route.size() - 1], graph.boss_id)

@@ -39,7 +39,7 @@ func test_run_starts_on_the_map() -> void:
 	assert_eq(run.mp, 20)
 	assert_eq(run.consumable_count("murky_potion"), 2)
 	assert_eq(run.options().size(), 3, "três destinos (GDD §5)")
-	assert_eq(run.map.layer_count, 5, "cenário 1 com 5 camadas (GDD §17)")
+	assert_eq(run.map.layer_count, 6, "cenário 1 com 6 camadas (ADR-0027)")
 	assert_eq(run.map.boss_node().enemy_id, "gravedigger")
 	assert_eq(run.map.boss_node().level, 6)
 	for node: MapNode in run.map.nodes:
@@ -78,7 +78,7 @@ func test_victory_gives_power_gold_and_opens_shop() -> void:
 	var old_max: int = run.player_stats().max_hp
 	assert_true(run.finish_fight())
 	assert_almost_eq(run.power, 1.0 + 0.4 * 3, 0.0001)
-	assert_between(run.gold, 14, 22, "6 × 3 × U(0,8; 1,2)")
+	assert_between(run.gold, 24, 36, "10 × 3 × U(0,8; 1,2)")
 	var new_max: int = run.player_stats().max_hp
 	assert_eq(run.hp, hp_after_fight + new_max - old_max, "o crescimento não cura nem fere (ADR-0011)")
 	assert_eq(run.phase, RunState.Phase.SHOP)
@@ -167,7 +167,7 @@ func test_chest_gives_gold() -> void:
 	var run: RunState = _run()
 	var node: MapNode = _force_option(run, MapNode.Kind.CHEST)
 	assert_true(run.choose_node(node.id))
-	assert_between(run.gold, 5, 21, "1 a 3 vezes o ouro de uma batalha de nível 1")
+	assert_between(run.gold, 8, 40, "1 a 3 vezes o ouro de uma batalha de nível 1")
 	assert_eq(run.phase, RunState.Phase.CHOOSING)
 	assert_eq(run.current_node_id, node.id)
 
@@ -296,3 +296,33 @@ func test_defeat_records_killer_and_echoes_only_when_over() -> void:
 	assert_eq(run.bosses_defeated(), 0)
 	assert_eq(run.echoes_earned(), RunRules.echoes(run.nodes_cleared, 0))
 	assert_gt(run.echoes_earned(), 0, "morrer também credita Ecos")
+
+
+## ADR-0027 (D5): o baú pode ser multiplicado uma vez, de forma moderada.
+func test_chest_boost_by_lucky_coin_or_ad_once() -> void:
+	var run: RunState = _run(9)
+	var node: MapNode = _force_option(run, MapNode.Kind.CHEST)
+	run.choose_node(node.id)
+	assert_false(run.last_chest.is_empty())
+	assert_false(run.can_boost_chest("lucky_coin"), "sem Moeda da Sorte")
+	assert_false(run.can_boost_chest("outro"))
+	run.consumables[RunRules.LUCKY_COIN_ID] = 1
+	var gold_before: int = run.gold
+	var base: int = int(run.last_chest["gold"])
+	assert_true(run.boost_chest("lucky_coin"))
+	assert_eq(run.consumable_count(RunRules.LUCKY_COIN_ID), 0, "gastou a moeda")
+	var percent: int = int(run.last_chest["multiplier"])
+	assert_true([125, 150, 200].has(percent))
+	assert_eq(run.gold, gold_before + roundi(base * (percent - 100) / 100.0))
+	assert_false(run.can_boost_chest("ad"), "só uma vez por baú")
+	assert_false(run.boost_chest("ad"))
+
+
+func test_chest_multiplier_weights_are_moderate() -> void:
+	var loot: Pcg32 = RngStreams.new(3).loot()
+	var counts: Dictionary = {125: 0, 150: 0, 200: 0}
+	for draw: int in 4000:
+		counts[RunRules.chest_multiplier(loot)] += 1
+	assert_between(counts[125], 1800, 2200, "50%")
+	assert_between(counts[150], 1250, 1550, "35%")
+	assert_between(counts[200], 480, 720, "15%")

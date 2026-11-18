@@ -41,6 +41,12 @@ func show_reward() -> void:
 		_render()
 
 
+func show_chest() -> void:
+	_mode = "chest"
+	if _box != null:
+		_render()
+
+
 func show_shop() -> void:
 	_mode = "shop"
 	if _box != null:
@@ -62,6 +68,8 @@ func _render() -> void:
 			_render_reward()
 		"shop":
 			_render_shop()
+		"chest":
+			_render_chest()
 		"campfire":
 			_render_campfire()
 
@@ -93,6 +101,24 @@ func _render_drop(drop: Dictionary) -> void:
 	_button("Vender por %d ouro" % int(drop["sell_value"]), func() -> void:
 		panels.sell_drop()
 		_render())
+
+
+func _render_chest() -> void:
+	var view: Dictionary = panels.chest_view()
+	_title(str(view["title"]))
+	for line: Variant in view["lines"]:
+		_text(str(line))
+	if not bool(view["boosted"]):
+		_text("Multiplicar o baú (sorteio de ×1,25 a ×2, uma vez):", 16)
+		var lucky: Button = _button("Usar Moeda da Sorte (%d)" % int(view["lucky_coins"]), func() -> void:
+			panels.boost_chest("lucky_coin")
+			_render())
+		lucky.disabled = not bool(view["can_lucky"])
+		var ad: Button = _button("Assistir anúncio opcional (simulado)", func() -> void:
+			panels.boost_chest("ad")
+			_render())
+		ad.disabled = not bool(view["can_ad"])
+	_button("Seguir", func() -> void: closed.emit())
 
 
 func _render_shop() -> void:

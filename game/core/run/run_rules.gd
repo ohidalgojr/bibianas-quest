@@ -6,8 +6,8 @@ extends RefCounted
 ## GDD §9: delta de Poder = 0,4 × N × m_tipo (era 0,15; ADR-0023).
 const POWER_PER_LEVEL: float = 0.4
 const STARTING_POWER: float = 1.0
-## GDD §15: moedas por inimigo = round(6 × N × U(0,8; 1,2) × m_tipo).
-const GOLD_PER_LEVEL: float = 6.0
+## GDD §15: moedas por inimigo = round(10 × N × U(0,8; 1,2) × m_tipo) (era 6; ADR-0027).
+const GOLD_PER_LEVEL: float = 10.0
 const GOLD_VARIANCE_LOW: float = 0.8
 const GOLD_VARIANCE_HIGH: float = 1.2
 ## GDD §9 e §15: m_tipo por tipo de inimigo.
@@ -35,6 +35,10 @@ const SHOP_CONSUMABLES: int = 2
 ## GDD §15: atualizar custa 15 na primeira vez e mais 10 a cada nova vez no mesmo nó.
 const REROLL_FIRST: int = 15
 const REROLL_STEP: int = 10
+## Multiplicador do baú (D5, ADR-0027): sorteado entre ×1,25 (50%), ×1,5 (35%) e ×2 (15%),
+## uma vez por baú, por Moeda da Sorte ou por anúncio opcional. O ×2 também rende uma poção.
+const CHEST_BOOST_PERCENTS: Array[int] = [125, 150, 200]
+const CHEST_BOOST_WEIGHTS: Array[int] = [50, 35, 15]
 ## GDD §8: espaços de skill de combate no protótipo (ADR-0024).
 const MAX_SKILLS: int = 5
 ## GDD §10: até 8 consumíveis.
@@ -112,6 +116,16 @@ static func drop_rarity(enemy_type: String, loot: Pcg32, luck: int = 0, extra_sh
 		if roll <= 0:
 			return rarity
 	return "common"
+
+
+## Multiplicador do baú em % (125, 150 ou 200), sorteado no fluxo de loot.
+static func chest_multiplier(loot: Pcg32) -> int:
+	var roll: int = loot.draw_int(1, 100)
+	for index: int in CHEST_BOOST_PERCENTS.size():
+		roll -= CHEST_BOOST_WEIGHTS[index]
+		if roll <= 0:
+			return CHEST_BOOST_PERCENTS[index]
+	return CHEST_BOOST_PERCENTS[0]
 
 
 static func sell_value(price: int) -> int:

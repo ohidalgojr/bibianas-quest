@@ -95,6 +95,36 @@ static func stat_changes(before: Stats, after: Stats) -> Array[String]:
 	return found
 
 
+# --- Baú (D5, ADR-0027) ---------------------------------------------------------------
+
+## O baú aberto, com o que ele deu e as formas de multiplicar (uma vez).
+func chest_view() -> Dictionary:
+	var chest: Dictionary = run.last_chest
+	if chest.is_empty():
+		return {}
+	var boosted: bool = bool(chest["boosted"])
+	var lines: Array[String] = ["Baú: +%d de ouro (total %d)." % [int(chest["gold"]), run.gold]]
+	if boosted:
+		lines.append("Multiplicador ×%.2f: +%d de ouro%s." % [int(chest["multiplier"]) / 100.0, int(chest["bonus"]),
+			" e uma Poção Turva" if bool(chest.get("potion", false)) else ""])
+	return {
+		"title": "Baú",
+		"lines": lines,
+		"boosted": boosted,
+		"lucky_coins": run.consumable_count(RunRules.LUCKY_COIN_ID),
+		"can_lucky": run.can_boost_chest("lucky_coin"),
+		"can_ad": run.can_boost_chest("ad"),
+	}
+
+
+func boost_chest(source: String) -> bool:
+	return run.boost_chest(source)
+
+
+func close_chest() -> void:
+	run.last_chest = {}
+
+
 # --- Loja (GDD §15) ------------------------------------------------------------------
 
 func shop_view() -> Dictionary:

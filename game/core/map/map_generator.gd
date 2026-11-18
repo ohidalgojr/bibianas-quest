@@ -27,15 +27,15 @@ static func generate(config: MapConfig, rng: Pcg32) -> MapGraph:
 
 
 ## A penúltima camada recebe uma fogueira em uma coluna que aparece nas 3 opções de
-## qualquer nó anterior. Mapas de 8 camadas ou mais ganham outra, na segunda metade e
-## longe da primeira, para as duas nunca ficarem ligadas.
+## qualquer nó anterior. Mapas de 6 camadas ou mais ganham outra, a no máximo 3 camadas do
+## fim e longe da primeira, para as duas nunca ficarem ligadas.
 static func _place_bonfires(graph: MapGraph, config: MapConfig, rng: Pcg32) -> void:
 	var layers: int = config.layer_count
 	var shared_column: int = rng.draw_int(config.width - MapGraph.OPTIONS, MapGraph.OPTIONS - 1)
 	graph.node_at(layers - 1, shared_column).kind = MapNode.Kind.BONFIRE
 	if config.bonfire_count() >= 2:
 		@warning_ignore("integer_division")
-		var extra_layer: int = rng.draw_int(layers / 2 + 1, layers - 3)
+		var extra_layer: int = rng.draw_int(mini(layers / 2 + 1, layers - 3), layers - 3)
 		var extra_column: int = rng.draw_int(0, config.width - 1)
 		graph.node_at(extra_layer, extra_column).kind = MapNode.Kind.BONFIRE
 

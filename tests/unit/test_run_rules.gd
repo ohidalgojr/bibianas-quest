@@ -12,13 +12,13 @@ func test_power_gain_formula_gdd_section_9() -> void:
 	assert_almost_eq(RunRules.power_gain(2, "roaming_boss"), 2.4, 0.0001)
 
 
-## GDD §15: moedas = round(6 × N × U(0,8; 1,2) × m_tipo).
+## GDD §15: moedas = round(10 × N × U(0,8; 1,2) × m_tipo) (ADR-0027).
 func test_gold_formula_gdd_section_15() -> void:
-	assert_eq(RunRules.gold_for(1, "common", 1.0), 6)
-	assert_eq(RunRules.gold_for(5, "common", 0.8), 24)
-	assert_eq(RunRules.gold_for(5, "common", 1.2), 36)
-	assert_eq(RunRules.gold_for(3, "elite", 1.0), 27)
-	assert_eq(RunRules.gold_for(6, "boss", 1.0), 144)
+	assert_eq(RunRules.gold_for(1, "common", 1.0), 10)
+	assert_eq(RunRules.gold_for(5, "common", 0.8), 40)
+	assert_eq(RunRules.gold_for(5, "common", 1.2), 60)
+	assert_eq(RunRules.gold_for(3, "elite", 1.0), 45)
+	assert_eq(RunRules.gold_for(6, "boss", 1.0), 240)
 
 
 func test_gold_drop_stays_in_range_and_uses_loot_stream() -> void:
@@ -29,8 +29,8 @@ func test_gold_drop_stays_in_range_and_uses_loot_stream() -> void:
 		var gold: int = RunRules.gold_drop(5, "common", loot)
 		low = mini(low, gold)
 		high = maxi(high, gold)
-	assert_between(low, 24, 26, "perto de 6 × 5 × 0,8")
-	assert_between(high, 34, 36, "perto de 6 × 5 × 1,2")
+	assert_between(low, 40, 42, "perto de 10 × 5 × 0,8")
+	assert_between(high, 58, 60, "perto de 10 × 5 × 1,2")
 	var first: int = RunRules.gold_drop(3, "common", RngStreams.new(9).loot())
 	assert_eq(RunRules.gold_drop(3, "common", RngStreams.new(9).loot()), first, "mesma semente, mesmo ouro")
 
@@ -39,7 +39,7 @@ func test_gold_drop_stays_in_range_and_uses_loot_stream() -> void:
 func test_chest_gold_is_one_to_three_battles() -> void:
 	var loot: Pcg32 = RngStreams.new(5).loot()
 	for draw: int in 500:
-		assert_between(RunRules.chest_gold(2, loot), 10, 3 * 14)
+		assert_between(RunRules.chest_gold(2, loot), 16, 3 * 24)
 
 
 ## ADR-0011: nível interpolado pela camada; o chefe no máximo.

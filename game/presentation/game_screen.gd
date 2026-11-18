@@ -157,6 +157,8 @@ func _after_action() -> void:
 			if save_enabled:
 				_store().save_run(run)
 			_show_map()
+			if not run.last_chest.is_empty():
+				_show_chest()
 		RunState.Phase.FIGHT:
 			_show_fight()
 		RunState.Phase.SHOP:
@@ -212,6 +214,14 @@ func _show_reward() -> void:
 	screen.show_reward()
 	screen.closed.connect(func() -> void:
 		_reward_pending = false
+		_after_action())
+
+
+func _show_chest() -> void:
+	var screen: RunPanelScreen = _open_panel()
+	screen.show_chest()
+	screen.closed.connect(func() -> void:
+		screen.panels.close_chest()
 		_after_action())
 
 

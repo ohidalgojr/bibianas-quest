@@ -11,9 +11,9 @@ const MAX_WIDTH: int = 5
 var layer_count: int = 5
 var width: int = 4
 ## Frequências iniciais dos tipos sorteados (GDD §5, "Tipos de nó"), em pontos.
-var weight_battle: int = 55
+var weight_battle: int = 49
 var weight_elite: int = 10
-var weight_chest: int = 8
+var weight_chest: int = 14
 var weight_event: int = 9
 var weight_ambush: int = 18
 ## Elite não aparece nos primeiros 30% das camadas (arredondado para cima, ADR-0007).
@@ -31,9 +31,9 @@ static func for_layers(layers: int) -> MapConfig:
 	return config
 
 
-## Cenário 1 tem 5 camadas, crescendo até 9 no cenário 5 (GDD §5).
+## Cenário 1 tem 6 camadas, crescendo até 10 no cenário 5 (GDD §5, ADR-0027).
 static func for_scenario(scenario: int) -> MapConfig:
-	return for_layers(4 + clampi(scenario, 1, 5))
+	return for_layers(5 + clampi(scenario, 1, 5))
 
 
 ## Quantas camadas iniciais não podem ter elite.
@@ -42,9 +42,9 @@ func elite_free_layers() -> int:
 	return (elite_free_percent * layer_count + 99) / 100
 
 
-## Mapas de 8 camadas ou mais têm 2 fogueiras; os demais, 1 (GDD §12).
+## Mapas de 6 camadas ou mais têm 2 fogueiras; os demais, 1 (GDD §12, ADR-0027).
 func bonfire_count() -> int:
-	return 2 if layer_count >= 8 else 1
+	return 2 if layer_count >= 6 else 1
 
 
 ## Lista de problemas da configuração; vazia quando ela pode ser usada.

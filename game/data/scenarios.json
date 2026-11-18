@@ -4,7 +4,7 @@
 		{
 			"id": "abandoned_city",
 			"name": "Cidade Abandonada",
-			"layers": 5,
+			"layers": 6,
 			"min_level": 1,
 			"max_level": 6,
 			"winnable_target": 60,

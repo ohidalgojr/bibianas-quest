@@ -42,6 +42,9 @@ var enemies_defeated: int = 0
 var last_reward: Dictionary = {}
 ## Equipamento caído na última vitória, à espera de Equipar ou Vender (ADR-0022).
 var pending_drop: String = ""
+## Último baú aberto: {gold, boosted, multiplier}; vazio se não há baú para o jogador ver
+## (ADR-0027). A apresentação limpa depois do painel.
+var last_chest: Dictionary = {}
 ## Quem derrotou a Bibiana (id do inimigo e nível), para a tela de morte (GDD §26).
 var defeated_by_id: String = ""
 var defeated_by_level: int = 0
@@ -178,6 +181,36 @@ func buy_skill() -> bool:
 	return true
 
 
+## Dá para multiplicar o baú agora? Uma vez por baú; a Moeda da Sorte gasta uma moeda, o
+## anúncio (opcional, GDD §16) é de graça (ADR-0027).
+func can_boost_chest(source: String) -> bool:
+	if phase != Phase.CHOOSING or last_chest.is_empty() or bool(last_chest["boosted"]):
+		return false
+	if source == "lucky_coin":
+		return consumable_count(RunRules.LUCKY_COIN_ID) > 0
+	return source == "ad"
+
+
+func boost_chest(source: String) -> bool:
+	if not can_boost_chest(source):
+		return false
+	if source == "lucky_coin":
+		consumables[RunRules.LUCKY_COIN_ID] = consumable_count(RunRules.LUCKY_COIN_ID) - 1
+		_emit(RunEvent.Type.ITEM_USED, RunRules.LUCKY_COIN_ID, 1)
+	var percent: int = RunRules.chest_multiplier(streams.loot())
+	var base: int = int(last_chest["gold"])
+	var bonus: int = roundi(base * (percent - 100) / 100.0)
+	_gain_gold(bonus, "chest_boost")
+	if percent >= 200 and total_consumables() < RunRules.MAX_CONSUMABLES:
+		consumables["murky_potion"] = consumable_count("murky_potion") + 1
+		_emit(RunEvent.Type.ITEM_GAINED, "murky_potion", 1)
+		last_chest["potion"] = true
+	last_chest["boosted"] = true
+	last_chest["multiplier"] = percent
+	last_chest["bonus"] = bonus
+	return true
+
+
 func consumable_count(item_id: String) -> int:
 	return int(consumables.get(item_id, 0))
 
@@ -225,7 +258,9 @@ func choose_node(node_id: int) -> bool:
 	elif chosen.kind == MapNode.Kind.CHEST:
 		var level: int = RunRules.layer_level(chosen.layer, map.layer_count,
 			int(scenario()["min_level"]), int(scenario()["max_level"]))
+		var gold_before_chest: int = gold
 		_gain_gold(RunRules.chest_gold(level, streams.loot(), player_stats().luck), "chest")
+		last_chest = {"gold": gold - gold_before_chest, "boosted": false, "multiplier": 100}
 		_roll_lucky_coin(RunRules.LUCKY_COIN_CHEST_PERCENT)
 		nodes_cleared += 1
 	elif chosen.kind == MapNode.Kind.BONFIRE:
