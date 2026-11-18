@@ -45,6 +45,8 @@ const FIREWOOD_PER_MAP: int = 1
 const FIREWOOD_ID: String = "firewood"
 const FIREWOOD_DROP_PERCENT: Dictionary = {"common": 5, "elite": 20}
 const FIREWOOD_CHEST_PERCENT: int = 15
+## Tratar uma doença na fogueira custa 1 Brasa (GDD §11 e §12, ADR-0030).
+const TREAT_COST: int = 1
 ## GDD §8: espaços de skill de combate no protótipo (ADR-0024).
 const MAX_SKILLS: int = 5
 ## GDD §10: até 8 consumíveis.

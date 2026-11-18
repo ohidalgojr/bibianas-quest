@@ -176,6 +176,13 @@ func _render_campfire() -> void:
 		_render())
 	rest.disabled = not bool(view["can_rest"])
 	_text(str(view["rest_text"]), 16)
+	var sick: Array = view["diseases"]
+	if not sick.is_empty():
+		var treat: Button = _button("Tratar %s (%d Brasa)" % [str(sick[0]), int(view["treat_cost"])], func() -> void:
+			panels.treat_disease()
+			_render())
+		treat.disabled = not bool(view["can_treat"])
+		_text("Doença: -15% de HP máximo até tratar.", 16)
 	for entry: Dictionary in view["skills"]:
 		var skill_id: String = str(entry["id"])
 		var label: String = "%s (%d Brasas)" % [str(entry["name"]), int(view["skill_cost"])]

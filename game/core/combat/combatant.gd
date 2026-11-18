@@ -27,6 +27,9 @@ var phase_index: int = 0
 var cycle_index: int = 0
 var intent: EnemyMove = null
 var last_move: EnemyMove = null
+## Doenças da Bibiana (ADR-0030) e reações do inimigo: {when, value, move} (GDD §6, ADR-0030).
+var diseases: Array[String] = []
+var reactions: Array[Dictionary] = []
 
 
 static func player(unit_name: String, unit_stats: Stats, has_veteran: bool = false) -> Combatant:
@@ -98,6 +101,14 @@ func _weakened(value: int) -> float:
 	if has_effect(CombatEffect.Kind.WEAKENED):
 		result *= 1.0 - CombatEffect.WEAK_ATTACK
 	return result
+
+
+## PRE efetiva: a Cegueira tira 30 pontos (ADR-0030).
+func effective_precision_bonus() -> int:
+	var bonus: int = stats.precision_bonus()
+	if has_effect(CombatEffect.Kind.BLINDED):
+		bonus -= CombatEffect.BLIND_PRECISION
+	return bonus
 
 
 func effective_resistance() -> float:

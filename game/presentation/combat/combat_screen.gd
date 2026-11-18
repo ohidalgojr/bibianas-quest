@@ -194,7 +194,7 @@ func _play(events: Array[CombatEvent]) -> void:
 func _apply(event: CombatEvent) -> void:
 	match event.type:
 		CombatEvent.Type.INTENT:
-			_show_intent(event.label)
+			_show_intent(event.label, event.extra)
 		CombatEvent.Type.ACTION:
 			if event.side == Combatant.PLAYER:
 				_player_mp -= event.value
@@ -213,6 +213,10 @@ func _apply(event: CombatEvent) -> void:
 				_play_defeat()
 		CombatEvent.Type.MISS:
 			_pop_text("Errou", COLOR_CALM, event.side != Combatant.PLAYER)
+		CombatEvent.Type.DISEASE:
+			_player_hp_bar.max_value = session.combat.player.stats.max_hp
+			_player_hp = mini(_player_hp, int(_player_hp_bar.max_value))
+			_pop_text(Diseases.display_name(event.label), COLOR_DEBUFF, false, 36)
 		CombatEvent.Type.HEAL:
 			if event.side == Combatant.PLAYER:
 				_player_hp += event.value
@@ -260,8 +264,8 @@ func _play_defeat() -> void:
 	tween.tween_property(_enemy_shape, "modulate", Color(1, 1, 1, 0.0), 0.5 * time_scale)
 
 
-func _show_intent(move_id: String) -> void:
-	var view: Dictionary = session.intent_view(move_id)
+func _show_intent(move_id: String, reason: int = 0) -> void:
+	var view: Dictionary = session.intent_view(move_id, reason)
 	_intent_icon.text = "%s  %s" % [view["icon"], view["name"]]
 	_intent_detail.text = str(view["detail"])
 	if bool(view["coin"]):

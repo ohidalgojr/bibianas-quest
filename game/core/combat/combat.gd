@@ -38,6 +38,8 @@ var _coin: CoinState
 var _awaiting_player: bool = false
 ## Golpes do inimigo desde o último golpe de moeda; começa liberado.
 var _since_coin: int = COIN_GAP
+## Defesas seguidas do jogador, para as reações do inimigo (ADR-0030).
+var _defend_streak: int = 0
 var _started: bool = false
 
 
@@ -87,6 +89,7 @@ func act(action: Action, skill: CombatSkill = null, item: CombatItem = null) -> 
 	if not can_act(action, skill, item):
 		return _since(first)
 	_awaiting_player = false
+	_defend_streak = _defend_streak + 1 if action == Action.DEFEND else 0
 	match action:
 		Action.ATTACK:
 			_emit(CombatEvent.Type.ACTION, Combatant.PLAYER, "attack")
@@ -135,7 +138,7 @@ func preview_player_strike(power: float) -> Dictionary:
 		"min": low,
 		"max": high,
 		"crit_max": crit_high,
-		"hit": CombatFormulas.hit_chance(player.stats.precision_bonus(), enemy.stats.evasion),
+		"hit": CombatFormulas.hit_chance(player.effective_precision_bonus(), enemy.stats.evasion),
 		"crit": clampi(player.stats.crit, 0, 100),
 	}
 
@@ -259,18 +262,45 @@ func _enemy_turn() -> void:
 		_restore(enemy, roundi(enemy.stats.max_hp * move.heal_percent / 100.0), 0)
 	else:
 		var mult: float = 1.0
+		var coin_failed: bool = false
 		if move.is_coin():
 			var success: bool = _flip_coin(move.id)
+			coin_failed = not success
 			mult = CombatFormulas.coin_damage_multiplier(move.kind, success,
 				player.has_effect(CombatEffect.Kind.DEFENDING), player.veteran)
 		var dealt: int = _strike(enemy, player, move.power, CombatFormulas.Element.PHYSICAL, mult, move.id)
 		if move.kind == EnemyMove.Kind.DEBUFF and dealt > 0 and player.is_alive():
 			_try_debuff(move)
+		if coin_failed and dealt > 0 and player.is_alive():
+			_apply_fail_penalty(move)
 	_since_coin = 0 if move.is_coin() else _since_coin + 1
 	enemy.last_move = move
 	_check_end()
 	if outcome == Outcome.ONGOING:
 		_choose_intent()
+
+
+## Consequência temática de errar o lado (ADR-0030): efeito de combate e/ou doença. O Veterano
+## que Defende anula a penalidade da coroa, inclusive esta (GDD §7 e §8).
+func _apply_fail_penalty(move: EnemyMove) -> void:
+	if player.veteran and player.has_effect(CombatEffect.Kind.DEFENDING):
+		return
+	if move.fail_effect_kind >= 0:
+		var kind: CombatEffect.Kind = move.fail_effect_kind as CombatEffect.Kind
+		_apply_effect(player, kind, CombatEffect.debuff_turns(kind))
+	if not move.fail_disease.is_empty():
+		_contract(move.fail_disease)
+
+
+## A Bibiana pega uma doença: o HP máximo cai já nesta luta e a doença segue com ela (ADR-0030).
+func _contract(disease_id: String) -> void:
+	if player.diseases.has(disease_id) or not Diseases.is_known(disease_id):
+		return
+	player.diseases.append(disease_id)
+	var factor: float = Diseases.max_hp_factor([disease_id])
+	player.stats.max_hp = maxi(roundi(player.stats.max_hp * factor), 1)
+	player.hp = mini(player.hp, player.stats.max_hp)
+	_emit(CombatEvent.Type.DISEASE, Combatant.PLAYER, disease_id)
 
 
 ## Debuff do golpe (ADR-0020): a chance do golpe sorteia no fluxo de combate, não no da
@@ -283,9 +313,50 @@ func _try_debuff(move: EnemyMove) -> void:
 		_apply_effect(player, move.effect, CombatEffect.debuff_turns(move.effect))
 
 
+## Códigos do motivo da reação, para o aviso na tela (ADR-0030).
+const REACTION_CODES: Dictionary = {"player_hp_below": 1, "self_hp_below": 2, "player_defended_twice": 3, "player_buffed": 4}
+
+
+## Reação do inimigo (GDD §6, ADR-0030): a primeira regra cuja condição vale e cujo golpe existe
+## na fase atual, é permitido pelas regras de justiça e não foi o último golpe. Devolve
+## {move, code} ou vazio.
+func _reaction(moves: Array[EnemyMove]) -> Dictionary:
+	for rule: Dictionary in enemy.reactions:
+		var move: EnemyMove = null
+		for candidate: EnemyMove in moves:
+			if candidate.id == str(rule["move"]):
+				move = candidate
+		if move == null or not _reaction_holds(rule):
+			continue
+		if not _move_allowed(move) or (enemy.last_move != null and enemy.last_move.id == move.id):
+			continue
+		return {"move": move, "code": int(REACTION_CODES[str(rule["when"])])}
+	return {}
+
+
+func _reaction_holds(rule: Dictionary) -> bool:
+	var value: int = int(rule.get("value", 0))
+	match str(rule["when"]):
+		"player_hp_below":
+			return player.hp_percent() < value
+		"self_hp_below":
+			return enemy.hp_percent() < value
+		"player_defended_twice":
+			return _defend_streak >= 2
+		"player_buffed":
+			return player.has_effect(CombatEffect.Kind.EMPOWERED) or player.has_effect(CombatEffect.Kind.BULWARK)
+	return false
+
+
 func _choose_intent() -> void:
 	_update_phase()
 	var moves: Array[EnemyMove] = enemy.phases[enemy.phase_index].moves
+	var reaction: Dictionary = _reaction(moves)
+	if not reaction.is_empty():
+		var reacted: EnemyMove = reaction["move"]
+		enemy.intent = reacted
+		_emit(CombatEvent.Type.INTENT, Combatant.ENEMY, reacted.id, reacted.intent(), false, int(reaction["code"]))
+		return
 	var index: int = enemy.cycle_index % moves.size()
 	if moves.size() > 1 and _rng.draw_percent(VARIATION_PERCENT):
 		index = (index + 1) % moves.size()
@@ -362,7 +433,7 @@ func _use_skill(skill: CombatSkill) -> void:
 ## acerto, crítico, variação.
 func _strike(attacker: Combatant, defender: Combatant, power: float, element: CombatFormulas.Element,
 		coin_mult: float, label: String) -> int:
-	var hit: int = CombatFormulas.hit_chance(attacker.stats.precision_bonus(), defender.stats.evasion)
+	var hit: int = CombatFormulas.hit_chance(attacker.effective_precision_bonus(), defender.stats.evasion)
 	if not _rng.draw_percent(hit):
 		_emit(CombatEvent.Type.MISS, attacker.side, label)
 		return -1
@@ -374,6 +445,8 @@ func _strike(attacker: Combatant, defender: Combatant, power: float, element: Co
 	var raw: float = CombatFormulas.raw_damage(attack, power, guard, variance,
 		CombatFormulas.CRIT_MULTIPLIER if critical else 1.0, defender.element_multiplier(element), 1.0)
 	raw *= coin_mult
+	if defender.has_effect(CombatEffect.Kind.CURSED):
+		raw *= 1.0 + CombatEffect.CURSE_DAMAGE
 	if defender.has_effect(CombatEffect.Kind.DEFENDING):
 		raw *= 1.0 - CombatFormulas.defend_reduction(defender.veteran)
 	var damage: int = CombatFormulas.final_damage(raw)

@@ -3,7 +3,7 @@ extends RefCounted
 ## Efeito temporário em uma unidade. A duração conta turnos de quem tem o efeito e cai
 ## no início de cada turno dela (ADR-0008).
 
-enum Kind { DEFENDING, BULWARK, ARMOR_DOWN, SLOWED, POISON, WEAKENED, EMPOWERED }
+enum Kind { DEFENDING, BULWARK, ARMOR_DOWN, SLOWED, POISON, WEAKENED, EMPOWERED, BLINDED, CURSED }
 
 ## Muralha: DEF +50% e reflete 20% do dano físico (GDD §8).
 const BULWARK_DEFENSE: float = 0.5
@@ -28,7 +28,11 @@ const EMPOWER_ATTACK: float = 0.25
 const EMPOWER_TURNS: int = 3
 const MEND_PERCENT: int = 25
 
-const LABELS: Array[String] = ["defending", "bulwark", "armor_down", "slowed", "poison", "weakened", "empowered"]
+## Cegueira: PRE -30 pontos por 3 turnos; Maldição: dano recebido +20% por 3 turnos (GDD §11, ADR-0030).
+const BLIND_PRECISION: int = 30
+const CURSE_DAMAGE: float = 0.20
+
+const LABELS: Array[String] = ["defending", "bulwark", "armor_down", "slowed", "poison", "weakened", "empowered", "blinded", "cursed"]
 
 ## Duração padrão do efeito de debuff de um golpe.
 static func debuff_turns(effect_kind: Kind) -> int:

@@ -5,7 +5,7 @@ extends RefCounted
 ##
 ## Campos por tipo:
 ## - TURN: side = quem age.
-## - INTENT: label = id do golpe; value = [enum EnemyMove.Intent].
+## - INTENT: label = id do golpe; value = [enum EnemyMove.Intent]; extra = motivo da reação do inimigo, 0 se for o ciclo (ADR-0030).
 ## - ACTION: label = ação, skill ou golpe; value = custo de MP (jogador) ou intenção (inimigo).
 ## - MISS: side = atacante; label = ação.
 ## - DAMAGE: side = quem recebe; label = ação; value = dano; flag = crítico; extra = vida depois.
@@ -16,10 +16,11 @@ extends RefCounted
 ## - PHASE: side = inimigo; value = nova fase.
 ## - FLEE_FAILED: sem campos.
 ## - ENDED: value = [enum Combat.Outcome].
+## - DISEASE: label = id da doença pega pela Bibiana (ADR-0030).
 
-enum Type { STARTED, TURN, INTENT, ACTION, MISS, DAMAGE, HEAL, COIN, EFFECT_ON, EFFECT_OFF, STUN_SKIP, PHASE, FLEE_FAILED, ENDED }
+enum Type { STARTED, TURN, INTENT, ACTION, MISS, DAMAGE, HEAL, COIN, EFFECT_ON, EFFECT_OFF, STUN_SKIP, PHASE, FLEE_FAILED, ENDED, DISEASE }
 
-const TYPE_NAMES: Array[String] = ["STARTED", "TURN", "INTENT", "ACTION", "MISS", "DAMAGE", "HEAL", "COIN", "EFFECT_ON", "EFFECT_OFF", "STUN_SKIP", "PHASE", "FLEE_FAILED", "ENDED"]
+const TYPE_NAMES: Array[String] = ["STARTED", "TURN", "INTENT", "ACTION", "MISS", "DAMAGE", "HEAL", "COIN", "EFFECT_ON", "EFFECT_OFF", "STUN_SKIP", "PHASE", "FLEE_FAILED", "ENDED", "DISEASE"]
 
 var type: Type = Type.STARTED
 var side: int = Combatant.PLAYER

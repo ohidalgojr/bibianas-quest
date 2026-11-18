@@ -32,6 +32,7 @@ static func to_dict(run: RunState) -> Dictionary:
 		"nodes_cleared": run.nodes_cleared,
 		"enemies_defeated": run.enemies_defeated,
 		"learned_skills": run.learned_skills,
+		"diseases": run.diseases,
 		"streams": run.streams.snapshot(),
 		"coin": {"losses_in_row": run.coin.losses_in_row, "flips": run.coin.flips, "heads": run.coin.heads},
 	}
@@ -66,6 +67,9 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	run.embers = int(saved["embers"])
 	run.nodes_cleared = int(saved["nodes_cleared"])
 	run.enemies_defeated = int(saved.get("enemies_defeated", 0))
+	if saved.has("diseases"):
+		for disease_id: Variant in saved["diseases"]:
+			run.diseases.append(str(disease_id))
 	if saved.has("learned_skills"):
 		run.learned_skills.clear()
 		for skill_id: Variant in saved["learned_skills"]:

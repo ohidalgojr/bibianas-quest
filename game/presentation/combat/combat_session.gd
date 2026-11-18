@@ -222,7 +222,7 @@ func move_kind(move_id: String) -> EnemyMove.Kind:
 
 ## Ícone de intenção do golpe (GDD §6): texto do ícone, se é perigoso, se é de moeda e
 ## o detalhe. No golpe de moeda, o detalhe traz a chance real de Cara (GDD §7).
-func intent_view(move_id: String) -> Dictionary:
+func intent_view(move_id: String, reason: int = 0) -> Dictionary:
 	var kind: EnemyMove.Kind = move_kind(move_id)
 	var move: EnemyMove = _moves.get(move_id, EnemyMove.make(move_id, kind))
 	var view: Dictionary = {
@@ -234,13 +234,16 @@ func intent_view(move_id: String) -> Dictionary:
 		"detail": "",
 	}
 	if move.is_coin():
-		view["detail"] = "Escolha Cara ou Coroa. %s" % CombatTexts.coin_stakes(kind)
+		view["detail"] = "Escolha Cara ou Coroa. %s%s." % [CombatTexts.coin_stakes(kind), CombatTexts.fail_text(move)]
 	elif kind == EnemyMove.Kind.DEBUFF:
 		view["detail"] = "Se acertar: %s com %d%% de chance (%d%% se você Defender)." % [
 			CombatTexts.effect_label(move.effect), move.effect_chance,
 			roundi(move.effect_chance * CombatEffect.DEFEND_CHANCE_FACTOR)]
 	elif kind == EnemyMove.Kind.STRONG:
 		view["detail"] = "Defender reduz o dano."
+	if reason > 0 and CombatTexts.REACTION_TEXTS.has(reason):
+		view["reason"] = str(CombatTexts.REACTION_TEXTS[reason])
+		view["detail"] = "%s. %s" % [view["reason"], view["detail"]]
 	return view
 
 
@@ -264,7 +267,7 @@ func describe(event: CombatEvent) -> String:
 		CombatEvent.Type.STARTED:
 			return "A luta começa: %s, nível %d. Semente %d." % [enemy_name(), level, run_seed]
 		CombatEvent.Type.INTENT:
-			return "%s prepara: %s." % [enemy_name(), CombatTexts.move_name(move_kind(event.label), event.label)]
+			return "%s prepara: %s." % [enemy_name(), CombatTexts.move_name(move_kind(event.label), event.label)] + _reason_suffix(event.extra)
 		CombatEvent.Type.ACTION:
 			return "%s usa %s." % [who, _action_name(event)]
 		CombatEvent.Type.MISS:
@@ -303,9 +306,15 @@ func describe(event: CombatEvent) -> String:
 			return "%s muda de fase!" % who
 		CombatEvent.Type.FLEE_FAILED:
 			return "A fuga falhou."
+		CombatEvent.Type.DISEASE:
+			return "%s pegou %s." % [who, Diseases.display_name(event.label)]
 		CombatEvent.Type.ENDED:
 			return CombatTexts.outcome(event.value)
 	return ""
+
+
+func _reason_suffix(code: int) -> String:
+	return " (%s.)" % str(CombatTexts.REACTION_TEXTS[code]) if CombatTexts.REACTION_TEXTS.has(code) else ""
 
 
 func _side_name(side: int) -> String:

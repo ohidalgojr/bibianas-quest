@@ -188,3 +188,20 @@ O congelamento acabou: as tarefas TASK-021 a TASK-025 (tabela no ADR-0025) segue
 ### Correção do Orlando sobre D2 (2026-11-18)
 
 A primeira leitura da fogueira com lenha estava errada: dava **uma fogueira para a Descida inteira**. O que o Orlando quer: o mapa sempre tem **mais de um lugar para armar fogueira** (número justo, proporcional à profundidade); os itens para **uma** fogueira vêm **garantidos por mapa**; para armar mais, o jogador precisa de itens extras que são **raros** (drop de inimigo, de mini boss e de chefe) ou **caros** (loja). É um recurso escasso: quem sacrifica ouro e coleta para ter mais uma fogueira antes do chefe pagou o preço; quem não precisou usou o recurso em outra coisa. Fogueira infinita faria o jogador chegar ao chefe sempre cheio. As Brasas continuam sendo o recurso das skills de acampamento; o item de armar a fogueira é separado (galho seco). Corrigido na TASK-023 (ADR-0028).
+
+## Situação dos pontos depois das TASK-021 a TASK-025 (2026-11-18)
+
+Tudo abaixo está **implementado e testado, mas ainda não jogado pelo Orlando**: o status final de cada ponto depende da jogada dele.
+
+| Ponto | Tarefa | O que foi feito |
+| --- | --- | --- |
+| F-005 dinheiro escasso | TASK-022 | ouro 10 por nível, baús 14%, preços mantidos |
+| F-016 fraco no chefe, caminho curto | TASK-022 | mapa de 6 camadas, mais lutas e baús |
+| F-015 baú e loops viciantes | TASK-022 | baú multiplicável ×1,25 a ×2 por Moeda da Sorte ou anúncio simulado |
+| F-009, F-010 fogueira | TASK-023 | Galhos Secos (1 garantido por mapa, extras raros ou caros), fogueiras proporcionais à profundidade |
+| F-014 moeda 50/50, reroll raro | TASK-021 | moeda sem número, Moeda da Sorte como drop raro, SORTE e Maré nos drops |
+| F-007, F-008, F-011 combate legível, crítico | TASK-024 | previsão de dano, acerto e crítico; descrição das skills; atacar devolve MP; Éter em combate; crítico por item e skill |
+| F-006, F-012, F-013, F-018 inimigos únicos, moeda temática, IA | TASK-025 | fichas por inimigo, consequência da coroa, Leptospirose, reações |
+| F-017 moeda frequente | TASK-016 e 025 | intervalo de 2 golpes; o Corvo agora usa moeda (mais lances contra ele) |
+
+**Ainda aberto:** emboscadas e inimigos mais difíceis por sorte (precisam de variantes mutadas), evento de mapa que mexa no crítico, mini boss e roaming boss, anúncio de verdade, e calibrar tudo com o `telemetry.log` do Orlando.

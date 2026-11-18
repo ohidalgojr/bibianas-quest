@@ -13,6 +13,14 @@ const MOVE_KINDS: Dictionary = {
 	"heal": EnemyMove.Kind.HEAL,
 	"debuff": EnemyMove.Kind.DEBUFF,
 }
+## Efeitos que um golpe de moeda pode aplicar ao errar o lado (ADR-0030).
+const FAIL_EFFECTS: Dictionary = {
+	"poison": CombatEffect.Kind.POISON,
+	"weakened": CombatEffect.Kind.WEAKENED,
+	"slowed": CombatEffect.Kind.SLOWED,
+	"blinded": CombatEffect.Kind.BLINDED,
+	"cursed": CombatEffect.Kind.CURSED,
+}
 ## Efeitos de golpe de debuff (ADR-0020).
 const DEBUFF_EFFECTS: Dictionary = {
 	"poison": CombatEffect.Kind.POISON,
@@ -142,14 +150,20 @@ func make_enemy(enemy_id: String, level: int) -> Combatant:
 		var moves: Array[EnemyMove] = []
 		for move: Dictionary in phase["moves"]:
 			var effect: CombatEffect.Kind = DEBUFF_EFFECTS.get(str(move.get("effect", "poison")), CombatEffect.Kind.POISON)
-			moves.append(EnemyMove.make(str(move["id"]), MOVE_KINDS[str(move["kind"])],
-				float(move.get("power", 1.0)), int(move.get("heal_percent", 0)), effect, int(move.get("effect_chance", 0))))
+			var built: EnemyMove = EnemyMove.make(str(move["id"]), MOVE_KINDS[str(move["kind"])],
+				float(move.get("power", 1.0)), int(move.get("heal_percent", 0)), effect, int(move.get("effect_chance", 0)))
+			if move.has("fail_effect"):
+				built.fail_effect_kind = int(FAIL_EFFECTS[str(move["fail_effect"])])
+			built.fail_disease = str(move.get("fail_disease", ""))
+			moves.append(built)
 		phases.append(EnemyPhase.make(int(phase["below_hp_percent"]), moves))
 	var boss: bool = str(entry["type"]) == "boss"
 	var unit: Combatant = Combatant.enemy(str(entry["name"]), enemy_stats(enemy_id, level), phases, boss)
 	var mults: Dictionary = entry["element_mults"]
 	for element: Variant in mults:
 		unit.element_mults[ELEMENTS[str(element)]] = float(mults[element])
+	for rule: Variant in entry.get("reactions", []):
+		unit.reactions.append((rule as Dictionary).duplicate())
 	return unit
 
 

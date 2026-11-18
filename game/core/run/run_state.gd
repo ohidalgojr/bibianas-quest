@@ -29,6 +29,8 @@ var equipment: Dictionary = {}
 ## Id da skill de fogueira -> lutas restantes.
 var buffs: Dictionary = {}
 var embers: int = 0
+## Doenças ativas (ADR-0030): persistem entre lutas e se tratam na fogueira.
+var diseases: Array[String] = []
 ## A fogueira do nó atual foi acesa? Acender gasta 1 Galho Seco (ADR-0028).
 var campfire_lit: bool = false
 var shop_offer: Array[String] = []
@@ -138,7 +140,7 @@ func _stats_for(worn: Dictionary) -> Stats:
 				stats.defense = roundi(stats.defense * factor)
 			"crit_up":
 				stats.crit += int(skill["percent"])
-	stats.max_hp = maxi(stats.max_hp, 1)
+	stats.max_hp = maxi(roundi(stats.max_hp * Diseases.max_hp_factor(diseases)), 1)
 	stats.speed = maxi(stats.speed, 1)
 	return stats
 
@@ -293,6 +295,7 @@ func finish_fight() -> bool:
 			_emit(RunEvent.Type.ITEM_USED, item_id, used)
 	hp = combat.player.hp
 	mp = combat.player.mp
+	diseases.assign(combat.player.diseases)
 	var outcome: Combat.Outcome = combat.outcome
 	combat = null
 	_emit(RunEvent.Type.FIGHT_ENDED, "", outcome)
@@ -335,6 +338,7 @@ func _begin_fight(node: MapNode) -> void:
 		buffs[skill_id] = int(buffs[skill_id]) - 1
 		if int(buffs[skill_id]) <= 0:
 			buffs.erase(skill_id)
+	unit.diseases = diseases.duplicate()
 	combat = Combat.new(unit, data.make_enemy(node.enemy_id, node.level), streams, coin)
 	combat.lucky_coins = consumable_count(RunRules.LUCKY_COIN_ID)
 	phase = Phase.FIGHT
@@ -370,6 +374,22 @@ func light_campfire() -> bool:
 	campfire_lit = true
 	embers = RunRules.EMBERS
 	_emit(RunEvent.Type.CAMPFIRE, "lit", embers)
+	return true
+
+
+## Trata a primeira doença por 1 Brasa (GDD §11 e §12, ADR-0030); o HP máximo volta.
+func can_treat_disease() -> bool:
+	return phase == Phase.CAMPFIRE and not diseases.is_empty() and embers >= RunRules.TREAT_COST
+
+
+func treat_disease() -> bool:
+	if not can_treat_disease():
+		return false
+	var old_max: int = player_stats().max_hp
+	embers -= RunRules.TREAT_COST
+	_emit(RunEvent.Type.CAMPFIRE, "treat", embers)
+	diseases.remove_at(0)
+	_adjust_hp(old_max)
 	return true
 
 

@@ -12,6 +12,10 @@ const STAT_KEYS: PackedStringArray = ["hp", "mp", "strength", "mind", "defense",
 const ENEMY_TYPES: PackedStringArray = ["common", "elite", "mini_boss", "boss"]
 const MOVE_KINDS: PackedStringArray = ["attack", "strong", "heavy", "cruel", "mortal", "heal", "debuff"]
 const DEBUFF_EFFECT_IDS: PackedStringArray = ["poison", "weakened"]
+## Consequências de errar o lado e condições de reação dos inimigos (ADR-0030).
+const FAIL_EFFECT_IDS: PackedStringArray = ["poison", "weakened", "slowed", "blinded", "cursed"]
+const DISEASE_IDS: PackedStringArray = ["leptospirosis"]
+const REACTION_WHEN: PackedStringArray = ["player_hp_below", "self_hp_below", "player_defended_twice", "player_buffed"]
 const ELEMENTS: PackedStringArray = ["physical", "fire", "lightning", "holy", "shadow"]
 const ITEM_SLOTS: PackedStringArray = ["consumable", "weapon", "offhand", "armor", "head", "relic"]
 const RARITIES: PackedStringArray = ["worn", "common", "uncommon", "rare", "cursed", "soul", "rival"]
@@ -178,6 +182,7 @@ func _check_enemy(entry: Variant) -> void:
 	_check_min(_int_field(data, "base_level", path), 1, path, "base_level")
 	_check_stats(data, path, false)
 	_string_list(data, "tags", path)
+	_check_reactions(data, path)
 	if not data.has("element_mults"):
 		_error(path, "campo faltando: element_mults")
 	elif typeof(data["element_mults"]) != TYPE_DICTIONARY:
@@ -252,7 +257,42 @@ func _check_move(entry: Variant, path: String) -> String:
 		var effect: String = _string_field(move, "effect", path)
 		_check_choice(effect, DEBUFF_EFFECT_IDS, path, "effect")
 		_check_range(_int_field(move, "effect_chance", path), 1, 100, path, "effect_chance")
+	if move.has("fail_effect") or move.has("fail_disease"):
+		if kind not in ["heavy", "cruel", "mortal"]:
+			_error(path, "fail_effect e fail_disease só valem em golpe de moeda (heavy, cruel ou mortal)")
+		if move.has("fail_effect"):
+			_check_choice(str(move["fail_effect"]), FAIL_EFFECT_IDS, path, "fail_effect")
+		if move.has("fail_disease"):
+			_check_choice(str(move["fail_disease"]), DISEASE_IDS, path, "fail_disease")
 	return kind
+
+
+## Reações do inimigo (ADR-0030): condição conhecida e golpe existente em alguma fase.
+func _check_reactions(data: Dictionary, path: String) -> void:
+	if not data.has("reactions"):
+		return
+	if typeof(data["reactions"]) != TYPE_ARRAY:
+		_error(path, "reactions precisa ser uma lista")
+		return
+	var move_ids: Dictionary = {}
+	if typeof(data.get("phases")) == TYPE_ARRAY:
+		for phase: Variant in data["phases"]:
+			if typeof(phase) == TYPE_DICTIONARY and typeof((phase as Dictionary).get("moves")) == TYPE_ARRAY:
+				for move: Variant in (phase as Dictionary)["moves"]:
+					if typeof(move) == TYPE_DICTIONARY and (move as Dictionary).has("id"):
+						move_ids[str((move as Dictionary)["id"])] = true
+	for rule: Variant in data["reactions"]:
+		if typeof(rule) != TYPE_DICTIONARY:
+			_error(path, "cada reação precisa ser um objeto")
+			continue
+		var entry: Dictionary = rule
+		if not _check_choice(_string_field(entry, "when", path), REACTION_WHEN, path, "reactions.when"):
+			continue
+		var move_id: String = _string_field(entry, "move", path)
+		if not move_ids.has(move_id):
+			_error(path, "reação aponta para golpe inexistente: %s" % move_id)
+		if str(entry["when"]) in ["player_hp_below", "self_hp_below"]:
+			_check_range(_int_field(entry, "value", path), 1, 99, path, "reactions.value")
 
 
 func _check_scenario(entry: Variant, enemy_ids: Dictionary) -> void:

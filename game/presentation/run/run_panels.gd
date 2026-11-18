@@ -253,6 +253,9 @@ func campfire_view() -> Dictionary:
 	return {
 		"embers": run.embers,
 		"status": "HP %d/%d    MP %d/%d" % [run.hp, stats.max_hp, run.mp, stats.max_mp],
+		"diseases": run.diseases.map(func(disease_id: String) -> String: return Diseases.display_name(disease_id)),
+		"can_treat": run.can_treat_disease(),
+		"treat_cost": RunRules.TREAT_COST,
 		"lit": run.campfire_lit,
 		"firewood": run.consumable_count(RunRules.FIREWOOD_ID),
 		"can_light": run.can_light_campfire(),
@@ -273,6 +276,10 @@ static func campfire_skill_text(skill: Dictionary) -> String:
 
 func light_campfire() -> bool:
 	return run.light_campfire()
+
+
+func treat_disease() -> bool:
+	return run.treat_disease()
 
 
 func rest() -> bool:

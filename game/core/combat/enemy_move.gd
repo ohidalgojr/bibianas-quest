@@ -13,6 +13,10 @@ var heal_percent: int = 0
 ## Golpe de debuff (ADR-0020): efeito aplicado se o golpe acertar, com esta chance em %.
 var effect: CombatEffect.Kind = CombatEffect.Kind.POISON
 var effect_chance: int = 0
+## Consequência de errar o lado no golpe de moeda (ADR-0030): efeito de combate (-1 sem efeito)
+## e/ou doença ("" sem doença).
+var fail_effect_kind: int = -1
+var fail_disease: String = ""
 
 
 static func make(move_id: String, move_kind: Kind, move_power: float = 1.0, heal: int = 0,

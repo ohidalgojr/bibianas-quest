@@ -222,6 +222,8 @@ Antes de agir, o jogador vê nos botões o que a ação faz: faixa de dano (mín
 - Nunca o mesmo ataque forte duas vezes seguidas. Entre dois golpes de moeda do inimigo há sempre ao menos 2 golpes de outro tipo, em todos os inimigos, chefes inclusive (ADR-0020).
 - **Golpes de debuff:** causam dano e, se acertarem, aplicam um debuff (Veneno ou Fraqueza, seção 11) com a chance do próprio golpe, sorteada à parte da moeda. O aviso do turno anterior mostra o ícone DEBILITA, o efeito e a chance. Defender corta a chance pela metade. Assim o risco do chefe não depende só da moeda.
 - Chefes têm 2 a 3 fases, que mudam o ciclo de ataques e o tipo de moeda.
+- **Reações (ADR-0030):** cada inimigo tem ao menos uma regra de reação ao estado da luta: jogador abaixo de uma vida (percentual), o próprio inimigo ferido, o jogador Defendendo duas vezes seguidas, ou o jogador fortalecido (Fúria ou Muralha). A reação troca o próximo golpe por um golpe do ciclo atual, respeita as regras de justiça (golpe perigoso avisado, intervalo entre golpes de moeda, nunca o mesmo golpe duas vezes seguidas) e aparece no aviso de intenção com o motivo ("Viu que você está ferido").
+- **Identidade por inimigo (ADR-0030):** cada inimigo tem um medo, um golpe de moeda temático e uma reação, descritos numa ficha em `docs/enemies/`.
 
 ### Fim do combate
 
@@ -257,6 +259,10 @@ A moeda é a assinatura do jogo: decide momentos de risco, é sempre avisada ant
 | Fugir | Sai do combate | Perde o turno e o inimigo age |
 | Baú trancado ou armadilhado | Abre sem custo | Dano, doença ou baú vazio |
 | Evento | Resultado favorável | Resultado desfavorável |
+
+### Consequência temática da coroa (ADR-0030)
+
+Além do dano, o golpe de moeda de cada inimigo pode dar uma consequência própria ao errar o lado, avisada no ícone de intenção antes do lance: **Fraqueza** (Cidadão Infectado), **Leptospirose** (Rato Grande, doença), **Cegueira** (Corvo Carniceiro), **Lentidão** (Cão de Peste) e **Maldição** (Carrasco Apodrecido e Coveiro). A consequência só vale se o golpe causar dano, e o Veterano que Defende a anula junto com a penalidade da coroa.
 
 ### Defesas contra a moeda
 
@@ -469,6 +475,8 @@ Seis modelos de arma, três visuais de armadura (tecido, couro/malha, placa) e v
 Inimigos podem passar doenças que duram entre combates e só saem com dinheiro, fogueira ou itens. Cada cura na mesma Descida custa mais, então ignorar uma doença é uma escolha real. O sistema segue a ideia das doenças de Darkest Dungeon, que debilitam o herói até serem tratadas.
 
 ### Doenças
+
+**Implementadas (ADR-0030):** a **Leptospirose** tira 15% do HP máximo, vem do golpe de moeda do Rato Grande, persiste entre combates, aparece no mapa e se trata na fogueira por 1 Brasa. As demais doenças da tabela abaixo seguem como proposta.
 
 | Doença | Efeito | Fonte típica | Custo base de cura |
 | --- | --- | --- | --- |
@@ -955,6 +963,7 @@ Todo trabalho do jogo passa por oito etapas, em ordem, e nenhuma tarefa vai ao c
 
 ### Detalhes por etapa
 
+- **Design de inimigos (ADR-0030).** A etapa 1 de cada inimigo é uma ficha em `docs/enemies/` (modelo em `_modelo.md`): medo, fantasia, golpe de moeda temático, reação, contra-jogo, ciclo e drops. Um agente de design preenche a ficha e a implementa; o Orlando não aprova antes e dá o feedback depois de jogar.
 - **Etapa 1.** O vault do Obsidian tem pastas para GDD, ADRs, decisões de balanceamento, pesquisas e diário. O modelo de ADR tem Contexto, Decisão, Alternativas, Consequências e Status.
 - **Etapa 2.** O Agent Framework exige uma tarefa por mudança. A tarefa inclui regras que o agente não pode quebrar (por exemplo, "não mudar fórmulas de dano sem ADR").
 - **Etapa 3.** Os agentes carregam Skills do projeto: estilo de GDScript, estrutura de pastas, formato de dados, regras do GDD. A lógica do jogo fica no núcleo, sem nós do Godot (seção 20).

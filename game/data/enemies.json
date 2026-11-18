@@ -7,10 +7,11 @@
 			"element_mults": {}, "tags": ["diseased"],
 			"phases": [{"below_hp_percent": 100, "moves": [
 				{"id": "attack", "kind": "attack"},
-				{"id": "heavy", "kind": "heavy"},
+				{"id": "feverish_hug", "kind": "heavy", "fail_effect": "weakened"},
 				{"id": "attack", "kind": "attack"},
 				{"id": "lunge", "kind": "strong", "power": 1.4}
-			]}]
+			]}],
+			"reactions": [{"when": "player_hp_below", "value": 40, "move": "lunge"}]
 		},
 		{
 			"id": "giant_rat", "name": "Rato Grande", "type": "common", "base_level": 1,
@@ -18,10 +19,11 @@
 			"element_mults": {"fire": 1.5}, "tags": ["diseased"],
 			"phases": [{"below_hp_percent": 100, "moves": [
 				{"id": "bite", "kind": "attack"},
-				{"id": "heavy", "kind": "heavy"},
+				{"id": "filthy_bite", "kind": "heavy", "fail_disease": "leptospirosis"},
 				{"id": "bite", "kind": "attack"},
 				{"id": "frenzy", "kind": "strong", "power": 1.3}
-			]}]
+			]}],
+			"reactions": [{"when": "self_hp_below", "value": 35, "move": "frenzy"}]
 		},
 		{
 			"id": "carrion_crow", "name": "Corvo Carniceiro", "type": "common", "base_level": 1,
@@ -29,20 +31,23 @@
 			"element_mults": {"lightning": 1.5}, "tags": [],
 			"phases": [{"below_hp_percent": 100, "moves": [
 				{"id": "peck", "kind": "attack"},
-				{"id": "dive", "kind": "strong", "power": 1.3},
-				{"id": "peck", "kind": "attack"}
-			]}]
+				{"id": "eye_peck", "kind": "heavy", "fail_effect": "blinded"},
+				{"id": "peck", "kind": "attack"},
+				{"id": "dive", "kind": "strong", "power": 1.3}
+			]}],
+			"reactions": [{"when": "player_defended_twice", "move": "dive"}]
 		},
 		{
 			"id": "plague_hound", "name": "Cão de Peste", "type": "common", "base_level": 1,
 			"stats": {"hp": 42, "strength": 9, "defense": 3, "resistance": 3, "speed": 12, "evasion": 8},
 			"element_mults": {"fire": 1.5}, "tags": ["diseased"],
 			"phases": [{"below_hp_percent": 100, "moves": [
-				{"id": "heavy", "kind": "heavy"},
+				{"id": "unrelenting_fangs", "kind": "heavy", "fail_effect": "slowed"},
 				{"id": "bite", "kind": "attack"},
 				{"id": "maul", "kind": "strong", "power": 1.3},
 				{"id": "bite", "kind": "attack"}
-			]}]
+			]}],
+			"reactions": [{"when": "player_hp_below", "value": 50, "move": "maul"}]
 		},
 		{
 			"id": "rotten_executioner", "name": "Carrasco Apodrecido", "type": "elite", "base_level": 2,
@@ -50,20 +55,21 @@
 			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
 			"phases": [{"below_hp_percent": 100, "moves": [
 				{"id": "attack", "kind": "attack"},
-				{"id": "cruel", "kind": "cruel"},
+				{"id": "guillotine", "kind": "cruel", "fail_effect": "cursed"},
 				{"id": "attack", "kind": "attack"},
 				{"id": "beheading", "kind": "strong", "power": 1.5},
 				{"id": "mend", "kind": "heal", "heal_percent": 15}
-			]}]
+			]}],
+			"reactions": [{"when": "self_hp_below", "value": 40, "move": "beheading"}]
 		},
 		{
 			"id": "gravedigger", "name": "O Coveiro", "type": "boss", "base_level": 6,
-			"stats": {"hp": 195, "strength": 16, "defense": 10, "resistance": 8, "speed": 6, "evasion": 3},
+			"stats": {"hp": 175, "strength": 16, "defense": 10, "resistance": 8, "speed": 6, "evasion": 3},
 			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
 			"phases": [
 				{"below_hp_percent": 100, "moves": [
 					{"id": "attack", "kind": "attack"},
-					{"id": "shovel", "kind": "cruel"},
+					{"id": "shovel", "kind": "cruel", "fail_effect": "cursed"},
 					{"id": "rot", "kind": "debuff", "power": 0.9, "effect": "poison", "effect_chance": 60},
 					{"id": "sweep", "kind": "strong", "power": 1.4},
 					{"id": "attack", "kind": "attack"}
@@ -75,6 +81,10 @@
 					{"id": "rot", "kind": "debuff", "power": 0.9, "effect": "poison", "effect_chance": 60},
 					{"id": "sweep", "kind": "strong", "power": 1.4}
 				]}
+			],
+			"reactions": [
+				{"when": "player_buffed", "move": "curse"},
+				{"when": "player_buffed", "move": "rot"}
 			]
 		}
 	]

@@ -117,6 +117,7 @@ func test_rejects_cycle_size_outside_gdd() -> void:
 	var docs: Dictionary = _docs()
 	var moves: Array = _enemy(docs, "carrion_crow")["phases"][0]["moves"]
 	moves.pop_back()
+	moves.pop_back()
 	_assert_rejects(docs, "precisa de 3 a 5 golpes (GDD §6), tem 2")
 	docs = _docs()
 	moves = _enemy(docs, "rotten_executioner")["phases"][0]["moves"]

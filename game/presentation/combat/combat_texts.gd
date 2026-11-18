@@ -16,6 +16,26 @@ const MOVE_NAMES: Dictionary = {
 const MOVE_ID_NAMES: Dictionary = {
 	"rot": "Toque Podre",
 	"curse": "Maldição do Coveiro",
+	"feverish_hug": "Abraço Febril",
+	"filthy_bite": "Mordida Imunda",
+	"eye_peck": "Bicada nos Olhos",
+	"unrelenting_fangs": "Presas que Não Soltam",
+	"guillotine": "Guilhotina",
+	"shovel": "Pá",
+	"grave": "Cova Rasa",
+	"lunge": "Bote",
+	"frenzy": "Frenesi",
+	"dive": "Mergulho",
+	"maul": "Estraçalhar",
+	"beheading": "Decapitação",
+	"sweep": "Varredura",
+}
+## Por que o inimigo reagiu, pelo código do evento de intenção (ADR-0030).
+const REACTION_TEXTS: Dictionary = {
+	1: "Viu que você está ferido",
+	2: "Está acuado",
+	3: "Cansou de esperar sua guarda",
+	4: "Não tolera quem se fortalece",
 }
 const INTENT_ICONS: Dictionary = {
 	EnemyMove.Intent.ATTACK: "ATAQUE",
@@ -32,6 +52,9 @@ const EFFECT_NAMES: Dictionary = {
 	"stunned": "Atordoado",
 	"poison": "Veneno",
 	"weakened": "Fraqueza",
+	"empowered": "Fúria",
+	"blinded": "Cegueira",
+	"cursed": "Maldição",
 }
 const PLAYER_ACTIONS: Dictionary = {
 	"attack": "Ataque",
@@ -77,6 +100,19 @@ static func coin_stakes(kind: EnemyMove.Kind) -> String:
 		EnemyMove.Kind.MORTAL:
 			return "Errar: dano +%d%%" % _percent(CombatFormulas.MORTAL_FAIL)
 	return ""
+
+
+## Consequência extra de errar o lado em um golpe de moeda temático (ADR-0030), em texto.
+static func fail_text(move: EnemyMove) -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	if move.fail_effect_kind >= 0:
+		parts.append("%s por %d turnos" % [effect_label(move.fail_effect_kind as CombatEffect.Kind), CombatEffect.debuff_turns(move.fail_effect_kind as CombatEffect.Kind)])
+	if not move.fail_disease.is_empty():
+		var def: Dictionary = Diseases.DEFS[move.fail_disease]
+		parts.append("%s (%d%% de HP máx. até a fogueira)" % [str(def["name"]), int(def["max_hp_percent"])])
+	if parts.is_empty():
+		return ""
+	return " e " + " e ".join(parts)
 
 
 static func side_name(side: int) -> String:
