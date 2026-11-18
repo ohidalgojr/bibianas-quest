@@ -127,6 +127,22 @@ A ordem do pedido original era: 002 RNG, 003 mapa com bot, 004 combate, 005 simu
 | Escopo crescendo (eventos, mini boss) | Atrasa o MVP | Lista "Fora do MVP" acima; só entra com ADR. |
 | Revisão cruzada atrasa cada tarefa | Gargalo humano | Revisar o diff de cada tarefa por lote pequeno; o Gemini lê `git show HEAD`. |
 
+## Situação em 2026-11-18 e caminho até o portão
+
+O roteiro acima (TASK-001 a 014) foi cumprido, com ajustes: o cenário 1 hoje tem 6 camadas (ADR-0027), e entraram TASK-015 a 025 pelo feedback do primeiro playtest (ADR-0025). Estado: TASK-001 a 013 e 015 a 025 concluídas no código (suíte 285/285, `RULES_VERSION` = 13); TASK-014 em verificação. **Falta o que só pessoa e outro modelo fazem.** O estado detalhado fica no `docs/HANDOFF.md`.
+
+| Ordem | Tarefa | O que é | Quem | Entra no MVP? |
+| --- | --- | --- | --- | --- |
+| 1 | TASK-014 | Exportar Web e Android; sessão de 20 minutos no celular | Orlando | **Sim** (portão) |
+| 2 | TASK-029 | Revisão cruzada das TASK-001 a 025 por outro modelo | Gemini ou outro, não o Claude | **Sim** (GDD §21, etapa 4) |
+| 3 | TASK-026 | Primeira Descida chamativa (F-019) | agente | **Sim**, desejável: primeira impressão do portão |
+| 4 | TASK-030 | Calibrar números com o `telemetry.log` do Orlando | agente, depois do envio | **Sim** |
+| 5 | TASK-031 | Fechar o portão da Fase 1 e abrir o roteiro da Fase 2 | Orlando e agente | **Sim** (fechamento) |
+| fora | TASK-027 | Sorte, emboscadas e inimigos mutados | agente | Não: entra se o playtest pedir mais variedade |
+| fora | TASK-028 | Eventos de mapa e mini boss | agente | Não: o GDD permite 0 mini boss e o escopo original deixa eventos para depois |
+
+Ordem sugerida: o Orlando joga uma Descida e envia feedback e log enquanto a TASK-029 corre em paralelo (só leitura e achados); TASK-026 em seguida; TASK-030 com os dados; TASK-014 quando templates e SDK estiverem no PC dele; TASK-031 fecha. TASK-027 e 028 só abrem depois do portão, a menos que o feedback as torne bloqueantes.
+
 ## Próximo passo único
 
-Fechar a TASK-001. A suíte já está verde (13/13 em 2026-11-16). Faltam o F5 em retrato e o `git add -A` com `git commit --amend --no-edit`. Só então abrir a TASK-002.
+O Orlando joga uma Descida inteira (F5 na pasta raiz) e envia o `telemetry.log` e o feedback. Em paralelo, um modelo que não seja o Claude executa a TASK-029.

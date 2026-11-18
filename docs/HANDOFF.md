@@ -1,6 +1,6 @@
 # HANDOFF
 
-Atualizado em 2026-11-18. **Estado:** TASK-001 a 013 e TASK-015 a 025 concluídas no código; TASK-014 (exportação) em verificação, esperando o Orlando; TASK-026 a 029 abertas e **não iniciadas**; suíte 285/285; `RULES_VERSION` = 13. Quem chega agora (qualquer agente: Claude, Gemini ou outro) lê este arquivo, depois `CLAUDE.md` (inclusive "Lições e armadilhas"), depois a tarefa que vai fazer em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md`.
+Atualizado em 2026-11-18. **Estado:** TASK-001 a 013 e TASK-015 a 025 concluídas no código; TASK-014 (exportação) em verificação, esperando o Orlando; TASK-026 a 031 abertas e **não iniciadas**; suíte 285/285; `RULES_VERSION` = 13. Quem chega agora (qualquer agente: Claude, Gemini ou outro) lê este arquivo, depois `CLAUDE.md` (inclusive "Lições e armadilhas"), depois a tarefa que vai fazer em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md`.
 
 ## Estado em um olhar
 
@@ -93,15 +93,16 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 
 | # | Tarefa | O que é | Quem | Por quê |
 | --- | --- | --- | --- | --- |
-| 1 | TASK-029 | Revisão cruzada das TASK-001 a 025 por outro modelo | outro modelo, não o Claude | a pipeline (GDD §21, etapa 4) exige; nada foi revisado ainda |
-| 2 | TASK-026 | Primeira Descida chamativa (F-019) | agente | o Orlando quer que a primeira Descida dê gostinho de dificuldade e recompensa |
-| 3 | TASK-027 | Sorte, emboscadas e inimigos mutados | agente | pendência do ADR-0026 (item 6) e do pedido D1 |
-| 4 | TASK-028 | Eventos de mapa e mini boss | agente | peso de evento está em 0; o crítico manipulável por evento (D6) depende disso |
-| 5 | TASK-014 | Exportação Web e Android e sessão de 20 minutos no celular | **Orlando** | templates, JDK e SDK só na máquina dele |
-| 6 | calibração | Ajustar números com o `telemetry.log` do Orlando (ouro, Coveiro, moeda por luta, mortes) | agente, depois que o Orlando enviar | os bots não jogam como uma pessoa |
-| 7 | Santuário | Gastar Ecos (GDD §9: Biblioteca, Arsenal, Códice) | agente, com ADR | os Ecos hoje só se acumulam |
-| 8 | Fase 2 | Roteiro do vertical slice: arte, cena 3D, som, animação da moeda | agente propõe, Orlando decide | "dar cara de jogo" (GDD §22) |
-| 9 | monetização | Anúncio de verdade, o que o anúncio faz com a moeda, vender Moeda da Sorte? | Orlando decide | GDD §16; hoje o anúncio do baú é simulado |
+| 1 | TASK-029 | Revisão cruzada das TASK-001 a 025 por outro modelo | outro modelo, não o Claude | a pipeline (GDD §21, etapa 4) exige; nada foi revisado ainda; **entra no MVP** |
+| 2 | TASK-026 | Primeira Descida chamativa (F-019) | agente | primeira impressão do portão; **entra no MVP** |
+| 3 | TASK-014 | Exportação Web e Android e sessão de 20 minutos no celular | **Orlando** | templates, JDK e SDK só na máquina dele; **portão do MVP** |
+| 4 | TASK-030 | Calibrar números com o `telemetry.log` do Orlando (ouro, Coveiro, moeda por luta, mortes) | agente, depois que o Orlando enviar | os bots não jogam como uma pessoa; **entra no MVP** |
+| 5 | TASK-031 | Fechar o portão da Fase 1 e abrir o roteiro da Fase 2 | Orlando e agente | encerra o MVP |
+| 6 | TASK-027 | Sorte, emboscadas e inimigos mutados | agente | pendência do ADR-0026 e do pedido D1; **fora do MVP**, só se o playtest pedir |
+| 7 | TASK-028 | Eventos de mapa e mini boss | agente | peso de evento em 0; crítico por evento (D6); **fora do MVP** |
+| 8 | Santuário | Gastar Ecos (GDD §9: Biblioteca, Arsenal, Códice) | agente, com ADR | Fase 2; os Ecos hoje só se acumulam |
+| 9 | Fase 2 | Roteiro do vertical slice: arte, cena 3D, som, animação da moeda | agente propõe, Orlando decide | "dar cara de jogo" (GDD §22) |
+| 10 | monetização | Anúncio de verdade, o que o anúncio faz com a moeda, vender Moeda da Sorte? | Orlando decide | GDD §16; hoje o anúncio do baú é simulado |
 
 Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
