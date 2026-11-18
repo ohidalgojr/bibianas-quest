@@ -56,6 +56,9 @@ func test_finished_tasks_have_their_verification_filled() -> void:
 		var finished: bool = text.contains("| Status | Concluída") or text.contains("| Status | Em verificação")
 		if finished:
 			assert_false(text.contains("(preencher)"), "%s: concluída com 'Verificação' vazia" % file_name)
+		if text.contains("| Status | Concluída"):
+			var review_section: String = text.get_slice("## Revisão cruzada", 1).strip_edges()
+			assert_false(review_section.begins_with("Pendente"), "%s: concluída com 'Revisão cruzada' pendente" % file_name)
 
 
 func test_adr_files_have_title_status_and_are_numbered_without_gaps() -> void:

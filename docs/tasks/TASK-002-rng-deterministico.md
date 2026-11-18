@@ -55,4 +55,7 @@ Observador, 2026-11-16 10:20 (`reason=arquivos mudaram`, `exit=0`): 5 scripts, 3
 
 ## Revisão cruzada
 
-Pendente (etapa 4): revisor sugerido, Gemini, com `git show HEAD`, este arquivo e `CLAUDE.md`. Pontos que merecem olhar: a aritmética de 64 bits com deslocamento lógico em `next_u32` e `_split_mix`, e a escolha de `draw_percent` (sorteio de 1 a 100).
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §7, §20 e `ADR-0005`, `ADR-0006`**: `DeterministicRng` (`xorshift32` + `_split_mix` com máscara de 63 bits para deslocamento lógico sem sinal em `int` de 64 bits do GDScript) e `RunRngStreams` (4 fluxos isolados: `map`, `combat`, `coin`, `loot`). `draw_percent()` sorteia uniformemente em `1..100` com rejeição de viés de módulo (`MOD_LIMIT`).
+- **Pureza e testes**: `tests/unit/test_core_purity.gd` varre `game/core/` proibindo `Node` e RNG global; `tests/unit/test_rng.gd` valida determinismo, isolamento entre fluxos e distribuição da moeda.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

@@ -38,4 +38,6 @@ A moeda passa a ser só cara ou coroa: 50% fixo, sem exibir chance. SORTE e Mar�
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §7, §8, §14 e `ADR-0026`**: `CoinRules.flip_50_50()` sorteia Cara ou Coroa em 50/50 real no fluxo `coin` sem influência de `SORTE` nem de Maré de azar; `lucky_coin` re-joga lance errado quando armada antes da ação (`arm_lucky_coin`); `SORTE` e Maré de azar atuam no fluxo `loot` melhorando raridade e chance de drops.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

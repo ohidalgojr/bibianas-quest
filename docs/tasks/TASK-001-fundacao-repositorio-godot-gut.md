@@ -75,4 +75,7 @@ Esperado: 13 testes passando. O primeiro import cria arquivos `*.uid` ao lado do
 
 ## Revisão cruzada
 
-Pendente (etapa 4 do pipeline): revisor sugerido, Gemini. O revisor deve receber `git show HEAD`, este arquivo, `CLAUDE.md` e as seções 20 e 21 do GDD.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md` e GDD §20/§21:
+- **GDD e ADRs (`ADR-0001`, `ADR-0002`, `ADR-0003`, `ADR-0004`)**: resolução `720×1280` em retrato (`stretch/mode=canvas_items`, `aspect=keep_width`), tipagem estática obrigatória (`untyped_declaration=2`, `unsafe_*=1` ou `2`), `CoreVersion.RULES_VERSION` no núcleo puro e suíte GUT headless operacionais.
+- **Pureza e testes**: `game/core/core_version.gd` é `RefCounted` puro; `tests/unit/test_project_settings.gd` garante que qualquer afrouxamento de flags de tipagem falhe imediatamente.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

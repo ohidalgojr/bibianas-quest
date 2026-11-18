@@ -60,4 +60,9 @@ O núcleo resolve uma luta 1 contra 1 da Bibiana (Guerreiro) contra um inimigo, 
 
 ## Revisão cruzada
 
-Pendente (etapa 4): Gemini, com `git show HEAD`, este arquivo e o ADR-0008. Pontos de atenção: a regra do aviso garantido (`_move_allowed`) e a ordem dos multiplicadores em `_strike`.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §6, §7, §8, §11, §13 e `ADR-0008`**: fila de turnos por `VEL` (`TURN_THRESHOLD = 100`, empate do jogador), `_move_allowed()` garantindo `coin_cooldown == 0` para golpes de moeda, e ordem de multiplicadores em `_strike` (elemento × crítico × variação `0,90..1,10` × defesa ativa × postura defensiva × veterano).
+- **Achados corrigidos na `TASK-029`**:
+  - *Sugestão (`game/core/combat/combatant.gd`)*: método `in_final_phase()` havia ficado sem uso após a `TASK-016` (`ADR-0020`) remover a exceção de fase final; removido para manter o núcleo sem código morto.
+  - *Sugestão (`game/core/combat/combat_event.gd`)*: comentário de `COIN` atualizado para refletir `flag = acertou o lado` e `extra = 1 se a Moeda da Sorte re-jogou` (`ADR-0026`).
+  - *Sugestão (`game/core/combat/combat_effect.gd`)*: `debuff_turns()` trocado de ternário implícito para `match` explícito sobre os tipos de debuff.

@@ -35,4 +35,6 @@ Atalhos para testar rápido, só em build de desenvolvimento, e um log local de 
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §7, §20, §23 e `ADR-0018`**: atalhos `F1..F4` restritos a `debug_enabled` (`OS.is_debug_build()`); `Telemetry.run_lines()` e `Telemetry.fight_lines()` são funções estáticas puras testadas sem disco, registrando `by_coin` quando o golpe fatal vem imediatamente após um lance de moeda perdido do inimigo.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

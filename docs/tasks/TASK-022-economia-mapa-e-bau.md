@@ -37,4 +37,6 @@ O jogador chega ao chefe preparado: mais lutas e baús no caminho, mais ouro, e 
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §5, §9, §14, §15 e `ADR-0027`**: `MapGraph.reachable_ids()` poda arestas órfãs em `MapView.edges()`; Poder de elite `0,85` e chefe `1,5`; ouro com variação no fluxo `loot`, inflação `+6%` por camada e descontos por `SORTE`; baú só com ouro e multiplicador único (`×1,25..×2,00`) via `lucky_coin` ou anúncio simulado.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

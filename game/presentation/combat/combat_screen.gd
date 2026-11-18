@@ -372,7 +372,6 @@ func _refresh_buttons() -> void:
 	var flee: Button = _buttons["flee"]
 	flee.disabled = not (can_go and session.can_flee())
 	flee.tooltip_text = "Moeda: acertar o lado foge"
-	(_buttons["skill_0"] as Button).tooltip_text = "Moeda: acertar o lado atordoa"
 	var luck: Button = _buttons["luck"]
 	var coins: int = session.lucky_coins() if session != null else 0
 	luck.disabled = not (can_go and coins > 0)

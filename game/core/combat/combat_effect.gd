@@ -36,7 +36,13 @@ const LABELS: Array[String] = ["defending", "bulwark", "armor_down", "slowed", "
 
 ## Duração padrão do efeito de debuff de um golpe.
 static func debuff_turns(effect_kind: Kind) -> int:
-	return POISON_TURNS if effect_kind == Kind.POISON else WEAK_TURNS
+	match effect_kind:
+		Kind.POISON:
+			return POISON_TURNS
+		Kind.WEAKENED, Kind.SLOWED, Kind.BLINDED, Kind.CURSED:
+			return WEAK_TURNS
+		_:
+			return 0
 
 
 

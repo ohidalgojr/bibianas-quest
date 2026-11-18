@@ -39,4 +39,6 @@ Cada inimigo do cenário 1 passa a ter identidade: um medo próprio (inspirado e
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §6, §11, §12, §13, §21 e `ADR-0030`**: fichas `docs/enemies/ENEMY-01` a `ENEMY-06` conferidas contra `game/data/enemies.json` e testadas por `test_every_enemy_has_a_design_sheet`; `CombatEffect.Kind.BLINDED` (-30 PRE por 3 turnos), `Diseases` (`leptospirosis`: -15% HP máx até tratar na fogueira por 1 Brasa) e reações condicionais (`player_hp_below`, `self_hp_below`, `player_defended_twice`, `player_buffed`) respeitando o intervalo de moeda.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

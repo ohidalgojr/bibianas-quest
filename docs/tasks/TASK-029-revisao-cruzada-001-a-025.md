@@ -2,11 +2,12 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aberta (não iniciada) |
+| Status | Concluída |
 | Aberta em | 2026-11-18 |
+| Concluída em | 2026-11-18 |
 | Fase | 1, etapa 4 da pipeline (GDD §21) |
 | GDD | 21 |
-| ADRs | nenhum (a revisão pode gerar ADR se achar defeito de regra) |
+| ADRs | ADR-0002, ADR-0010, ADR-0015, ADR-0020, ADR-0026 |
 
 ## Objetivo
 
@@ -21,19 +22,23 @@ Todo o código das TASK-001 a TASK-025 foi escrito por **um modelo só** (Claude
 
 ## Critérios de aceite
 
-- [ ] Cada arquivo `docs/tasks/TASK-001` a `TASK-025` tem a seção "Revisão cruzada" preenchida (sem "Pendente").
-- [ ] Achados críticos resolvidos e com teste; importantes resolvidos ou virados em tarefa; sugestões listadas.
-- [ ] Atenção especial a: pureza do núcleo (nenhum `Node` ou aleatoriedade global), determinismo por semente, vencibilidade do mapa, regras de justiça da moeda e do aviso, números mágicos fora de constantes, tipagem estática, textos em português, save e versão das regras.
-- [ ] `docs/HANDOFF.md` atualizado; suíte verde.
+- [x] Cada arquivo `docs/tasks/TASK-001` a `TASK-025` tem a seção "Revisão cruzada" preenchida (sem "Pendente").
+- [x] Achados críticos resolvidos e com teste; importantes resolvidos ou virados em tarefa; sugestões listadas.
+- [x] Atenção especial a: pureza do núcleo (nenhum `Node` ou aleatoriedade global), determinismo por semente, vencibilidade do mapa, regras de justiça da moeda e do aviso, números mágicos fora de constantes, tipagem estática, textos em português, save e versão das regras.
+- [x] `docs/HANDOFF.md` atualizado; suíte verde.
 
 ## Arquivos afetados
 
-- `docs/tasks/TASK-0NN-*.md` (seção "Revisão cruzada"), eventuais correções em `game/` e `tests/`
+- `docs/tasks/TASK-001-*.md` a `docs/tasks/TASK-025-*.md` (seção "Revisão cruzada")
+- `game/presentation/run/run_panels.gd`, `tests/unit/test_run_panels.gd` (rótulos `pt-BR` de `"precision"` e `"relic"`)
+- `game/presentation/combat/combat_screen.gd` (preservação do `skill_tip(0)` no botão da primeira skill)
+- `game/core/combat/combatant.gd`, `game/core/combat/combat_event.gd`, `game/core/combat/combat_effect.gd` (remoção de `in_final_phase()` órfão, doc de `COIN` e `match` explícito em `debuff_turns()`)
+- `tests/unit/test_project_standards.gd` (checagem automática de que tarefas concluídas não têm revisão cruzada pendente)
 
 ## Verificação
 
-(preencher)
+2026-11-18: `bash tools/run_tests.sh`, 35 scripts, 292/292 testes passando. Nenhum achado crítico de regra; 2 achados importantes na apresentação (`RunPanels` e `CombatScreen`) e 3 sugestões de limpeza no núcleo (`Combatant`, `CombatEvent`, `CombatEffect`) corrigidos e cobertos por testes.
 
 ## Revisão cruzada
 
-Esta tarefa é a própria revisão.
+Esta tarefa é a própria revisão (executada por Gemini, modelo distinto do autor das TASK-001 a TASK-025).

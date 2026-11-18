@@ -123,8 +123,3 @@ func effective_speed() -> int:
 
 func element_multiplier(element: CombatFormulas.Element) -> float:
 	return float(element_mults.get(element, 1.0))
-
-
-## Fase de chefe com mais de uma fase, na última: libera golpes de moeda seguidos.
-func in_final_phase() -> bool:
-	return is_boss and phases.size() > 1 and phase_index == phases.size() - 1

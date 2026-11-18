@@ -6,7 +6,7 @@ extends RefCounted
 
 const STAT_LABELS: Dictionary = {
 	"hp": "HP", "mp": "MP", "strength": "FOR", "mind": "MEN", "defense": "DEF", "resistance": "RES",
-	"speed": "VEL", "accuracy": "PRE", "evasion": "ESQ", "crit": "CRIT", "luck": "SORTE",
+	"speed": "VEL", "precision": "PRE", "accuracy": "PRE", "evasion": "ESQ", "crit": "CRIT", "luck": "SORTE",
 }
 ## Campo de [Stats] e rótulo, na ordem em que a recompensa lista as mudanças.
 const STAT_FIELDS: Array[Array] = [
@@ -15,7 +15,7 @@ const STAT_FIELDS: Array[Array] = [
 	["luck", "SORTE"],
 ]
 const RARITY_NAMES: Dictionary = {"worn": "Gasto", "common": "Comum", "uncommon": "Incomum", "rare": "Raro"}
-const SLOT_NAMES: Dictionary = {"weapon": "Arma", "armor": "Armadura", "consumable": "Consumível"}
+const SLOT_NAMES: Dictionary = {"weapon": "Arma", "armor": "Armadura", "relic": "Relíquia", "consumable": "Consumível"}
 
 var run: RunState
 

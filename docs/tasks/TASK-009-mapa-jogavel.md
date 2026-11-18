@@ -57,4 +57,6 @@ Passa a ser possível jogar uma Descida pela tela. O mapa em retrato mostra os t
 
 ## Revisão cruzada
 
-Pendente (etapa 4).
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §4, §5, §17 e `ADR-0013`**: `MapView` expõe `State` (`OPTION`, `CURRENT`, `VISITED`, `FOG`, `PAST`, `BOSS`), ocultando o tipo de nós em `FOG` e `PAST` e exibindo nome e nível do inimigo nos 3 destinos disponíveis; `GameScreen` gera a Descida em `Thread` quando `use_thread = true` e encadeia mapa, combate e tela de resultado.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

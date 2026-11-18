@@ -55,4 +55,7 @@ Observador, 2026-11-16 10:38 (`exit=0`): 9 scripts, 80 testes, 80 passando, 27.5
 
 ## Revisão cruzada
 
-Pendente (etapa 4): Gemini, com `git show HEAD`, este arquivo, o ADR-0007 e o GDD §5.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §5 e `ADR-0007`**: `MapGenerator`, `MapGraph`, `MapNode` e `MapConfig` geram grafo conexo de `N` camadas com 3 nós por camada, partida na camada 0, chefe na camada `N+1`, 3 saídas na partida, sem arestas cruzadas, sem dois nós de elite/mini boss seguidos e garantindo pelo menos uma fogueira e um evento ou baú no caminho até o chefe.
+- **Pureza e determinismo**: usa exclusivamente o fluxo `map`, coberto por 100 sementes em `tests/unit/test_map_generator.gd`.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

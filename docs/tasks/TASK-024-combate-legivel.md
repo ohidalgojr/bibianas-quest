@@ -37,4 +37,6 @@ O jogador vê, antes de agir, o que cada ação faz: faixa de dano, chance de ac
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §6, §7, §8, §11 e `ADR-0029`**: nomes legíveis de todos os golpes em `CombatTexts.MOVE_NAMES`, avanço automático da fila quando a Bibiana está atordoada (`player.stunned` em `_advance_to_player_or_end()`), `Golpe de Escudo` com moeda 50/50 e `Investida` com `ARMOR_DOWN` (-20% DEF por 2 turnos).
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

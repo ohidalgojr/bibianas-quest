@@ -38,4 +38,6 @@ Matar inimigos passa a render equipamento e consumíveis. A recompensa mostra o 
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §14, §15 e `ADR-0022`**: catálogo de 14 equipamentos (comuns, incomuns, raros) com escolha explícita entre equipar (`take_drop()`) ou vender (`sell_drop()`) na recompensa pós-luta, persistindo `pending_drop` no `RunSave`.
+- **Achado corrigido na `TASK-029`**: adicionado `"precision": "PRE"` e `"relic": "Relíquia"` em `RunPanels` (`game/presentation/run/run_panels.gd`) para que itens como `spiked_mace` e relíquias exibam rótulos em `pt-BR`.

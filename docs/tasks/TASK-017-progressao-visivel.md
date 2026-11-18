@@ -35,4 +35,6 @@ Matar inimigos passa a dar sensação de avanço: a recompensa mostra o que a Bi
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §6, §8, §9 e `ADR-0021`**: nível derivado `floor(Poder)` visível no cabeçalho do mapa e na recompensa, `RunPanels.stat_changes()` mostrando `ATRIBUTO antes → depois`, `enemies_defeated` persistido no `RunSave`, números de dano flutuantes (`_pop_text`), fade de abate do inimigo (`_play_defeat`) e dicas de dano/efeito nos botões de ataque e skills.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

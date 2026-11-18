@@ -35,4 +35,6 @@ Menu, Descida inteira, chefe, tela de fim e recomeço com nova semente, com cont
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §4, §9, §26 e `ADR-0016`**: `GameScreen` abre no menu com resumo da classe e Ecos acumulados, inicia Descida, credita Ecos na vitória ou derrota ("Nenhuma Descida se perde") e permite jogar outra Descida em seguida ou voltar ao menu.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

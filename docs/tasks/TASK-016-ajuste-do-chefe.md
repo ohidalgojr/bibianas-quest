@@ -44,4 +44,6 @@ O chefe deixa de encadear golpes de moeda e ganha golpes com debuff que acertam 
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §6, §7, §11, §13, §23 e `ADR-0020`**: remoção da exceção de fase final do chefe (`coin_cooldown` vale em todas as fases), `CombatEffect.Kind.CURSED` (Maldição: -30% de cura por 3 turnos) no lugar de dano dobrado na Pá enferrujada, e Golpe Mortal em `1,8 × FOR` quando erra a moeda e `0,7 × FOR` quando acerta.
+- **Achado corrigido na `TASK-029`**: removido `Combatant.in_final_phase()` que havia ficado órfão após esta tarefa.

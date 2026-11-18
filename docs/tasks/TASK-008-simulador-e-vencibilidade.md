@@ -70,4 +70,6 @@ Há um simulador headless que joga milhares de Descidas com os bots "mediano" e 
 
 ## Revisão cruzada
 
-Pendente (etapa 4).
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §5, §23 e `ADR-0012`**: `RunBot`, `Winnability` e `Simulator` vivem em `game/core/sim/` sem depender de nós nem poluir os 4 fluxos da Descida do jogador; `Winnability` suaviza até 3 nós e regenera o mapa quando a rota segura fica abaixo da meta; `tools/simulate.gd` gera `reports/simulation.md`.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

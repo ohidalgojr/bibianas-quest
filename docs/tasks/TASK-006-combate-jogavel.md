@@ -56,8 +56,11 @@ A primeira tela jogável: uma luta da Bibiana (Guerreiro) contra um inimigo do c
 
 ## Revisão cruzada
 
-Pendente (etapa 4).
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §6, §7, §18, §20 e `ADR-0010`**: `CombatSession` faz a ponte entre `Combat` e `CombatScreen` sem recalcular regras na apresentação; botões na zona do polegar, painel de intenção colorido por risco/moeda e `time_scale = 0` para testes headless instantâneos.
+- **Achados corrigidos na `TASK-029`**:
+  - *Importante (`game/presentation/combat/combat_screen.gd`)*: em `_refresh_buttons()`, uma linha residual sobrescrevia `(_buttons["skill_0"] as Button).tooltip_text` com texto fixo, descartando `session.skill_tip(0)` introduzido na `TASK-017` (`ADR-0021`). Linha removida para preservar a dica completa da skill.
 
 ## Teste de sensação (humano)
 
-A moeda dá tensão? O aviso de um turno é suficiente para decidir? Anotar aqui depois de jogar.
+Conferido nas rodadas de feedback `docs/FEEDBACK.md` (levando aos ajustes das `TASK-015` a `TASK-025`).

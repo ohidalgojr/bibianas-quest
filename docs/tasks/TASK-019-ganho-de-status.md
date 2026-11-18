@@ -35,4 +35,6 @@ A Bibiana passa a ganhar status de forma visível a cada luta: o Poder sobe mais
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §8, §9 e `ADR-0023`**: ganhos por ponto de Poder (`+16%` HP, `+10%` FOR/DEF, `+8%` MEN/RES, `+5%` VEL, `+1` PRE/ESQ/CRIT/SORTE) aplicados em `RunState.player_stats()`, garantindo subida visível de atributos em toda luta vencida.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

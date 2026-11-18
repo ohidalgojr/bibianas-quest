@@ -52,4 +52,7 @@ Número da tarefa fora de ordem de propósito: ela entra antes da TASK-010 do ro
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §7 e `ADR-0014`**: escolha explícita entre Cara (`CoinRules.HEADS`) e Coroa (`CoinRules.TAILS`) na tela de combate, com `auto_call` para execução headless instantânea (`time_scale = 0.0`).
+- **Evolução posterior verificada**: na `TASK-021` (`ADR-0026`) a moeda passou a cair Cara/Coroa em 50/50 real, fazendo o lado escolhido decidir diretamente o resultado no núcleo.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.
