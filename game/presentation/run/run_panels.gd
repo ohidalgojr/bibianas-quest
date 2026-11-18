@@ -46,6 +46,8 @@ func reward_view() -> Dictionary:
 	lines.append("Ouro +%d (total %d)." % [gold, run.gold])
 	if bool(reward.get("bad_luck", false)):
 		lines.append("Maré de azar: o achado veio melhor.")
+	if bool(reward.get("firewood", false)):
+		lines.append("Encontrou: Galhos Secos.")
 	if bool(reward.get("lucky_coin", false)):
 		lines.append("Encontrou: Moeda da Sorte.")
 	var consumable: String = str(reward.get("consumable", ""))
@@ -251,6 +253,9 @@ func campfire_view() -> Dictionary:
 	return {
 		"embers": run.embers,
 		"status": "HP %d/%d    MP %d/%d" % [run.hp, stats.max_hp, run.mp, stats.max_mp],
+		"lit": run.campfire_lit,
+		"firewood": run.consumable_count(RunRules.FIREWOOD_ID),
+		"can_light": run.can_light_campfire(),
 		"rest_cost": RunRules.REST_COST,
 		"rest_text": "Recupera %d%% do HP e do MP" % RunRules.REST_PERCENT,
 		"can_rest": run.phase == RunState.Phase.CAMPFIRE and run.embers >= RunRules.REST_COST,
@@ -262,6 +267,10 @@ func campfire_view() -> Dictionary:
 static func campfire_skill_text(skill: Dictionary) -> String:
 	var what: String = "FOR e MEN" if str(skill["effect"]) == "damage_up" else "DEF"
 	return "%s +%d%% por %d lutas" % [what, int(skill["percent"]), int(skill["combats"])]
+
+
+func light_campfire() -> bool:
+	return run.light_campfire()
 
 
 func rest() -> bool:

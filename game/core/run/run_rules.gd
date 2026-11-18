@@ -39,6 +39,12 @@ const REROLL_STEP: int = 10
 ## uma vez por baú, por Moeda da Sorte ou por anúncio opcional. O ×2 também rende uma poção.
 const CHEST_BOOST_PERCENTS: Array[int] = [125, 150, 200]
 const CHEST_BOOST_WEIGHTS: Array[int] = [50, 35, 15]
+## Galhos Secos (D2, ADR-0028): acender uma fogueira gasta 1. Cada mapa dá os galhos para uma
+## fogueira, garantidos; os outros são raros (drops, chefe, loja). Chance em % de cair, mais SORTE.
+const FIREWOOD_PER_MAP: int = 1
+const FIREWOOD_ID: String = "firewood"
+const FIREWOOD_DROP_PERCENT: Dictionary = {"common": 5, "elite": 20}
+const FIREWOOD_CHEST_PERCENT: int = 15
 ## GDD §8: espaços de skill de combate no protótipo (ADR-0024).
 const MAX_SKILLS: int = 5
 ## GDD §10: até 8 consumíveis.

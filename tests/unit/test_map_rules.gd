@@ -7,8 +7,11 @@ func _valid(layers: int = 5) -> MapGraph:
 	var config: MapConfig = MapConfig.for_layers(layers)
 	var graph: MapGraph = MapGraph.build(layers, config.width, 0)
 	graph.node_at(layers - 1, 2).kind = MapNode.Kind.BONFIRE
-	if layers >= 8:
-		graph.node_at(5, 0).kind = MapNode.Kind.BONFIRE
+	# Fogueiras extras de 3 em 3 camadas a partir da antepenúltima menos 1 (ADR-0028).
+	var extra_layer: int = layers - 3
+	for extra: int in config.bonfire_count() - 1:
+		graph.node_at(extra_layer, 0).kind = MapNode.Kind.BONFIRE
+		extra_layer -= 3
 	return graph
 
 
@@ -79,7 +82,7 @@ func test_bonfire_out_of_sight_of_some_node_is_flagged() -> void:
 
 func test_long_maps_need_two_bonfires() -> void:
 	var graph: MapGraph = _valid(9)
-	graph.node_at(5, 0).kind = MapNode.Kind.BATTLE
+	graph.node_at(6, 0).kind = MapNode.Kind.BATTLE
 	assert_string_contains(_codes(graph, 9), MapRules.BONFIRE_COUNT)
 
 

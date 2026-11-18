@@ -40,8 +40,10 @@ func test_bonfire_count() -> void:
 	assert_eq(MapConfig.for_layers(5).bonfire_count(), 1)
 	assert_eq(MapConfig.for_layers(6).bonfire_count(), 2, "ADR-0027: a partir de 6 camadas")
 	assert_eq(MapConfig.for_layers(7).bonfire_count(), 2)
-	assert_eq(MapConfig.for_layers(8).bonfire_count(), 2)
-	assert_eq(MapConfig.for_layers(9).bonfire_count(), 2)
+	assert_eq(MapConfig.for_layers(8).bonfire_count(), 3, "uma fogueira a cada 3 camadas (ADR-0028)")
+	assert_eq(MapConfig.for_layers(9).bonfire_count(), 3)
+	assert_eq(MapConfig.for_layers(10).bonfire_count(), 3)
+	assert_eq(MapConfig.for_layers(12).bonfire_count(), 4)
 
 
 func test_problems_catch_bad_values() -> void:

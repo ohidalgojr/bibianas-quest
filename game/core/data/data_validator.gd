@@ -161,7 +161,7 @@ func _check_item(entry: Variant) -> void:
 		var mp: int = _int_field(data, "heal_mp_percent", path)
 		_check_range(hp, 0, 100, path, "heal_hp_percent")
 		_check_range(mp, 0, 100, path, "heal_mp_percent")
-		if hp == 0 and mp == 0 and not bool(data.get("reroll", false)):
+		if hp == 0 and mp == 0 and not bool(data.get("reroll", false)) and not bool(data.get("campfire", false)):
 			_error(path, "consumível sem efeito")
 	elif not slot.is_empty():
 		_check_stat_mods(data, path)

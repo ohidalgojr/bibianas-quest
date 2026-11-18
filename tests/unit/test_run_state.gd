@@ -178,6 +178,12 @@ func test_campfire() -> void:
 	var node: MapNode = _force_option(run, MapNode.Kind.BONFIRE)
 	assert_true(run.choose_node(node.id))
 	assert_eq(run.phase, RunState.Phase.CAMPFIRE)
+	assert_eq(run.embers, 0, "a fogueira abre apagada (ADR-0028)")
+	assert_false(run.rest(), "sem acender, sem Brasas")
+	assert_eq(run.consumable_count("firewood"), 1, "a Descida comeca com 1 Lenha")
+	assert_true(run.light_campfire())
+	assert_eq(run.consumable_count("firewood"), 0)
+	assert_false(run.light_campfire(), "ja esta acesa")
 	assert_eq(run.embers, 6)
 	run.hp = 50
 	run.mp = 0
@@ -239,6 +245,7 @@ func test_consumable_limit() -> void:
 	var run: RunState = _run()
 	run.gold = 500
 	run._open_shop()
+	run.consumables["firewood"] = 0
 	run.consumables["murky_potion"] = 8
 	assert_false(run.can_buy("murky_potion"))
 	run.consumables["murky_potion"] = 7
@@ -326,3 +333,40 @@ func test_chest_multiplier_weights_are_moderate() -> void:
 	assert_between(counts[125], 1800, 2200, "50%")
 	assert_between(counts[150], 1250, 1550, "35%")
 	assert_between(counts[200], 480, 720, "15%")
+
+
+## ADR-0028: sem Lenha a fogueira fica apagada; sair sem acender nao gasta nada.
+func test_dark_campfire_without_firewood_costs_nothing() -> void:
+	var run: RunState = _run()
+	run.consumables["firewood"] = 0
+	var node: MapNode = _force_option(run, MapNode.Kind.BONFIRE)
+	run.choose_node(node.id)
+	assert_false(run.can_light_campfire())
+	assert_false(run.light_campfire())
+	assert_eq(run.embers, 0)
+	assert_true(run.leave_campfire())
+	assert_eq(run.consumable_count("firewood"), 0)
+
+
+func test_firewood_is_expensive_and_drops_rarely() -> void:
+	assert_gte(int(_data.items["firewood"]["price"]), 100, "Lenha cara (D2)")
+	var drops: int = 0
+	for run_seed: int in 400:
+		var run: RunState = RunState.new(_data, run_seed)
+		run.consumables["firewood"] = 0
+		run._roll_firewood(RunRules.FIREWOOD_DROP_PERCENT["elite"])
+		drops += run.consumable_count("firewood")
+	assert_between(drops, 40, 120, "perto de 20% em 400")
+
+
+## ADR-0028: cada mapa garante os Galhos Secos de uma fogueira; o chefe solta mais um.
+func test_every_map_grants_one_firewood_and_the_boss_drops_one() -> void:
+	var scenarios: Array[String] = ["abandoned_city", "abandoned_city"]
+	var run: RunState = RunState.new(_data, 4, "warrior", scenarios)
+	assert_eq(run.consumable_count("firewood"), 1, "o primeiro mapa garante 1")
+	var node: MapNode = _force_option(run, MapNode.Kind.BOSS, "gravedigger", 6)
+	run.choose_node(node.id)
+	_win(run)
+	run.finish_fight()
+	assert_eq(run.scenario_index, 1, "foi para o segundo mapa")
+	assert_eq(run.consumable_count("firewood"), 3, "1 que sobrou, 1 do chefe e 1 do mapa novo")

@@ -42,9 +42,12 @@ func elite_free_layers() -> int:
 	return (elite_free_percent * layer_count + 99) / 100
 
 
-## Mapas de 6 camadas ou mais têm 2 fogueiras; os demais, 1 (GDD §12, ADR-0027).
+## Fogueiras por mapa (GDD §12, ADR-0028): 1 até 5 camadas; de 6 em diante, uma a cada 3
+## camadas, com ao menos 2 (6 e 7 camadas: 2; 8 a 10: 3; 11 e 12: 4).
 func bonfire_count() -> int:
-	return 2 if layer_count >= 6 else 1
+	if layer_count < 6:
+		return 1
+	return maxi(2, roundi(layer_count / 3.0))
 
 
 ## Lista de problemas da configuração; vazia quando ela pode ser usada.

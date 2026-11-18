@@ -124,7 +124,7 @@ func edges() -> Array[Array]:
 ## Cabeçalho do mapa: cenário, Poder, ouro, HP, MP e poções.
 func header() -> String:
 	var stats: Stats = run.player_stats()
-	return "%s, camada %d de %d\nNível %d (Poder %.2f)   Ouro %d   Derrotados %d\nHP %d/%d   MP %d/%d   Poções %d\nFOR %d   DEF %d   VEL %d" % [
+	return "%s, camada %d de %d\nNível %d (Poder %.2f)   Ouro %d   Derrotados %d\nHP %d/%d   MP %d/%d   Poções %d   Galhos %d\nFOR %d   DEF %d   VEL %d" % [
 		str(run.scenario()["name"]), maxi(run.current_node().layer, 0), run.map.layer_count,
 		run.level(), run.power, run.gold, run.enemies_defeated, run.hp, stats.max_hp, run.mp, stats.max_mp,
-		run.consumable_count("murky_potion"), stats.strength, stats.defense, stats.speed]
+		run.consumable_count("murky_potion"), run.consumable_count(RunRules.FIREWOOD_ID), stats.strength, stats.defense, stats.speed]

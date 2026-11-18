@@ -160,6 +160,16 @@ func _render_shop() -> void:
 func _render_campfire() -> void:
 	var view: Dictionary = panels.campfire_view()
 	_title("Fogueira")
+	if not bool(view["lit"]):
+		_text("A fogueira está apagada. %s" % str(view["status"]), 18)
+		var light: Button = _button("Acender a fogueira (gasta 1 Galho Seco; você tem %d)" % int(view["firewood"]), func() -> void:
+			panels.light_campfire()
+			_render())
+		light.disabled = not bool(view["can_light"])
+		if not bool(view["can_light"]):
+			_text("Sem Galhos Secos não dá para acender. Eles caem raro de inimigos, baús e chefes, ou se compram na loja.", 16)
+		_button("Seguir", func() -> void: closed.emit())
+		return
 	_text("Brasas: %d. %s" % [int(view["embers"]), str(view["status"])])
 	var rest: Button = _button("Descansar (%d Brasas)" % int(view["rest_cost"]), func() -> void:
 		panels.rest()

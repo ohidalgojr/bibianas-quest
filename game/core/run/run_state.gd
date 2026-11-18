@@ -29,6 +29,8 @@ var equipment: Dictionary = {}
 ## Id da skill de fogueira -> lutas restantes.
 var buffs: Dictionary = {}
 var embers: int = 0
+## A fogueira do nó atual foi acesa? Acender gasta 1 Galho Seco (ADR-0028).
+var campfire_lit: bool = false
 var shop_offer: Array[String] = []
 var shop_rerolls: int = 0
 ## Skills de combate aprendidas, em ordem, e a skill à venda na loja (ADR-0024).
@@ -262,9 +264,11 @@ func choose_node(node_id: int) -> bool:
 		_gain_gold(RunRules.chest_gold(level, streams.loot(), player_stats().luck), "chest")
 		last_chest = {"gold": gold - gold_before_chest, "boosted": false, "multiplier": 100}
 		_roll_lucky_coin(RunRules.LUCKY_COIN_CHEST_PERCENT)
+		_roll_firewood(RunRules.FIREWOOD_CHEST_PERCENT)
 		nodes_cleared += 1
 	elif chosen.kind == MapNode.Kind.BONFIRE:
-		embers = RunRules.EMBERS
+		embers = 0
+		campfire_lit = false
 		phase = Phase.CAMPFIRE
 		_emit(RunEvent.Type.CAMPFIRE, "open", embers)
 	else:
@@ -350,6 +354,22 @@ func _used_in_fight(item_id: String) -> int:
 
 
 # --- Fogueira (GDD §12) ------------------------------------------------------------
+
+## Acende a fogueira do nó, gastando 1 Galho Seco, e dá as Brasas (GDD §12, ADR-0028).
+func can_light_campfire() -> bool:
+	return phase == Phase.CAMPFIRE and not campfire_lit and consumable_count(RunRules.FIREWOOD_ID) > 0
+
+
+func light_campfire() -> bool:
+	if not can_light_campfire():
+		return false
+	consumables[RunRules.FIREWOOD_ID] = consumable_count(RunRules.FIREWOOD_ID) - 1
+	_emit(RunEvent.Type.ITEM_USED, RunRules.FIREWOOD_ID, 1)
+	campfire_lit = true
+	embers = RunRules.EMBERS
+	_emit(RunEvent.Type.CAMPFIRE, "lit", embers)
+	return true
+
 
 func rest() -> bool:
 	if phase != Phase.CAMPFIRE or embers < RunRules.REST_COST:
@@ -475,6 +495,7 @@ func _roll_drops(enemy_type: String) -> void:
 	if enemy_type == "boss":
 		if total_consumables() < RunRules.MAX_CONSUMABLES:
 			_grant_lucky_coin()
+		_roll_firewood(100)
 		return
 	var loot: Pcg32 = streams.loot()
 	var luck: int = player_stats().luck
@@ -497,6 +518,7 @@ func _roll_drops(enemy_type: String) -> void:
 		last_reward["consumable"] = found
 	if enemy_type == "elite":
 		_roll_lucky_coin(RunRules.LUCKY_COIN_ELITE_PERCENT)
+	_roll_firewood(int(RunRules.FIREWOOD_DROP_PERCENT.get(enemy_type, 0)))
 	last_reward["drop"] = pending_drop
 
 
@@ -506,6 +528,16 @@ func _roll_lucky_coin(percent: int) -> void:
 		return
 	if streams.loot().draw_percent(percent + maxi(player_stats().luck, 0)):
 		_grant_lucky_coin()
+
+
+## Galhos Secos (ADR-0028): chance em % mais SORTE; respeita o limite da mochila.
+func _roll_firewood(percent: int) -> void:
+	if percent <= 0 or total_consumables() >= RunRules.MAX_CONSUMABLES:
+		return
+	if streams.loot().draw_percent(percent + maxi(player_stats().luck, 0)):
+		consumables[RunRules.FIREWOOD_ID] = consumable_count(RunRules.FIREWOOD_ID) + 1
+		_emit(RunEvent.Type.ITEM_GAINED, RunRules.FIREWOOD_ID, 1)
+		last_reward["firewood"] = true
 
 
 func _grant_lucky_coin() -> void:
@@ -579,6 +611,9 @@ func _pick_into(pool: Array[String], count: int) -> void:
 # --- Internos --------------------------------------------------------------------------
 
 func _enter_scenario(index: int) -> void:
+	# Cada mapa garante (antes de gerar o mapa: a checagem de vencibilidade conta com eles) os Galhos Secos de uma fogueira (ADR-0028); o resto é recurso raro.
+	consumables[RunRules.FIREWOOD_ID] = consumable_count(RunRules.FIREWOOD_ID) + RunRules.FIREWOOD_PER_MAP
+	_emit(RunEvent.Type.ITEM_GAINED, RunRules.FIREWOOD_ID, RunRules.FIREWOOD_PER_MAP)
 	scenario_index = index
 	var entry: Dictionary = scenario()
 	var config: MapConfig = MapConfig.for_layers(int(entry["layers"]))

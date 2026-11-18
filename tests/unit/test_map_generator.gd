@@ -73,7 +73,7 @@ func test_different_seeds_give_different_maps() -> void:
 func test_golden_maps_pin_the_generation() -> void:
 	# Se estes textos mudarem, as Descidas gravadas mudaram: exige ADR e RULES_VERSION.
 	assert_eq(_generate(12345, MapConfig.for_scenario(1)).signature(), "6x4@1/VABV/BACV/CEFB/BBVB/CFVB/EBBB")
-	assert_eq(_generate(12345, MapConfig.for_scenario(5)).signature(), "10x5@2/VABVB/ACVBC/BAVBB/CVBVC/BBVBA/BBFAA/BBEBV/CAVBC/ABFBB/EEBBA")
+	assert_eq(_generate(12345, MapConfig.for_scenario(5)).signature(), "10x5@2/BVBAC/VFVVB/AABBA/VBVCC/BBBAA/BAFAB/BEBVC/AVBBA/BAFCE/ECVBB")
 
 
 func test_generation_only_spends_the_map_stream() -> void:
@@ -128,3 +128,17 @@ func test_route_to_the_boss_exists_on_generated_maps() -> void:
 		var route: PackedInt32Array = graph.safest_route(cost)
 		assert_eq(route.size(), 11, "10 camadas e o chefe")
 		assert_eq(route[route.size() - 1], graph.boss_id)
+
+
+## ADR-0028: o numero de fogueiras acompanha a profundidade e nenhuma fica ligada a outra.
+func test_bonfires_scale_with_depth_and_never_touch() -> void:
+	for layers: int in range(5, 13):
+		var config: MapConfig = MapConfig.for_layers(layers)
+		for run_seed: int in 60:
+			var graph: MapGraph = _generate(run_seed, config)
+			var fires: int = 0
+			for node: MapNode in graph.nodes:
+				if node.kind == MapNode.Kind.BONFIRE:
+					fires += 1
+			assert_eq(fires, config.bonfire_count(), "%d camadas, semente %d" % [layers, run_seed])
+			assert_eq(MapRules.find_violations(graph, config).size(), 0)

@@ -66,6 +66,7 @@ func test_full_run_through_the_screens() -> void:
 					rewards += 1
 				assert_true(_press(_game, "Seguir"))
 			RunState.Phase.CAMPFIRE:
+				_press(_game, "Acender")
 				_press(_game, "Descansar")
 				assert_true(_press(_game, "Seguir"))
 			_:
@@ -141,6 +142,7 @@ func _play_step(run: RunState) -> void:
 			_press(_game, "Continuar")
 			_press(_game, "Seguir")
 		RunState.Phase.CAMPFIRE:
+			_press(_game, "Acender")
 			_press(_game, "Descansar")
 			_press(_game, "Seguir")
 

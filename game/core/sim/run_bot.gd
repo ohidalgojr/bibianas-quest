@@ -149,6 +149,9 @@ static func shop(run: RunState, profile: Profile) -> void:
 			run.buy(item_id)
 		elif slot != "consumable" and run.gold - run.item_price(item_id) >= 30:
 			run.buy(item_id)
+	if run.shop_offer.has(RunRules.FIREWOOD_ID) and run.consumable_count(RunRules.FIREWOOD_ID) == 0 \
+			and run.gold - run.item_price(RunRules.FIREWOOD_ID) >= 30:
+		run.buy(RunRules.FIREWOOD_ID)
 	if not run.skill_offer.is_empty() and run.gold - run.data.skill_price(run.skill_offer) >= 30:
 		run.buy_skill()
 	run.leave_shop()
@@ -172,6 +175,7 @@ static func _handle_drop(run: RunState) -> void:
 
 
 static func campfire(run: RunState, profile: Profile) -> void:
+	run.light_campfire()
 	var rest_below: int = 85 if profile == Profile.CAREFUL else 70
 	if hp_percent(run) < rest_below:
 		run.rest()

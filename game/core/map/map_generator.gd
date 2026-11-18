@@ -38,6 +38,23 @@ static func _place_bonfires(graph: MapGraph, config: MapConfig, rng: Pcg32) -> v
 		var extra_layer: int = rng.draw_int(mini(layers / 2 + 1, layers - 3), layers - 3)
 		var extra_column: int = rng.draw_int(0, config.width - 1)
 		graph.node_at(extra_layer, extra_column).kind = MapNode.Kind.BONFIRE
+		# Fogueiras além da segunda (mapas de 8 camadas ou mais): camadas de 2 a layers - 3, a pelo
+		# menos 2 camadas de qualquer outra fogueira, para nunca ficarem ligadas (ADR-0028).
+		var taken: Array[int] = [layers - 1, extra_layer]
+		for extra: int in config.bonfire_count() - 2:
+			var candidates: Array[int] = []
+			for layer: int in range(2, layers - 2):
+				var free: bool = true
+				for used: int in taken:
+					if absi(layer - used) < 2:
+						free = false
+				if free:
+					candidates.append(layer)
+			if candidates.is_empty():
+				break
+			var chosen_layer: int = candidates[rng.draw_index(candidates.size())]
+			graph.node_at(chosen_layer, rng.draw_int(0, config.width - 1)).kind = MapNode.Kind.BONFIRE
+			taken.append(chosen_layer)
 
 
 static func _draw_kind(graph: MapGraph, config: MapConfig, node: MapNode, elites_in_layer: int, rng: Pcg32) -> MapNode.Kind:
