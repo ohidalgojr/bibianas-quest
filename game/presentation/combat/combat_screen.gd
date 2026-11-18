@@ -528,30 +528,36 @@ func _build() -> void:
 	_player_effects.add_theme_font_size_override("font_size", 16)
 	player_info.add_child(_player_effects)
 
-	# Ações na zona do polegar
+	# Ações na zona do polegar: ações de combate em 2 colunas, utilitários em 3 (texto quebra
+	# em vez de alargar a tela).
 	var grid: GridContainer = GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	column.add_child(grid)
+	var utility: GridContainer = GridContainer.new()
+	utility.columns = 3
+	utility.add_theme_constant_override("h_separation", 8)
+	utility.add_theme_constant_override("v_separation", 8)
+	column.add_child(utility)
 	for entry: Array in [["attack", "Atacar"], ["defend", "Defender"], ["skill_0", "Skill"], ["skill_1", "Skill"],
-			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["ether", "Éter Sujo"], ["flee", "Fugir"], ["luck", "Moeda da Sorte (0)"],
-			["speed", "Velocidade 1x"]]:
+			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["ether", "Éter Sujo"],
+			["flee", "Fugir"], ["luck", "Moeda da Sorte (0)"], ["speed", "Velocidade 1x"]]:
+		var action: String = str(entry[0])
+		var main_action: bool = action == "attack" or action == "defend" or action.begins_with("skill_")
 		var button: Button = Button.new()
 		button.text = str(entry[1])
-		button.custom_minimum_size = Vector2(0, 56)
-		if str(entry[0]) == "attack" or str(entry[0]).begins_with("skill_"):
-			button.add_theme_font_size_override("font_size", 16)
-			button.custom_minimum_size = Vector2(0, 60)
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var action: String = str(entry[0])
+		button.custom_minimum_size = Vector2(0, 76 if main_action else 48)
+		button.add_theme_font_size_override("font_size", 16)
 		if action == "speed":
 			button.pressed.connect(_toggle_speed)
 		elif action == "luck":
 			button.pressed.connect(_toggle_lucky)
 		else:
 			button.pressed.connect(perform.bind(action))
-		grid.add_child(button)
+		(grid if main_action else utility).add_child(button)
 		_buttons[action] = button
 
 	_coin_overlay = _overlay()
