@@ -49,9 +49,14 @@ var pending_drop: String = ""
 ## Último baú aberto: {gold, boosted, multiplier}; vazio se não há baú para o jogador ver
 ## (ADR-0027). A apresentação limpa depois do painel.
 var last_chest: Dictionary = {}
-## Quem derrotou a Bibiana (id do inimigo e nível), para a tela de morte (GDD §26).
+## Quem derrotou a Bibiana (id do inimigo, nível, vida restante % e golpe fatal), para a tela de morte (GDD §26).
 var defeated_by_id: String = ""
 var defeated_by_level: int = 0
+var defeated_by_hp_percent: int = 0
+var defeated_by_move: String = ""
+## Primeira Descida (runs_played == 0; F-019, ADR-0031): elementos garantidos e Ecos em dobro.
+var first_run: bool = false
+var first_chest_opened: bool = false
 var history: Array[RunEvent] = []
 ## Simulações da checagem de vencibilidade de cada mapa (GDD §5; 0 desliga).
 var winnability_runs: int = 0
@@ -60,9 +65,10 @@ var map_check: Winnability
 
 
 func _init(game_data: GameData, run_seed: int, run_class: String = "warrior", run_scenarios: Array[String] = [],
-		map_check_runs: int = 0, given_map: MapGraph = null) -> void:
+		map_check_runs: int = 0, given_map: MapGraph = null, is_first_run: bool = false) -> void:
 	data = game_data
 	winnability_runs = map_check_runs
+	first_run = is_first_run
 	streams = RngStreams.new(run_seed)
 	class_id = run_class
 	scenario_ids = run_scenarios.duplicate()
@@ -155,11 +161,56 @@ func level() -> int:
 	return RunRules.level_of(power)
 
 
-## Ecos desta Descida; só valem depois do fim (ADR-0016).
+## Ecos desta Descida; só valem depois do fim (ADR-0016, ADR-0031).
 func echoes_earned() -> int:
 	if not is_over():
 		return 0
-	return RunRules.echoes(nodes_cleared, bosses_defeated())
+	return RunRules.echoes(nodes_cleared, bosses_defeated(), first_run)
+
+
+## Dica tática da "morte que ensina" (GDD §26, ADR-0031), baseada no inimigo e no estado da Descida.
+func teaching_tip() -> String:
+	if phase != Phase.DEFEAT:
+		return "O caminho cedeu à sua lâmina. Os Ecos fortalecem o Santuário para as próximas Descidas."
+	if not diseases.is_empty():
+		return "Dica: a Leptospirose reduz 15% do HP máximo até ser tratada por 1 Brasa na fogueira."
+	if consumable_count(RunRules.LUCKY_COIN_ID) > 0:
+		return "Dica: você tinha Moeda da Sorte na mochila. Arme-a antes de um lance de moeda perigoso para re-jogar se errar."
+	if consumable_count("murky_potion") > 0:
+		return "Dica: sobraram Poções Turvas na mochila. Beba antes de um golpe forte ou de moeda quando o HP cair."
+	if defeated_by_id == "gravedigger":
+		return "Dica: contra O Coveiro, Defenda quando aparecer o aviso dourado de MOEDA (Pá enferrujada ou Enterrar vivo) para cortar o dano e a Maldição."
+	if defeated_by_id == "rotten_executioner":
+		return "Dica: a Guilhotina do Carrasco aplica Maldição na Coroa. Defender com o Guerreiro anula a penalidade da moeda."
+	return "Dica: observe o aviso do próximo golpe inimigo. Defender reduz o dano pela metade e protege contra a consequência da Coroa."
+
+
+## Resumo de fim de Descida ("morte que ensina", GDD §26, ADR-0031): o que aconteceu,
+## o que foi conquistado e o que fica para a próxima Descida.
+func end_summary(total_echoes_after: int = -1) -> Dictionary:
+	var victory: bool = phase == Phase.VICTORY
+	var earned: int = echoes_earned()
+	var total: int = total_echoes_after if total_echoes_after >= 0 else earned
+	var killer_name: String = str(data.enemies[defeated_by_id]["name"]) if data.enemies.has(defeated_by_id) else "?"
+	var killer_line: String = ""
+	if not victory:
+		killer_line = "Derrotada por %s, nível %d (ficou com %d%% de HP)." % [
+			killer_name, defeated_by_level, maxi(defeated_by_hp_percent, 1)]
+	var reached_layer: int = maxi(current_node().layer, 0) if map != null and current_node() != null else 0
+	var accomplished: String = "Conquistado: camada %d/%d, Nível %d (Poder %.2f), ouro %d, %d nós, %d inimigos derrotados, %d chefe(s)." % [
+		reached_layer, map.layer_count if map != null else 6, level(), power, gold, nodes_cleared, enemies_defeated, bosses_defeated()]
+	var bonus_tag: String = " (em dobro na 1ª Descida!)" if first_run else ""
+	var next_line: String = "Ecos ganhos: +%d%s (total %d). Nenhuma Descida se perde: os Ecos ficam para a próxima Descida." % [
+		earned, bonus_tag, total]
+	return {
+		"victory": victory,
+		"first_run": first_run,
+		"echoes": earned,
+		"killer_line": killer_line,
+		"tip_line": teaching_tip(),
+		"accomplished_line": accomplished,
+		"next_line": next_line,
+	}
 
 
 ## Skills aprendidas, prontas para o combate.
@@ -267,7 +318,24 @@ func choose_node(node_id: int) -> bool:
 		var gold_before_chest: int = gold
 		_gain_gold(RunRules.chest_gold(level, streams.loot(), player_stats().luck), "chest")
 		last_chest = {"gold": gold - gold_before_chest, "boosted": false, "multiplier": 100}
-		_roll_lucky_coin(RunRules.LUCKY_COIN_CHEST_PERCENT)
+		if first_run and not first_chest_opened:
+			first_chest_opened = true
+			var uncommon_pool: Array[String] = _drop_pool("uncommon", false)
+			if not uncommon_pool.is_empty():
+				var chest_item: String = uncommon_pool[streams.loot().draw_index(uncommon_pool.size())]
+				var slot: String = str(data.items[chest_item]["slot"])
+				var old_id: String = str(equipment.get(slot, ""))
+				if old_id.is_empty() or str(data.items[old_id]["rarity"]) == "worn":
+					var old_max: int = player_stats().max_hp
+					equipment[slot] = chest_item
+					_adjust_hp(old_max)
+					_emit(RunEvent.Type.EQUIPPED, chest_item)
+				last_chest["item"] = chest_item
+			if total_consumables() < RunRules.MAX_CONSUMABLES:
+				_grant_lucky_coin()
+				last_chest["lucky_coin"] = true
+		else:
+			_roll_lucky_coin(RunRules.LUCKY_COIN_CHEST_PERCENT)
 		_roll_firewood(RunRules.FIREWOOD_CHEST_PERCENT)
 		nodes_cleared += 1
 	elif chosen.kind == MapNode.Kind.BONFIRE:
@@ -296,6 +364,8 @@ func finish_fight() -> bool:
 	hp = combat.player.hp
 	mp = combat.player.mp
 	diseases.assign(combat.player.diseases)
+	var enemy_hp_pct: int = combat.enemy.hp_percent()
+	var fatal_move: String = _fatal_move_id(combat)
 	var outcome: Combat.Outcome = combat.outcome
 	combat = null
 	_emit(RunEvent.Type.FIGHT_ENDED, "", outcome)
@@ -304,6 +374,8 @@ func finish_fight() -> bool:
 		Combat.Outcome.DEFEAT:
 			defeated_by_id = node.enemy_id
 			defeated_by_level = node.level
+			defeated_by_hp_percent = enemy_hp_pct
+			defeated_by_move = fatal_move
 			_end(false)
 		Combat.Outcome.FLED:
 			phase = Phase.CHOOSING
@@ -522,9 +594,11 @@ func _roll_drops(enemy_type: String) -> void:
 	var loot: Pcg32 = streams.loot()
 	var luck: int = player_stats().luck
 	var bad_luck: bool = coin.bad_luck()
-	if bad_luck or RunRules.equipment_drops(enemy_type, loot, luck):
-		var rarity: String = RunRules.drop_rarity(enemy_type, loot, luck, RunRules.BAD_LUCK_RARITY_SHIFT if bad_luck else 0)
-		if bad_luck:
+	var guaranteed_first_elite: bool = first_run and enemy_type == "elite"
+	if guaranteed_first_elite or bad_luck or RunRules.equipment_drops(enemy_type, loot, luck):
+		var rarity: String = "rare" if guaranteed_first_elite else RunRules.drop_rarity(
+			enemy_type, loot, luck, RunRules.BAD_LUCK_RARITY_SHIFT if bad_luck else 0)
+		if bad_luck and not guaranteed_first_elite:
 			coin.losses_in_row = 0
 			last_reward["bad_luck"] = true
 		var pool: Array[String] = _drop_pool(rarity, false)
@@ -539,7 +613,11 @@ func _roll_drops(enemy_type: String) -> void:
 		_emit(RunEvent.Type.ITEM_GAINED, found, 1)
 		last_reward["consumable"] = found
 	if enemy_type == "elite":
-		_roll_lucky_coin(RunRules.LUCKY_COIN_ELITE_PERCENT)
+		if guaranteed_first_elite:
+			if total_consumables() < RunRules.MAX_CONSUMABLES:
+				_grant_lucky_coin()
+		else:
+			_roll_lucky_coin(RunRules.LUCKY_COIN_ELITE_PERCENT)
 	_roll_firewood(int(RunRules.FIREWOOD_DROP_PERCENT.get(enemy_type, 0)))
 	last_reward["drop"] = pending_drop
 
@@ -640,20 +718,108 @@ func _enter_scenario(index: int) -> void:
 	var entry: Dictionary = scenario()
 	var config: MapConfig = MapConfig.for_layers(int(entry["layers"]))
 	config.weight_event = RunRules.PROTOTYPE_EVENT_WEIGHT
+	var target: float = RunRules.FIRST_RUN_WINNABLE_TARGET if (first_run and index == 0) else float(entry["winnable_target"])
 	phase = Phase.CHOOSING
 	map_check = Winnability.new()
 	for attempt: int in Winnability.MAX_MAPS:
 		map = MapGenerator.generate(config, streams.map())
 		_assign_enemies(entry)
+		if first_run and index == 0:
+			_apply_first_run_guarantees(entry, config)
 		current_node_id = map.start_id
 		if winnability_runs <= 0:
 			break
 		# GDD §5: o mapa precisa de um caminho vencível; se não der, descarta e gera outro.
-		if map_check.check(self, config, winnability_runs, float(entry["winnable_target"]), attempt):
+		if map_check.check(self, config, winnability_runs, target, attempt):
 			break
 		if attempt < Winnability.MAX_MAPS - 1:
 			map_check.maps_discarded += 1
 	_emit(RunEvent.Type.SCENARIO, scenario_ids[index], index)
+
+
+## Garantias da primeira Descida (F-019, ADR-0031): camada 1 sempre com Cidadão Infectado
+## (mostra o aviso e o lance de moeda no 2º turno), baú garantido na camada 2, elite
+## garantido no meio do mapa (camada 3 ou 4) e níveis comuns suavizados para que quase
+## todos cheguem ao Coveiro.
+func _apply_first_run_guarantees(entry: Dictionary, config: MapConfig) -> void:
+	var low: int = int(entry["min_level"])
+	var high: int = int(entry["max_level"])
+	for option: MapNode in map.layer_nodes(1):
+		option.kind = MapNode.Kind.BATTLE
+		option.enemy_id = RunRules.FIRST_RUN_FIRST_ENEMY
+		option.level = low
+	var has_early_chest: bool = false
+	for node: MapNode in map.layer_nodes(2):
+		if node.kind == MapNode.Kind.CHEST and (node.column == 1 or node.column == 2):
+			has_early_chest = true
+	if not has_early_chest:
+		for col: int in [1, 2, 0, 3]:
+			var candidate: MapNode = map.node_at(2, col)
+			if candidate == null or candidate.kind == MapNode.Kind.BONFIRE:
+				continue
+			var saved_kind: MapNode.Kind = candidate.kind
+			var saved_enemy: String = candidate.enemy_id
+			var saved_level: int = candidate.level
+			var changed_children: Array[Array] = []
+			for next_id: int in candidate.next_ids:
+				var child: MapNode = map.node_by_id(next_id)
+				if child.kind == MapNode.Kind.CHEST:
+					changed_children.append([child, child.kind, child.enemy_id, child.level])
+					child.kind = MapNode.Kind.BATTLE
+					child.enemy_id = RunRules.FIRST_RUN_FIRST_ENEMY
+					child.level = RunRules.layer_level(child.layer, map.layer_count, low, high)
+			candidate.kind = MapNode.Kind.CHEST
+			candidate.enemy_id = ""
+			candidate.level = 0
+			if MapRules.find_violations(map, config).is_empty():
+				break
+			candidate.kind = saved_kind
+			candidate.enemy_id = saved_enemy
+			candidate.level = saved_level
+			for item: Array in changed_children:
+				var child_node: MapNode = item[0]
+				child_node.kind = item[1]
+				child_node.enemy_id = str(item[2])
+				child_node.level = int(item[3])
+	var has_mid_elite: bool = false
+	for mid_layer: int in [3, 4]:
+		for node: MapNode in map.layer_nodes(mid_layer):
+			if node.kind == MapNode.Kind.ELITE:
+				has_mid_elite = true
+	if not has_mid_elite:
+		for mid_layer: int in [4, 3]:
+			var placed: bool = false
+			for col: int in [2, 1, 0, 3]:
+				var candidate: MapNode = map.node_at(mid_layer, col)
+				if candidate == null or candidate.kind == MapNode.Kind.BONFIRE or candidate.kind == MapNode.Kind.CHEST:
+					continue
+				var saved_kind: MapNode.Kind = candidate.kind
+				var saved_enemy: String = candidate.enemy_id
+				var saved_level: int = candidate.level
+				candidate.kind = MapNode.Kind.ELITE
+				candidate.enemy_id = str(entry["elite_enemies"][0])
+				candidate.level = mini(RunRules.layer_level(mid_layer, map.layer_count, low, high) + RunRules.ELITE_LEVEL_BONUS, high)
+				if MapRules.find_violations(map, config).is_empty():
+					placed = true
+					break
+				candidate.kind = saved_kind
+				candidate.enemy_id = saved_enemy
+				candidate.level = saved_level
+			if placed:
+				break
+	for node: MapNode in map.nodes:
+		if (node.kind == MapNode.Kind.BATTLE or node.kind == MapNode.Kind.AMBUSH) and node.layer >= 2:
+			node.level = maxi(low, node.level - 1)
+		elif node.kind == MapNode.Kind.BOSS:
+			node.level = high + RunRules.FIRST_RUN_BOSS_LEVEL_BONUS
+
+
+static func _fatal_move_id(ended_combat: Combat) -> String:
+	for index: int in range(ended_combat.history.size() - 1, -1, -1):
+		var event: CombatEvent = ended_combat.history[index]
+		if event.type == CombatEvent.Type.DAMAGE and event.side == Combatant.PLAYER:
+			return event.label
+	return ""
 
 
 ## Inimigo e nível de cada nó de luta, sorteados no fluxo do mapa logo depois da geração

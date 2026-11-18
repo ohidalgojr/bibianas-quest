@@ -87,11 +87,23 @@ const SELL_PERCENT: int = 40
 ## ADR-0011: elite um nível acima da camada; eventos fora do protótipo.
 const ELITE_LEVEL_BONUS: int = 1
 const PROTOTYPE_EVENT_WEIGHT: int = 0
+## Primeira Descida (F-019, ADR-0031): Ecos em dobro (mínimo 2), Cidadão Infectado na
+## camada 1, baú garantido na camada 2 com equipamento incomum e Moeda da Sorte, elite
+## garantido no meio do mapa com drop raro e Moeda da Sorte, lutas comuns suavizadas até
+## o chefe e Coveiro com +1 nível para manter a tensão (meta de 35% a 55% no mediano).
+const FIRST_RUN_ECHO_MULT: int = 2
+const FIRST_RUN_FIRST_ENEMY: String = "infected_citizen"
+const FIRST_RUN_BOSS_LEVEL_BONUS: int = 1
+const FIRST_RUN_WINNABLE_TARGET: float = 42.0
 
 
-## Ecos de uma Descida terminada: sempre creditados, mesmo na morte (GDD §26).
-static func echoes(nodes_cleared: int, bosses_defeated: int) -> int:
-	return ECHOES_PER_NODE * nodes_cleared + ECHOES_PER_BOSS * bosses_defeated
+## Ecos de uma Descida terminada: sempre creditados, mesmo na morte (GDD §26); em dobro
+## na primeira Descida (ADR-0031).
+static func echoes(nodes_cleared: int, bosses_defeated: int, first_run: bool = false) -> int:
+	var base: int = ECHOES_PER_NODE * nodes_cleared + ECHOES_PER_BOSS * bosses_defeated
+	if first_run:
+		return maxi(1, base) * FIRST_RUN_ECHO_MULT
+	return base
 
 
 ## Equipamento cai? Só inimigos comuns e elites (chefes dão Alma, fora do protótipo).

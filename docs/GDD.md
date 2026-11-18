@@ -95,6 +95,7 @@ O jogo tem quatro laços aninhados: turno, nó, cenário e Descida. Cada um entr
 - **O que persiste:** Ecos, desbloqueios de skills e itens, códice, Almas guardadas na Forja e a memória dos rivais (Nemesis).
 - **Auto-save** a cada nó, para o jogador poder sair a qualquer momento.
 - **Loja após cada batalha:** o jogador abre a loja, compra, vende e equipa o que dropou antes de escolher o próximo nó.
+- **Primeira Descida chamativa (ADR-0031):** quando `runs_played == 0`, a Descida usa o mesmo mapa determinístico, mas garante o Cidadão Infectado no primeiro encontro, um baú na camada 2 com equipamento incomum e Moeda da Sorte, um elite no meio do mapa com drop raro e Moeda da Sorte, Ecos em dobro (mesmo na derrota) e tensão calibrada no chefe (meta de 35% a 55% de vitória do bot mediano, com quase todas as tentativas chegando ao chefe).
 
 ### Interpretação adotada
 
@@ -121,6 +122,7 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 
 - Os três nós alcançáveis mostram tudo: inimigo, nível, mutação e dica de recompensa (ouro, equipamento, baú).
 - As camadas seguintes aparecem como silhuetas escuras, com as ligações esmaecidas e sem revelar o tipo do nó.
+- O chefe no topo do mapa é mostrado de longe com nome e nível ("O Coveiro te espera", ADR-0031).
 - Mini bosses são anunciados: o sino toca e um aviso vermelho marca a rota que leva a ele.
 - A Lanterna (item) amplia a visão em 1 camada por um cenário.
 
@@ -1109,7 +1111,7 @@ O mercado aponta na mesma direção. Em uma pesquisa com jogadores citada pela M
 
 | Mecânica | Como funciona | Fase |
 | --- | --- | --- |
-| Morte que ensina | Uma tela pós-morte mostra o que causou o dano, o que faltou (por exemplo, “o chefe ficou com 12% de vida”), uma dica e o botão “Outra Descida”. Os Ecos são sempre creditados pela profundidade, então nenhuma Descida é perdida | Alpha |
+| Morte que ensina | Uma tela pós-morte mostra o que causou o dano, o que faltou (por exemplo, “o chefe ficou com 12% de vida”), o que foi conquistado na Descida, uma dica tática contextual e o botão “Outra Descida”. Os Ecos são sempre creditados pela profundidade (em dobro na primeira Descida, ADR-0031), então nenhuma Descida é perdida | Protótipo / Alpha (ADR-0031) |
 | Votos da Descida | Antes de entrar, o jogador aceita até 3 votos opcionais (vencer o cenário 1 sem usar itens, evitar todos os elites). Cada voto cumprido dá Ecos extras | Alpha |
 | Desbloqueio gotejante | Nas 5 primeiras Descidas há sempre algo novo (skill, item ou classe); depois, a cada 3 Descidas. O Santuário mostra o próximo desbloqueio e quanto falta | Alpha |
 | Códice e maestria | Bestiário, itens e conquistas completos por etapas. Cada classe tem nível de maestria que libera cosméticos (variações da mecha, como uma mecha de brasa) e passivas alternativas sem poder extra. Isso empurra o jogador a tentar as 4 classes | Alpha e Beta |

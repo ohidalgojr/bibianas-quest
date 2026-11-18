@@ -210,7 +210,7 @@ Tudo abaixo está **implementado e testado, mas ainda não jogado pelo Orlando**
 
 ### F-019: a primeira Descida tem que ser chamativa
 
-- **Status:** aberto (anotado; vira a TASK-026, que ainda não começou).
+- **Status:** atendido na TASK-026 (ADR-0031), falta o Orlando confirmar jogando: primeira Descida (`runs_played == 0`) com Cidadão Infectado garantido na camada 1, baú na camada 2 com item incomum e Moeda da Sorte, elite no meio com drop raro e Moeda da Sorte, chefe visível de longe no mapa ("O Coveiro te espera"), Ecos em dobro e tela final "Morte que ensina" (inimigo e % de vida restante, conquistas, dica tática e o que ficou para a próxima). Simulador: 52,7% de vitória e 98,0% de chegada ao chefe na primeira Descida.
 - **Fala do Orlando:** "a primeira descida tem que ser chamativa, dar um gostinho da dificuldade e recompensa pra fazer a pessoa ter vontade de continuar jogando".
 - **O que isso pede:** a primeira Descida de quem nunca jogou (`runs_played == 0`) precisa entregar, em poucos minutos: (1) um **gostinho da dificuldade** (um encontro tenso e justo, com a moeda e um golpe temático avisado, sem ser injusto), (2) uma **recompensa que se vê** (um item raro ou uma skill forte que mude o jogo, um nível subindo) e (3) um **motivo para a próxima** (Ecos, desbloqueio ou mistério que ficou, "o Coveiro me espera").
 - **Hoje:** a primeira Descida é igual às outras: mapa sorteado, recompensa aleatória, nenhum momento garantido. Quem tem azar de drops vê pouco.

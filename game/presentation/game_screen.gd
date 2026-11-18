@@ -145,7 +145,7 @@ func new_run(run_seed: int = -1) -> void:
 
 
 func _create_run(run_seed: int) -> RunState:
-	return RunState.new(data, run_seed, CLASS_ID, [], map_check_runs)
+	return RunState.new(data, run_seed, CLASS_ID, [], map_check_runs, null, runs_played == 0)
 
 
 ## Mostra a tela certa para a fase atual da Descida.
@@ -249,8 +249,9 @@ func _open_panel() -> RunPanelScreen:
 	return screen
 
 
-## Tela de fim (GDD §26, "morte que ensina"): o que aconteceu, quem derrotou a Bibiana,
-## os Ecos creditados e "Outra Descida".
+## Tela de fim (GDD §26, "morte que ensina", ADR-0031): o que aconteceu, quem derrotou a
+## Bibiana (e com quanto de HP ficou), dica tática, o que foi conquistado, os Ecos
+## creditados (em dobro na 1ª Descida) e "Outra Descida".
 func _show_result() -> void:
 	var victory: bool = run.phase == RunState.Phase.VICTORY
 	var earned: int = run.echoes_earned()
@@ -259,14 +260,14 @@ func _show_result() -> void:
 	if save_enabled:
 		_store().clear_run()
 		_store().save_meta(echoes, runs_played)
+	var summary: Dictionary = run.end_summary(echoes)
 	var title: String = "Vitória! O chefe caiu." if victory else "A Bibiana caiu."
 	var box: VBoxContainer = _page(title, "Semente %d." % run.streams.run_seed)
 	if not victory:
-		var killer: String = str(data.enemies[run.defeated_by_id]["name"]) if data.enemies.has(run.defeated_by_id) else "?"
-		box.add_child(_label("Derrotada por %s, nível %d." % [killer, run.defeated_by_level]))
-	box.add_child(_label("Poder %.2f, ouro %d, %d nós, %d inimigos derrotados, %d chefe(s)." % [
-		run.power, run.gold, run.nodes_cleared, run.enemies_defeated, run.bosses_defeated()]))
-	box.add_child(_label("Ecos ganhos: +%d (total %d). Nenhuma Descida se perde." % [earned, echoes]))
+		box.add_child(_label(str(summary["killer_line"])))
+	box.add_child(_label(str(summary["tip_line"])))
+	box.add_child(_label(str(summary["accomplished_line"])))
+	box.add_child(_label(str(summary["next_line"])))
 	box.add_child(_button("Outra Descida", func() -> void: new_run()))
 	box.add_child(_button("Início", show_home))
 	run_ended.emit(victory)

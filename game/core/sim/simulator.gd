@@ -8,6 +8,7 @@ extends RefCounted
 var data: GameData
 var profile: RunBot.Profile = RunBot.Profile.MEDIAN
 var winnability_runs: int = 0
+var first_run: bool = false
 
 var runs: int = 0
 var wins: int = 0
@@ -26,10 +27,11 @@ var gold_total: int = 0
 var nodes_total: int = 0
 
 
-func _init(game_data: GameData, bot_profile: RunBot.Profile = RunBot.Profile.MEDIAN, map_check_runs: int = 0) -> void:
+func _init(game_data: GameData, bot_profile: RunBot.Profile = RunBot.Profile.MEDIAN, map_check_runs: int = 0, is_first_run: bool = false) -> void:
 	data = game_data
 	profile = bot_profile
 	winnability_runs = map_check_runs
+	first_run = is_first_run
 
 
 func run_many(first_seed: int, count: int) -> void:
@@ -38,7 +40,7 @@ func run_many(first_seed: int, count: int) -> void:
 
 
 func run_one(run_seed: int) -> RunState:
-	var run: RunState = RunState.new(data, run_seed, "warrior", [], winnability_runs)
+	var run: RunState = RunState.new(data, run_seed, "warrior", [], winnability_runs, null, first_run)
 	var bot: Pcg32 = Pcg32.new(run_seed, 7)
 	var steps: int = 0
 	while not run.is_over() and steps < RunBot.MAX_STEPS:
@@ -136,9 +138,10 @@ func report(title: String) -> String:
 	lines.append("Bot %s, %d Descidas, regras v%d, dados format %d, checagem de mapa com %d simulações." % [
 		RunBot.PROFILE_NAMES[profile], runs, CoreVersion.RULES_VERSION, DataValidator.FORMAT, winnability_runs])
 	lines.append("")
+	var win_target: String = "35% a 55% (1ª Descida, ADR-0031)" if first_run else "55% a 65% (jogador mediano)"
 	lines.append("| Métrica | Valor | Meta (GDD §23) |")
 	lines.append("| --- | --- | --- |")
-	lines.append("| Vitória do cenário 1 | %.1f%% | 55%% a 65%% (jogador mediano) |" % win_rate())
+	lines.append("| Vitória do cenário 1 | %.1f%% | %s |" % [win_rate(), win_target])
 	lines.append("| Turnos por combate comum | %.1f | 6 a 10 |" % turns_per_fight("common"))
 	lines.append("| Mortes causadas por moeda | %.1f%% (%d de %d) | 25%% ou menos |" % [coin_death_share(), coin_deaths, deaths])
 	lines.append("| Chegou ao chefe | %.1f%% | |" % (100.0 * boss_reached / maxi(runs, 1)))

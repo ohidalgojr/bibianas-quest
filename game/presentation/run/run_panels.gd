@@ -106,6 +106,11 @@ func chest_view() -> Dictionary:
 		return {}
 	var boosted: bool = bool(chest["boosted"])
 	var lines: Array[String] = ["Baú: +%d de ouro (total %d)." % [int(chest["gold"]), run.gold]]
+	var chest_item: String = str(chest.get("item", ""))
+	if not chest_item.is_empty() and run.data.items.has(chest_item):
+		lines.append("Encontrou: %s." % str(run.data.items[chest_item]["name"]))
+	if bool(chest.get("lucky_coin", false)):
+		lines.append("Encontrou: Moeda da Sorte.")
 	if boosted:
 		lines.append("Multiplicador ×%.2f: +%d de ouro%s." % [int(chest["multiplier"]) / 100.0, int(chest["bonus"]),
 			" e uma Poção Turva" if bool(chest.get("potion", false)) else ""])

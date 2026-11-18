@@ -31,6 +31,8 @@ static func to_dict(run: RunState) -> Dictionary:
 		"embers": run.embers,
 		"nodes_cleared": run.nodes_cleared,
 		"enemies_defeated": run.enemies_defeated,
+		"first_run": run.first_run,
+		"first_chest_opened": run.first_chest_opened,
 		"learned_skills": run.learned_skills,
 		"diseases": run.diseases,
 		"streams": run.streams.snapshot(),
@@ -56,7 +58,7 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	var scenarios: Array[String] = []
 	for scenario_id: Variant in saved["scenario_ids"]:
 		scenarios.append(str(scenario_id))
-	var run: RunState = RunState.new(data, streams.run_seed, str(saved["class_id"]), scenarios, 0, map)
+	var run: RunState = RunState.new(data, streams.run_seed, str(saved["class_id"]), scenarios, 0, map, bool(saved.get("first_run", false)))
 	run.streams = streams
 	run.scenario_index = int(saved["scenario_index"])
 	run.current_node_id = int(saved["current_node_id"])
@@ -67,6 +69,7 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	run.embers = int(saved["embers"])
 	run.nodes_cleared = int(saved["nodes_cleared"])
 	run.enemies_defeated = int(saved.get("enemies_defeated", 0))
+	run.first_chest_opened = bool(saved.get("first_chest_opened", false))
 	if saved.has("diseases"):
 		for disease_id: Variant in saved["diseases"]:
 			run.diseases.append(str(disease_id))

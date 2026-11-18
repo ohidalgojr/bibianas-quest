@@ -83,7 +83,11 @@ func node_view(node: MapNode) -> Dictionary:
 	var shows_kind: bool = state != State.FOG and state != State.PAST
 	var detail: String = ""
 	if shows_kind and node.is_fight() and not node.enemy_id.is_empty():
-		detail = "%s, nv %d" % [str(run.data.enemies[node.enemy_id]["name"]), node.level]
+		var enemy_name: String = str(run.data.enemies[node.enemy_id]["name"])
+		if state == State.BOSS:
+			detail = "%s te espera, nv %d" % [enemy_name, node.level]
+		else:
+			detail = "%s, nv %d" % [enemy_name, node.level]
 	return {
 		"id": node.id,
 		"layer": node.layer,

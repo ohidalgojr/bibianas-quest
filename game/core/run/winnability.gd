@@ -60,7 +60,7 @@ static func route_win_rate(run: RunState, route: PackedInt32Array, runs: int, sa
 ## próprios. O cenário do teste é só o atual: vencer o chefe encerra a simulação.
 static func probe_from(run: RunState, probe_seed: int) -> RunState:
 	var scenarios: Array[String] = [run.scenario_ids[run.scenario_index]]
-	var probe: RunState = RunState.new(run.data, probe_seed, run.class_id, scenarios, 0, run.map)
+	var probe: RunState = RunState.new(run.data, probe_seed, run.class_id, scenarios, 0, run.map, run.first_run)
 	probe.map = run.map
 	probe.current_node_id = run.map.start_id
 	probe.power = run.power
@@ -69,6 +69,7 @@ static func probe_from(run: RunState, probe_seed: int) -> RunState:
 	probe.consumables = run.consumables.duplicate()
 	probe.equipment = run.equipment.duplicate()
 	probe.buffs = run.buffs.duplicate()
+	probe.first_chest_opened = run.first_chest_opened
 	return probe
 
 
@@ -100,7 +101,7 @@ static func smooth(graph: MapGraph, config: MapConfig, route: PackedInt32Array, 
 		if not node.is_fight() or node.kind == MapNode.Kind.BOSS:
 			continue
 		node.level = maxi(node.level - 1, min_level)
-		if (node.kind == MapNode.Kind.BATTLE or node.kind == MapNode.Kind.AMBUSH) \
+		if node.layer >= 2 and (node.kind == MapNode.Kind.BATTLE or node.kind == MapNode.Kind.AMBUSH) \
 				and (swap == null or node.level > swap.level):
 			swap = node
 	if swap == null:
