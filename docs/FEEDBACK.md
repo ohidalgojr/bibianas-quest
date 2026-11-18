@@ -199,12 +199,12 @@ Tudo abaixo está **implementado e testado, mas ainda não jogado pelo Orlando**
 | F-016 fraco no chefe, caminho curto | TASK-022 | mapa de 6 camadas, mais lutas e baús |
 | F-015 baú e loops viciantes | TASK-022 | baú multiplicável ×1,25 a ×2 por Moeda da Sorte ou anúncio simulado |
 | F-009, F-010 fogueira | TASK-023 | Galhos Secos (1 garantido por mapa, extras raros ou caros), fogueiras proporcionais à profundidade |
-| F-014 moeda 50/50, reroll raro | TASK-021 | moeda sem número, Moeda da Sorte como drop raro, SORTE e Maré nos drops |
+| F-014 moeda 50/50, reroll raro | TASK-021 e 027 | moeda sem número, Moeda da Sorte como drop raro (baú, mutado, elite, chefe), SORTE e Maré nos drops, mutados e emboscadas |
 | F-007, F-008, F-011 combate legível, crítico | TASK-024 | previsão de dano, acerto e crítico; descrição das skills; atacar devolve MP; Éter em combate; crítico por item e skill |
 | F-006, F-012, F-013, F-018 inimigos únicos, moeda temática, IA | TASK-025 | fichas por inimigo, consequência da coroa, Leptospirose, reações |
 | F-017 moeda frequente | TASK-016 e 025 | intervalo de 2 golpes; o Corvo agora usa moeda (mais lances contra ele) |
 
-**Ainda aberto:** emboscadas e inimigos mais difíceis por sorte (precisam de variantes mutadas), evento de mapa que mexa no crítico, mini boss e roaming boss, anúncio de verdade, e calibrar tudo com o `telemetry.log` do Orlando.
+**Ainda aberto:** evento de mapa que mexa no crítico e mini boss (TASK-028), roaming boss, anúncio de verdade, e calibrar tudo com o `telemetry.log` do Orlando.
 
 ## 2026-11-18, pedido de design
 

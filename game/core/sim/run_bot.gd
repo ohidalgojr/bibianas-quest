@@ -66,7 +66,7 @@ static func hp_percent(run: RunState) -> int:
 	return roundi(100.0 * run.hp / run.player_stats().max_hp)
 
 
-## Fogueira se ferido, baú, depois a luta de menor nível; elite só com vida alta.
+## Fogueira se ferido, baú, depois a luta de menor nível; elite e mutado só com vida alta.
 static func pick_node(run: RunState, profile: Profile) -> int:
 	var careful: bool = profile == Profile.CAREFUL
 	var rest_below: int = 75 if careful else 60
@@ -81,8 +81,12 @@ static func pick_node(run: RunState, profile: Profile) -> int:
 				score = 0 if health < rest_below else 12
 			MapNode.Kind.CHEST:
 				score = 1
+			MapNode.Kind.AMBUSH:
+				score = 11 + option.level
 			MapNode.Kind.ELITE:
 				score = 13 + option.level if health > elite_above else 40
+		if option.is_mutated():
+			score = (12 + option.level) if health > elite_above else 35
 		if best_id == -1 or score < best_score:
 			best_id = option.id
 			best_score = score

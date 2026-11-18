@@ -60,6 +60,7 @@ var first_chest_opened: bool = false
 var history: Array[RunEvent] = []
 ## Simulações da checagem de vencibilidade de cada mapa (GDD §5; 0 desliga).
 var winnability_runs: int = 0
+var is_probe: bool = false
 ## Resultado da checagem do mapa do cenário atual.
 var map_check: Winnability
 
@@ -87,6 +88,7 @@ func _init(game_data: GameData, run_seed: int, run_class: String = "warrior", ru
 	mp = stats.max_mp
 	if given_map != null:
 		# Simulação da checagem de vencibilidade: usa o mapa dado, sem gerar outro.
+		is_probe = true
 		map = given_map
 		current_node_id = map.start_id
 		map_check = Winnability.new()
@@ -338,6 +340,7 @@ func choose_node(node_id: int) -> bool:
 			_roll_lucky_coin(RunRules.LUCKY_COIN_CHEST_PERCENT)
 		_roll_firewood(RunRules.FIREWOOD_CHEST_PERCENT)
 		nodes_cleared += 1
+		_apply_luck_to_layer(chosen.layer + 1)
 	elif chosen.kind == MapNode.Kind.BONFIRE:
 		embers = 0
 		campfire_lit = false
@@ -345,6 +348,7 @@ func choose_node(node_id: int) -> bool:
 		_emit(RunEvent.Type.CAMPFIRE, "open", embers)
 	else:
 		nodes_cleared += 1
+		_apply_luck_to_layer(chosen.layer + 1)
 	return true
 
 
@@ -379,16 +383,17 @@ func finish_fight() -> bool:
 			_end(false)
 		Combat.Outcome.FLED:
 			phase = Phase.CHOOSING
+			_apply_luck_to_layer(node.layer + 1)
 		Combat.Outcome.VICTORY:
-			var enemy_type: String = RunRules.enemy_type_for(node.kind)
+			var enemy_type: String = RunRules.enemy_type_for(node.kind, node.is_mutated())
 			var stats_before: Stats = player_stats()
 			var gold_before: int = gold
 			var power_gain: float = RunRules.power_gain(node.level, enemy_type)
 			_gain_power(power_gain)
 			_gain_gold(RunRules.gold_drop(node.level, enemy_type, streams.loot()), "fight")
 			enemies_defeated += 1
-			last_reward = {"enemy_id": node.enemy_id, "level": node.level, "power": power_gain,
-				"gold": gold - gold_before, "before": stats_before, "after": player_stats()}
+			last_reward = {"enemy_id": node.enemy_id, "mutation": node.mutation, "level": node.level,
+				"power": power_gain, "gold": gold - gold_before, "before": stats_before, "after": player_stats()}
 			_roll_drops(enemy_type)
 			if node.kind == MapNode.Kind.BOSS:
 				if scenario_index + 1 < scenario_ids.size():
@@ -396,6 +401,7 @@ func finish_fight() -> bool:
 				else:
 					_end(true)
 			else:
+				_apply_luck_to_layer(node.layer + 1)
 				_open_shop()
 	return true
 
@@ -411,7 +417,8 @@ func _begin_fight(node: MapNode) -> void:
 		if int(buffs[skill_id]) <= 0:
 			buffs.erase(skill_id)
 	unit.diseases = diseases.duplicate()
-	combat = Combat.new(unit, data.make_enemy(node.enemy_id, node.level), streams, coin)
+	combat = Combat.new(unit, data.make_enemy(node.enemy_id, node.level, node.mutation), streams, coin)
+	combat.ambushed = node.kind == MapNode.Kind.AMBUSH
 	combat.lucky_coins = consumable_count(RunRules.LUCKY_COIN_ID)
 	phase = Phase.FIGHT
 	_emit(RunEvent.Type.FIGHT_STARTED, node.enemy_id, node.level)
@@ -492,6 +499,7 @@ func leave_campfire() -> bool:
 		return false
 	phase = Phase.CHOOSING
 	nodes_cleared += 1
+	_apply_luck_to_layer(current_node().layer + 1)
 	_emit(RunEvent.Type.CAMPFIRE, "leave", embers)
 	return true
 
@@ -760,27 +768,32 @@ func _apply_first_run_guarantees(entry: Dictionary, config: MapConfig) -> void:
 			var saved_kind: MapNode.Kind = candidate.kind
 			var saved_enemy: String = candidate.enemy_id
 			var saved_level: int = candidate.level
+			var saved_mutation: String = candidate.mutation
 			var changed_children: Array[Array] = []
 			for next_id: int in candidate.next_ids:
 				var child: MapNode = map.node_by_id(next_id)
 				if child.kind == MapNode.Kind.CHEST:
-					changed_children.append([child, child.kind, child.enemy_id, child.level])
+					changed_children.append([child, child.kind, child.enemy_id, child.level, child.mutation])
 					child.kind = MapNode.Kind.BATTLE
 					child.enemy_id = RunRules.FIRST_RUN_FIRST_ENEMY
 					child.level = RunRules.layer_level(child.layer, map.layer_count, low, high)
+					child.mutation = ""
 			candidate.kind = MapNode.Kind.CHEST
 			candidate.enemy_id = ""
 			candidate.level = 0
+			candidate.mutation = ""
 			if MapRules.find_violations(map, config).is_empty():
 				break
 			candidate.kind = saved_kind
 			candidate.enemy_id = saved_enemy
 			candidate.level = saved_level
+			candidate.mutation = saved_mutation
 			for item: Array in changed_children:
 				var child_node: MapNode = item[0]
 				child_node.kind = item[1]
 				child_node.enemy_id = str(item[2])
 				child_node.level = int(item[3])
+				child_node.mutation = str(item[4])
 	var has_mid_elite: bool = false
 	for mid_layer: int in [3, 4]:
 		for node: MapNode in map.layer_nodes(mid_layer):
@@ -796,20 +809,24 @@ func _apply_first_run_guarantees(entry: Dictionary, config: MapConfig) -> void:
 				var saved_kind: MapNode.Kind = candidate.kind
 				var saved_enemy: String = candidate.enemy_id
 				var saved_level: int = candidate.level
+				var saved_mutation: String = candidate.mutation
 				candidate.kind = MapNode.Kind.ELITE
 				candidate.enemy_id = str(entry["elite_enemies"][0])
 				candidate.level = mini(RunRules.layer_level(mid_layer, map.layer_count, low, high) + RunRules.ELITE_LEVEL_BONUS, high)
+				candidate.mutation = ""
 				if MapRules.find_violations(map, config).is_empty():
 					placed = true
 					break
 				candidate.kind = saved_kind
 				candidate.enemy_id = saved_enemy
 				candidate.level = saved_level
+				candidate.mutation = saved_mutation
 			if placed:
 				break
 	for node: MapNode in map.nodes:
 		if (node.kind == MapNode.Kind.BATTLE or node.kind == MapNode.Kind.AMBUSH) and node.layer >= 2:
-			node.level = maxi(low, node.level - 1)
+			if not node.is_mutated():
+				node.level = maxi(low, node.level - 1)
 		elif node.kind == MapNode.Kind.BOSS:
 			node.level = high + RunRules.FIRST_RUN_BOSS_LEVEL_BONUS
 
@@ -822,12 +839,13 @@ static func _fatal_move_id(ended_combat: Combat) -> String:
 	return ""
 
 
-## Inimigo e nível de cada nó de luta, sorteados no fluxo do mapa logo depois da geração
-## (ADR-0011): o jogador vê inimigo e nível antes de escolher (GDD §5).
+## Inimigo, nível e mutação de cada nó de luta, sorteados no fluxo do mapa logo depois
+## da geração (ADR-0011, ADR-0032): o jogador vê inimigo, mutação e nível antes de escolher (GDD §5 e §11).
 func _assign_enemies(entry: Dictionary) -> void:
 	var low: int = int(entry["min_level"])
 	var high: int = int(entry["max_level"])
 	for node: MapNode in map.nodes:
+		node.mutation = ""
 		if not node.is_fight():
 			continue
 		node.level = RunRules.layer_level(node.layer, map.layer_count, low, high)
@@ -839,6 +857,77 @@ func _assign_enemies(entry: Dictionary) -> void:
 				node.enemy_id = _draw_from(entry["elite_enemies"])
 			_:
 				node.enemy_id = _draw_from(entry["common_enemies"])
+	var mut_pct: int = RunRules.mutation_chance(RunRules.MUTATION_BASE_PERCENT, player_stats().luck, coin.bad_luck())
+	for layer: int in range(RunRules.MUTATION_MIN_LAYER, map.layer_count + 1):
+		var eligible: Array[MapNode] = []
+		for node: MapNode in map.layer_nodes(layer):
+			if _can_mutate_node(node):
+				eligible.append(node)
+		if not eligible.is_empty() and streams.map().draw_percent(mut_pct):
+			var picked: MapNode = eligible[streams.map().draw_index(eligible.size())]
+			_mutate_node(picked, high)
+
+
+## Um nó comum só pode mutar da camada 3 em diante, no máximo 1 por camada, e sem
+## fechar todas as saídas de um nó anterior em apenas elites/mutados (GDD §11, ADR-0032).
+func _can_mutate_node(candidate: MapNode) -> bool:
+	if candidate == null or candidate.layer < RunRules.MUTATION_MIN_LAYER:
+		return false
+	if candidate.kind != MapNode.Kind.BATTLE and candidate.kind != MapNode.Kind.AMBUSH:
+		return false
+	if candidate.is_mutated() or data.enemy_mutation(candidate.enemy_id).is_empty():
+		return false
+	for peer: MapNode in map.layer_nodes(candidate.layer):
+		if peer.is_mutated():
+			return false
+	for pred: MapNode in map.layer_nodes(candidate.layer - 1):
+		if not pred.next_ids.has(candidate.id) or pred.next_ids.size() <= 1:
+			continue
+		var has_safe_sibling: bool = false
+		for next_id: int in pred.next_ids:
+			if next_id == candidate.id:
+				continue
+			var sibling: MapNode = map.node_by_id(next_id)
+			if sibling.kind != MapNode.Kind.ELITE and not sibling.is_mutated():
+				has_safe_sibling = true
+		if not has_safe_sibling:
+			return false
+	return true
+
+
+func _mutate_node(node: MapNode, max_level: int) -> void:
+	node.mutation = data.enemy_mutation(node.enemy_id)
+	if not node.mutation.is_empty():
+		node.level = mini(node.level + RunRules.MUTATION_LEVEL_BONUS, max_level)
+
+
+## Ajusta emboscadas e mutações da próxima camada (ainda na névoa até este instante)
+## segundo a SORTE atual e a maré de azar da moeda (GDD §5, §7 e §11, ADR-0032).
+func _apply_luck_to_layer(target_layer: int) -> void:
+	if is_probe or map == null or target_layer < 2 or target_layer > map.layer_count:
+		return
+	var luck: int = player_stats().luck
+	var bad_luck: bool = coin.bad_luck()
+	var high: int = int(scenario()["max_level"])
+	if target_layer >= RunRules.MUTATION_MIN_LAYER and (bad_luck or luck < 0):
+		var extra_mut_pct: int = RunRules.mutation_chance(0, luck, bad_luck)
+		if extra_mut_pct > 0:
+			var eligible: Array[MapNode] = []
+			for node: MapNode in map.layer_nodes(target_layer):
+				if _can_mutate_node(node):
+					eligible.append(node)
+			if not eligible.is_empty() and streams.map().draw_percent(extra_mut_pct):
+				var picked: MapNode = eligible[streams.map().draw_index(eligible.size())]
+				_mutate_node(picked, high)
+	var shift_to_ambush: int = RunRules.ambush_shift_chance(luck, bad_luck)
+	var avoid_ambush: int = RunRules.ambush_avoid_chance(luck, bad_luck)
+	for node: MapNode in map.layer_nodes(target_layer):
+		if node.kind == MapNode.Kind.BATTLE and shift_to_ambush > 0:
+			if streams.map().draw_percent(shift_to_ambush):
+				node.kind = MapNode.Kind.AMBUSH
+		elif node.kind == MapNode.Kind.AMBUSH and avoid_ambush > 0:
+			if streams.map().draw_percent(avoid_ambush):
+				node.kind = MapNode.Kind.BATTLE
 
 
 func _draw_from(pool: Array) -> String:

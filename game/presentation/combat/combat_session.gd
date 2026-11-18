@@ -265,7 +265,9 @@ func describe(event: CombatEvent) -> String:
 	var who: String = _side_name(event.side)
 	match event.type:
 		CombatEvent.Type.STARTED:
-			return "A luta começa: %s, nível %d. Semente %d." % [enemy_name(), level, run_seed]
+			var prefix: String = "Emboscada! " if event.label == "ambush" else "A luta começa: "
+			var mut_tag: String = " [%s: %s]" % [Mutations.display_name(combat.enemy.mutation), Mutations.summary(combat.enemy.mutation)] if not combat.enemy.mutation.is_empty() else ""
+			return "%s%s, nível %d%s. Semente %d." % [prefix, enemy_name(), level, mut_tag, run_seed]
 		CombatEvent.Type.INTENT:
 			return "%s prepara: %s." % [enemy_name(), CombatTexts.move_name(move_kind(event.label), event.label)] + _reason_suffix(event.extra)
 		CombatEvent.Type.ACTION:
@@ -276,6 +278,8 @@ func describe(event: CombatEvent) -> String:
 			var line: String = "%s sofre %d de dano" % [who, event.value]
 			if event.label == "reflect":
 				line += " (reflexo da Muralha)"
+			elif event.label == "thorny":
+				line += " (espinhos da mutação)"
 			elif event.label == "poison":
 				line += " (veneno)"
 			if event.flag:

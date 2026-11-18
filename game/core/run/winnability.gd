@@ -22,14 +22,15 @@ var maps_discarded: int = 0
 var passed: bool = false
 
 
-## Custo de um nó na rota: nível do inimigo, elite pesando o dobro; baú e fogueira
-## custam zero.
+## Custo de um nó na rota: nível do inimigo, elite pesando o dobro, mutado ×1,5 e emboscada ×1,2;
+## baú e fogueira custam zero.
 static func node_cost(node: MapNode) -> float:
 	if not node.is_fight():
 		return 0.0
 	if node.kind == MapNode.Kind.ELITE:
 		return 2.0 * node.level
-	return float(node.level)
+	var mult: float = 1.5 if node.is_mutated() else (1.2 if node.kind == MapNode.Kind.AMBUSH else 1.0)
+	return mult * node.level
 
 
 static func safest_route(graph: MapGraph) -> PackedInt32Array:
@@ -92,8 +93,8 @@ func check(run: RunState, config: MapConfig, runs: int, target: float, attempt: 
 
 
 ## Suavização (GDD §5): baixa em 1 o nível dos inimigos do caminho (menos o chefe, sem
-## passar do mínimo do cenário) e troca a batalha de maior nível por um baú, se isso
-## não quebrar as regras do mapa.
+## passar do mínimo do cenário), limpa mutação e emboscada na rota segura e troca a batalha
+## de maior nível por um baú, se isso não quebrar as regras do mapa.
 static func smooth(graph: MapGraph, config: MapConfig, route: PackedInt32Array, min_level: int) -> void:
 	var swap: MapNode = null
 	for node_id: int in route:
@@ -101,6 +102,10 @@ static func smooth(graph: MapGraph, config: MapConfig, route: PackedInt32Array, 
 		if not node.is_fight() or node.kind == MapNode.Kind.BOSS:
 			continue
 		node.level = maxi(node.level - 1, min_level)
+		if node.is_mutated():
+			node.mutation = ""
+		if node.kind == MapNode.Kind.AMBUSH:
+			node.kind = MapNode.Kind.BATTLE
 		if node.layer >= 2 and (node.kind == MapNode.Kind.BATTLE or node.kind == MapNode.Kind.AMBUSH) \
 				and (swap == null or node.level > swap.level):
 			swap = node
@@ -109,9 +114,12 @@ static func smooth(graph: MapGraph, config: MapConfig, route: PackedInt32Array, 
 	var old_kind: MapNode.Kind = swap.kind
 	var old_enemy: String = swap.enemy_id
 	var old_level: int = swap.level
+	var old_mutation: String = swap.mutation
 	swap.kind = MapNode.Kind.CHEST
 	swap.enemy_id = ""
+	swap.mutation = ""
 	if not MapRules.find_violations(graph, config).is_empty():
 		swap.kind = old_kind
 		swap.enemy_id = old_enemy
 		swap.level = old_level
+		swap.mutation = old_mutation

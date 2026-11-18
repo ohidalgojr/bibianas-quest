@@ -77,7 +77,7 @@ func state_of(node: MapNode) -> State:
 	return State.PAST
 
 
-## Texto do nó na tela: tipo e detalhe só onde o jogador pode ver (GDD §5).
+## Texto do nó na tela: tipo e detalhe só onde o jogador pode ver (GDD §5 e §11).
 func node_view(node: MapNode) -> Dictionary:
 	var state: State = state_of(node)
 	var shows_kind: bool = state != State.FOG and state != State.PAST
@@ -86,15 +86,29 @@ func node_view(node: MapNode) -> Dictionary:
 		var enemy_name: String = str(run.data.enemies[node.enemy_id]["name"])
 		if state == State.BOSS:
 			detail = "%s te espera, nv %d" % [enemy_name, node.level]
+		elif node.is_mutated():
+			detail = "%s [%s], nv %d" % [enemy_name, Mutations.display_name(node.mutation), node.level]
 		else:
 			detail = "%s, nv %d" % [enemy_name, node.level]
+	var title: String = "?" if state == State.FOG else ""
+	if shows_kind:
+		if node.kind == MapNode.Kind.AMBUSH and node.is_mutated():
+			title = "Emboscada Mutada (age 1º)"
+		elif node.kind == MapNode.Kind.AMBUSH:
+			title = "Emboscada (age 1º)"
+		elif node.is_mutated():
+			title = "Luta Mutada"
+		else:
+			title = kind_name(node.kind)
 	return {
 		"id": node.id,
 		"layer": node.layer,
 		"column": node.column,
 		"state": state,
 		"kind": node.kind if shows_kind else -1,
-		"title": kind_name(node.kind) if shows_kind else ("?" if state == State.FOG else ""),
+		"mutation": node.mutation if shows_kind else "",
+		"ambush": shows_kind and node.kind == MapNode.Kind.AMBUSH,
+		"title": title,
 		"detail": detail,
 		"clickable": state == State.OPTION,
 	}

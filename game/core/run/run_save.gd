@@ -11,7 +11,7 @@ const FORMAT: int = 1
 static func to_dict(run: RunState) -> Dictionary:
 	var nodes: Array[Array] = []
 	for node: MapNode in run.map.nodes:
-		nodes.append([node.id, node.layer, node.column, int(node.kind), Array(node.next_ids), node.enemy_id, node.level])
+		nodes.append([node.id, node.layer, node.column, int(node.kind), Array(node.next_ids), node.enemy_id, node.level, node.mutation])
 	return {
 		"format": FORMAT,
 		"rules_version": CoreVersion.RULES_VERSION,
@@ -99,7 +99,7 @@ static func _map_from(raw: Variant) -> MapGraph:
 	graph.start_id = int(entry["start_id"])
 	graph.boss_id = int(entry["boss_id"])
 	for row: Variant in entry["nodes"]:
-		if not row is Array or (row as Array).size() != 7:
+		if not row is Array or (row as Array).size() < 7 or (row as Array).size() > 8:
 			return null
 		var fields: Array = row
 		var node: MapNode = MapNode.new(int(fields[0]), int(fields[1]), int(fields[2]), int(fields[3]) as MapNode.Kind)
@@ -107,6 +107,7 @@ static func _map_from(raw: Variant) -> MapGraph:
 			node.next_ids.append(int(next_id))
 		node.enemy_id = str(fields[5])
 		node.level = int(fields[6])
+		node.mutation = str(fields[7]) if fields.size() >= 8 else ""
 		graph.nodes.append(node)
 	if graph.node_by_id(graph.start_id) == null or graph.node_by_id(graph.boss_id) == null:
 		return null

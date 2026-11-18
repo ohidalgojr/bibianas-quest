@@ -143,7 +143,7 @@ static func level_power(level: int, base_level: int) -> float:
 	return 1.0 + float(maxi(level - base_level, 0))
 
 
-func make_enemy(enemy_id: String, level: int) -> Combatant:
+func make_enemy(enemy_id: String, level: int, mutation_id: String = "") -> Combatant:
 	var entry: Dictionary = _entry(enemies, enemy_id)
 	var phases: Array[EnemyPhase] = []
 	for phase: Dictionary in entry["phases"]:
@@ -164,7 +164,13 @@ func make_enemy(enemy_id: String, level: int) -> Combatant:
 		unit.element_mults[ELEMENTS[str(element)]] = float(mults[element])
 	for rule: Variant in entry.get("reactions", []):
 		unit.reactions.append((rule as Dictionary).duplicate())
+	if not mutation_id.is_empty():
+		Mutations.apply_to(unit, mutation_id)
 	return unit
+
+
+func enemy_mutation(enemy_id: String) -> String:
+	return str(_entry(enemies, enemy_id).get("mutation", ""))
 
 
 func enemy_type(enemy_id: String) -> String:

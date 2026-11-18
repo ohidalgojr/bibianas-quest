@@ -159,6 +159,22 @@ func signature() -> String:
 	return text
 
 
+func duplicate_graph() -> MapGraph:
+	var copy: MapGraph = MapGraph.new()
+	copy.layer_count = layer_count
+	copy.width = width
+	copy.start_id = start_id
+	copy.boss_id = boss_id
+	for node: MapNode in nodes:
+		var cloned: MapNode = MapNode.new(node.id, node.layer, node.column, node.kind)
+		cloned.next_ids = node.next_ids.duplicate()
+		cloned.enemy_id = node.enemy_id
+		cloned.level = node.level
+		cloned.mutation = node.mutation
+		copy.nodes.append(cloned)
+	return copy
+
+
 func _link_window(node: MapNode, target_layer: int, first_column: int) -> void:
 	for offset: int in mini(OPTIONS, width):
 		node.next_ids.append(id_at(target_layer, first_column + offset))

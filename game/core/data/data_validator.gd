@@ -15,6 +15,7 @@ const DEBUFF_EFFECT_IDS: PackedStringArray = ["poison", "weakened"]
 ## Consequências de errar o lado e condições de reação dos inimigos (ADR-0030).
 const FAIL_EFFECT_IDS: PackedStringArray = ["poison", "weakened", "slowed", "blinded", "cursed"]
 const DISEASE_IDS: PackedStringArray = ["leptospirosis"]
+const MUTATION_IDS: PackedStringArray = ["bloated", "voracious", "phantom", "thorny"]
 const REACTION_WHEN: PackedStringArray = ["player_hp_below", "self_hp_below", "player_defended_twice", "player_buffed"]
 const ELEMENTS: PackedStringArray = ["physical", "fire", "lightning", "holy", "shadow"]
 const ITEM_SLOTS: PackedStringArray = ["consumable", "weapon", "offhand", "armor", "head", "relic"]
@@ -179,6 +180,10 @@ func _check_enemy(entry: Variant) -> void:
 	_string_field(data, "name", path)
 	var enemy_type: String = _string_field(data, "type", path)
 	_check_choice(enemy_type, ENEMY_TYPES, path, "type")
+	if enemy_type == "common" or data.has("mutation"):
+		var mutation: String = _string_field(data, "mutation", path)
+		if not mutation.is_empty():
+			_check_choice(mutation, MUTATION_IDS, path, "mutation")
 	_check_min(_int_field(data, "base_level", path), 1, path, "base_level")
 	_check_stats(data, path, false)
 	_string_list(data, "tags", path)

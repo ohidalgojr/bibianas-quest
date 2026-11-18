@@ -23,7 +23,7 @@ Bicada, Bicada nos Olhos, Bicada, Mergulho. Vida 30, FOR 8, VEL 11 (o mais rápi
 
 ## Drops e textos
 
-Drops comuns. Aviso: "MOEDA Bicada nos Olhos. Errar: dano +50% e Cegueira por 3 turnos".
+Drops comuns (ou tabela de **inimigo mutado** quando aparece como **Fantasma**: ESQ +15 pontos, nível +1 e Poder ×1,5; GDD §11, ADR-0032). Aviso: "MOEDA Bicada nos Olhos. Errar: dano +50% e Cegueira por 3 turnos".
 
 ## Regras que a ficha não pode quebrar
 

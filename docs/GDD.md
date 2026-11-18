@@ -137,7 +137,7 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 | Fogueira | Garantida (seção 12) | Nunca duas fogueiras ligadas entre si |
 | Mini boss | 0 ou 1 por cenário (chance cresce com a profundidade) | Anunciado. Recompensa rara garantida |
 | Chefe | 1 por cenário | Nó final |
-| Inimigo emboscado | 18% (restante) | Batalha comum com um status inicial, como sangramento ou pavor |
+| Inimigo emboscado | 18% (restante) | Avisado no mapa ("Emboscada (age 1º)"): o inimigo começa com Carga cheia (age primeiro, sem golpe de moeda sem aviso) e a Bibiana inicia com Guarda aberta (DEF -20%) por 1 turno (ADR-0032) |
 
 Os valores são ponto de partida para o protótipo; a seção 23 explica como calibrar.
 
@@ -244,9 +244,9 @@ A moeda é a assinatura do jogo: decide momentos de risco, é sempre avisada ant
 **A chance do lance é sempre 50%** e não é exibida: a moeda é só cara ou coroa (ADR-0025, ADR-0026).
 
 - O jogador **escolhe Cara ou Coroa antes de cada lance**, nunca automático. **Acertar o lado é o sucesso** e errar é a falha: a moeda cai no lado escolhido quando o lance dá sucesso e no outro quando dá falha. A escolha é ritual; a chance vem só da fórmula (ADR-0014).
-- **SORTE não mexe na moeda.** Ela influencia o resto do jogo: +1 ponto na chance de equipamento por ponto de SORTE (até +15), raridade dos drops deslocada para o raro, mais ouro nos baús e mais chance de Moeda da Sorte. Inimigos mais difíceis e emboscadas também serão influenciados pela sorte (TASK-025).
-- **Maré de azar:** depois de 3 lances perdidos seguidos, a próxima vitória com drop garante o equipamento com raridade melhor, e a maré zera. É o seguro contra o azar da moeda.
-- **Moeda da Sorte (re-jogada):** item raro, fora da loja, que cai de baús, elites e chefes. O jogador a arma antes do lance; no primeiro lance que cair errado, ele é rejogado uma vez e a moeda é gasta. Nada de trapaça por anúncio nem por item: a chance fica em 50%.
+- **SORTE não mexe na moeda.** Ela influencia o resto do jogo (ADR-0026, ADR-0032): +1 ponto na chance de equipamento por ponto de SORTE (até +15), raridade dos drops deslocada para o raro, mais ouro nos baús, mais chance de Moeda da Sorte e Galhos Secos, menor chance de inimigos mutados (-2 pontos por ponto de SORTE) e chance de evitar emboscadas nas camadas reveladas (+4% por ponto de SORTE positiva). SORTE negativa aumenta mutações e converte batalhas comuns em emboscadas (+4% por ponto de SORTE abaixo de zero).
+- **Maré de azar:** depois de 3 lances perdidos seguidos, a próxima camada revelada tem +25 pontos de chance de mutar um inimigo comum e 35% de chance por batalha comum de virar emboscada, enquanto a próxima vitória com drop garante o equipamento com raridade melhor (+35 pontos deslocados para incomum/raro) e zera a maré (ADR-0026, ADR-0032).
+- **Moeda da Sorte (re-jogada):** item raro, fora da loja, que cai de baús (10%), inimigos mutados (12%), elites (20%) e chefes (100%). O jogador a arma antes do lance; no primeiro lance que cair errado, ele é rejogado uma vez e a moeda é gasta. Nada de trapaça por anúncio nem por item: a chance fica em 50%.
 - Animação de cerca de 1,2 s com som de tique, câmera lenta e vibração. É o momento de maior tensão, então merece polimento.
 
 ### Onde a moeda aparece
@@ -359,7 +359,7 @@ Dentro da Descida, a Bibiana cresce por Poder, um número contínuo que sobe a c
 \Delta Poder = 0{,}4 \times N_{inimigo} \times m_{tipo}
 ```
 
-- m\_tipo: comum 1, elite 1,5, mini boss 2,5, roaming boss 3, chefe 4.
+- m\_tipo: comum 1, mutado 1,5 (ADR-0032), elite 1,5, mini boss 2,5, roaming boss 3, chefe 4.
 - Poder inicial: 1,0. Fugir de um combate não dá Poder.
 - **Nível da Bibiana** é a parte inteira do Poder (Poder 2,4 é nível 2). É só um rótulo: aparece no mapa e a recompensa anuncia "Subiu de nível!". O coeficiente passou de 0,15 para 0,4 no protótipo (ADR-0023), porque com 0,15 uma luta comum mudava 1 ou 2 pontos de HP e a Bibiana não parecia crescer; o mapa do MVP tem poucas lutas por cenário.
 - Atributos crescem de forma contínua com o Poder: HP +10% por ponto acima de 1; FOR e MEN +8%; DEF e RES +6%; VEL +2%. PRE, ESQ e SORTE vêm dos equipamentos e do clima, não do Poder.
@@ -463,7 +463,7 @@ Exemplos de malditos: Anel do Cobrador (+30% de dano, mas perde 5 de ouro por tu
 ### Drops e inventário
 
 - Inimigos sempre dão moedas. Chance de equipamento: 12% comum, 35% elite, garantido raro em mini boss (valores iniciais).
-- **No protótipo (ADR-0022):** inimigos comuns e elites soltam também um consumível de cura (30% e 50%). A raridade do equipamento sai de pesos: comum 30% gasto, 55% comum, 15% incomum; elite 30% comum, 45% incomum, 25% raro. O chefe não solta equipamento. Itens raros só caem; não entram na loja. O jogador decide na hora: Equipar (o item trocado é vendido a 40%) ou Vender o drop a 40% (seção 15); sair da loja vende o drop pendente.
+- **No protótipo (ADR-0022, ADR-0032):** inimigos comuns, mutados e elites soltam também um consumível de cura (30%, 45% e 50%). A chance base de equipamento é 12% comum, 30% mutado e 35% elite. A raridade do equipamento sai de pesos: comum 30% gasto, 55% comum, 15% incomum; mutado 35% comum, 45% incomum, 20% raro; elite 30% comum, 45% incomum, 25% raro. Inimigos mutados também têm 12% de chance (+SORTE) de soltar Moeda da Sorte e 15% (+SORTE) de soltar Galhos Secos. O chefe não solta equipamento. Itens raros só caem; não entram na loja. O jogador decide na hora: Equipar (o item trocado é vendido a 40%) ou Vender o drop a 40% (seção 15); sair da loja vende o drop pendente.
 - O nível do item acompanha o cenário. Qualidade vem de pesos de raridade que sobem com a profundidade.
 - Inventário: 8 consumíveis e 6 equipamentos reserva. Passou disso, o jogador vende algo na hora.
 - Ao morrer, o jogador perde tudo o que carrega na Descida. Nada do inventário vai para o Santuário, a não ser Almas e o que foi forjado.
@@ -516,19 +516,26 @@ Inimigos podem passar doenças que duram entre combates e só saem com dinheiro,
 
 ### Mutações de inimigos
 
-Mutações são raras e deixam o inimigo mais forte, mas sempre visíveis antes da luta, para não punir demais. Um inimigo mutado dá ×1,5 de Poder e drops melhores.
+Mutações são raras e deixam o inimigo mais forte, mas sempre visíveis antes da luta, para não punir demais. Um inimigo mutado tem nível +1 (respeitando o teto do cenário), dá ×1,5 de Poder, drops melhores (com 20% de peso de item raro) e 12% de chance (+SORTE) de Moeda da Sorte (ADR-0032).
+
+**No protótipo do cenário 1 (ADR-0032):** a chance base de um nó comum mutar em cada camada da camada 3 em diante é **18%**, ajustada por `-2 × SORTE` e `+25%` durante a Maré de azar (limitada entre 0% e 65%). Cada inimigo comum tem sua mutação assinatura em `enemies.json`:
+- **Inchado (`bloated`, Cidadão Infectado):** +50% de HP máximo e VEL -2.
+- **Voraz (`voracious`, Rato Grande):** cura 25% do dano físico causado ao acertar.
+- **Fantasma (`phantom`, Corvo Carniceiro):** ESQ +15 pontos.
+- **Espinhoso (`thorny`, Cão de Peste):** reflete 15% do dano físico recebido.
+
+Para a campanha completa de 5 cenários, a progressão base proposta por cenário é:
 
 | Cenário | Chance de mutação na escolha de nó |
 | --- | --- |
-| 1 | 0% |
+| 1 | 18% no protótipo de 1 cenário (0% quando houver 5 cenários) |
 | 2 | 4% |
 | 3 | 8% |
 | 4 | 12% |
 | 5 | 15% |
 
-- Exemplos: Inchado (+50% de HP, é lento), Espinhoso (reflete 15% do dano físico), Voraz (cura ao causar dano), Fantasma (50% de ESQ contra ataques físicos), Duplicado (age duas vezes a cada 4 turnos).
-- Nunca mais de um inimigo mutado por camada do mapa e nunca nos primeiros dois nós de um cenário.
-- **Metamorfose** (surpresa): em cenário 3 ou acima, um inimigo comum tem 2% a 3% de chance de mutar em combate abaixo de 50% de vida. Ele treme por um turno antes, para o jogador reagir, e isso nunca acontece com chefes.
+- Nunca mais de um inimigo mutado por camada do mapa, nunca nas duas primeiras camadas de um cenário e nunca fechando todas as saídas de um nó anterior em apenas elites ou mutados (`MapRules` e `RunState`, ADR-0032).
+- **Metamorfose** (surpresa, futura): em cenário 3 ou acima, um inimigo comum tem 2% a 3% de chance de mutar em combate abaixo de 50% de vida. Ele treme por um turno antes, para o jogador reagir, e isso nunca acontece com chefes.
 
 ## 12. Fogueira e skills de acampamento
 

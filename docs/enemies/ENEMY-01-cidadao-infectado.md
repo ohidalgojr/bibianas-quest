@@ -23,7 +23,7 @@ Ataque, Abraço Febril, Ataque, Bote. É o inimigo de estreia: vida 48, FOR 10, 
 
 ## Drops e textos
 
-Drops comuns do cenário. Aviso: "MOEDA Abraço Febril".
+Drops comuns do cenário (ou tabela de **inimigo mutado** quando aparece como **Inchado**: +50% HP máx., VEL -2, nível +1 e Poder ×1,5; GDD §11, ADR-0032). Aviso: "MOEDA Abraço Febril".
 
 ## Regras que a ficha não pode quebrar
 

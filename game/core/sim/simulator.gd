@@ -82,7 +82,7 @@ func _before_fight(run: RunState) -> void:
 
 func _after_fight(run: RunState) -> void:
 	var combat: Combat = run.combat
-	var enemy_type: String = RunRules.enemy_type_for(run.current_node().kind)
+	var enemy_type: String = RunRules.enemy_type_for(run.current_node().kind, run.current_node().is_mutated())
 	var row: Array = fight_stats.get(enemy_type, [0, 0, 0])
 	row[0] = int(row[0]) + 1
 	row[1] = int(row[1]) + player_turns(combat)
@@ -153,7 +153,7 @@ func report(title: String) -> String:
 	lines.append("")
 	lines.append("| Inimigo | Lutas | Turnos por luta | Vitórias |")
 	lines.append("| --- | --- | --- | --- |")
-	for enemy_type: String in ["common", "elite", "boss"]:
+	for enemy_type: String in ["common", "mutated", "elite", "boss"]:
 		if fight_stats.has(enemy_type):
 			lines.append("| %s | %d | %.1f | %.1f%% |" % [enemy_type, int(fight_stats[enemy_type][0]),
 				turns_per_fight(enemy_type), fight_win_rate(enemy_type)])

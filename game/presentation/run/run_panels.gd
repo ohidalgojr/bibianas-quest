@@ -36,6 +36,9 @@ func reward_view() -> Dictionary:
 	var gold: int = int(reward.get("gold", 0))
 	if not reward.is_empty():
 		var enemy_name: String = str(run.data.enemies[reward["enemy_id"]]["name"])
+		var mut_id: String = str(reward.get("mutation", ""))
+		if not mut_id.is_empty():
+			enemy_name = "%s [%s]" % [enemy_name, Mutations.display_name(mut_id)]
 		lines.append("%s (nível %d) foi derrotado. Inimigos derrotados: %d." % [
 			enemy_name, int(reward["level"]), run.enemies_defeated])
 		lines.append("Poder %.2f → %.2f" % [run.power - power, run.power])

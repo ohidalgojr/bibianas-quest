@@ -23,7 +23,7 @@ Presas que Não Soltam, Mordida, Estraçalhar, Mordida. Vida 42, FOR 9, VEL 12.
 
 ## Drops e textos
 
-Drops comuns. Aviso: "MOEDA Presas que Não Soltam. Errar: dano +50% e Lentidão por 3 turnos".
+Drops comuns (ou tabela de **inimigo mutado** quando aparece como **Espinhoso**: reflete 15% do dano físico recebido, nível +1 e Poder ×1,5; GDD §11, ADR-0032). Aviso: "MOEDA Presas que Não Soltam. Errar: dano +50% e Lentidão por 3 turnos".
 
 ## Regras que a ficha não pode quebrar
 

@@ -1,17 +1,17 @@
 # HANDOFF
 
-Atualizado em 2026-11-18. **Estado:** TASK-001 a 013, TASK-015 a 026 e TASK-029 concluídas e revisadas; TASK-014 (exportação) em verificação, esperando o Orlando; TASK-027 e 028 abertas; suíte 297/297; `RULES_VERSION` = 14. Quem chega agora (qualquer agente: Claude, Gemini ou outro) lê este arquivo, depois `CLAUDE.md` (inclusive "Lições e armadilhas"), depois a tarefa que vai fazer em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md`.
+Atualizado em 2026-11-18. **Estado:** TASK-001 a 013, TASK-015 a 027 e TASK-029 concluídas e revisadas; TASK-014 (exportação) em verificação, esperando o Orlando; TASK-028 aberta; suíte 303/303; `RULES_VERSION` = 15. Quem chega agora (qualquer agente: Claude, Gemini ou outro) lê este arquivo, depois `CLAUDE.md` (inclusive "Lições e armadilhas"), depois a tarefa que vai fazer em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md`.
 
 ## Estado em um olhar
 
 | Item | Valor |
 | --- | --- |
-| Jogo | RPG tático de turnos roguelite, Godot 4.7, protótipo cinza 2D em retrato: menu, mapa de 6 camadas com névoa, combate com moeda, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
+| Jogo | RPG tático de turnos roguelite, Godot 4.7, protótipo cinza 2D em retrato: menu, mapa de 6 camadas com névoa, combate com moeda, emboscadas e inimigos mutados, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
 | Classe | só o Guerreiro (Bibiana); 3 skills iniciais, 3 à venda, 5 espaços |
-| Cenário | só a Cidade Abandonada: 4 inimigos comuns, 1 elite (Carrasco Apodrecido), chefe O Coveiro (2 fases); cada um com ficha em `docs/enemies/` |
-| Regras | `RULES_VERSION` = 14 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0031 |
-| Equilíbrio (simulador, regras v14) | bot mediano vence 62,7% (meta 55% a 65%), cuidadoso 70,7%, 1ª Descida 52,7% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 14,3% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,15 s para criar a Descida |
-| Testes | 297 em 36 scripts, cerca de 30 a 70 s |
+| Cenário | só a Cidade Abandonada: 4 inimigos comuns (com mutações temáticas Inchado, Voraz, Fantasma e Espinhoso), 1 elite (Carrasco Apodrecido), chefe O Coveiro (2 fases); cada um com ficha em `docs/enemies/` |
+| Regras | `RULES_VERSION` = 15 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0032 |
+| Equilíbrio (simulador, regras v15) | bot mediano vence 66,0% (meta 55% a 65%), cuidadoso 72,0%, 1ª Descida 49,3% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 13,7% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,28 s para criar a Descida |
+| Testes | 303 em 37 scripts, cerca de 30 a 70 s |
 | Git | `main` enviada ao GitHub (`ohidalgojr/bibianas-quest`); histórico linear; um commit por tarefa |
 | Nunca testado por pessoa | tudo depois da TASK-009 foi jogado só por bots e testes; o Orlando jogou uma Descida na TASK-020 e deu o feedback de `docs/FEEDBACK.md` |
 
@@ -77,13 +77,14 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
 - **TASK-025, inimigos únicos** (concluída no código em 2026-11-18, suíte 285/285; jogada humana pendente; `RULES_VERSION` = 13). Papel de design de inimigos com fichas em `docs/enemies/` (modelo e seis fichas); golpes de moeda temáticos por inimigo (Fraqueza, Leptospirose, Cegueira, Lentidão, Maldição); Leptospirose como doença persistente tratada na fogueira por 1 Brasa; IA reativa em dados (`reactions`) com o motivo no aviso. Coveiro 175/16 (mediano 62,0%). Fica de fora: emboscadas e inimigos mais difíceis por sorte, eventos de mapa. ADR-0030. Fecha D4 e o F-018 (tensão da moeda e IA); falta o Orlando jogar.
 - **TASK-029, revisão cruzada das TASK-001 a 025** (concluída em 2026-11-18 por Gemini, suíte 292/292). Todas as tarefas `TASK-001` a `TASK-025` revisadas contra `docs/REVIEW-CHECKLIST.md` e o GDD; corrigidos rótulos `pt-BR` de `"precision"` e `"relic"` em `RunPanels`, dica de `skill_0` em `CombatScreen`, código órfão `Combatant.in_final_phase()` e `debuff_turns()` explícito em `CombatEffect`; `test_project_standards.gd` agora exige revisão cruzada preenchida em toda tarefa concluída.
 - **TASK-026, primeira Descida chamativa** (concluída em 2026-11-18, suíte 297/297; `RULES_VERSION` = 14). Primeira Descida (`runs_played == 0`) com Cidadão Infectado garantido na camada 1, baú na camada 2 com item incomum e Moeda da Sorte, elite no meio com drop raro e Moeda da Sorte, chefe visível de longe no mapa ("O Coveiro te espera"), Ecos em dobro e tela final "Morte que ensina" (inimigo e % de vida restante, conquistas, dica tática e o que ficou para a próxima). Simulador: mediano normal 62,7%, 1ª Descida 52,7% (98,0% chegam ao chefe). ADR-0031.
+- **TASK-027, sorte, emboscadas e inimigos mutados** (concluída em 2026-11-18, suíte 303/303; `RULES_VERSION` = 15). Quatro mutações temáticas em dados (`bloated` Inchado, `voracious` Voraz, `phantom` Fantasma, `thorny` Espinhoso) visíveis no mapa antes da luta nas camadas 3..6 (máx. 1 por camada), com nível +1, Poder ×1,5, tabela própria de drops com 20% de raros e 12% (+SORTE) de Moeda da Sorte; nó de emboscada com ataque inicial do inimigo (sem moeda surpresa) e Guarda aberta no bote; SORTE e Maré de azar influenciando a chance de mutação e a conversão/evitação de emboscadas na camada revelada. ADR-0032.
 - ADR-0004 aprovado; ADR-0005 aceito (observador funcionando em laço).
 
 ## Onde está
 
 - Repositório: `C:\Users\Orlando\Downloads\Projetos\bibianas-quest`. A mesma pasta é o projeto Godot, o repositório Git e o vault do Obsidian. Um commit por tarefa.
 - Regras e comandos: `CLAUDE.md`. Decisões: `docs/adr/`. Tarefas: `docs/tasks/`.
-- Núcleo: `game/core/core_version.gd` (`RULES_VERSION = 14`), `game/core/rng/`, `game/core/map/`, `game/core/combat/`, `game/core/data/`, `game/core/run/` e `game/core/sim/`.
+- Núcleo: `game/core/core_version.gd` (`RULES_VERSION = 15`), `game/core/rng/`, `game/core/map/`, `game/core/combat/`, `game/core/data/`, `game/core/run/` e `game/core/sim/`.
 - Dados: `game/data/*.json`, carregados por `DataLoader.load_all()` (`game/services/data_loader.gd`).
 - Apresentação: `game/presentation/main.tscn` abre o `GameScreen`. F5 no editor joga uma Descida ("Nova Descida") ou a luta de teste. Telas em `game/presentation/combat/` e `game/presentation/map/`.
 - Testes: `tests/unit/`. Rodar com `tools\run_tests.ps1` (Windows) ou `tools/run_tests.sh`.
@@ -97,7 +98,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | --- | --- | --- | --- | --- |
 | 1 | TASK-029 | Revisão cruzada das TASK-001 a 025 por outro modelo | concluída | concluída em 2026-11-18 |
 | 2 | TASK-026 | Primeira Descida chamativa (F-019) | concluída | concluída em 2026-11-18 (ADR-0031) |
-| 3 | TASK-027 | Sorte, emboscadas e inimigos mutados | agente | pendência do ADR-0026 (item 6) e do pedido D1 |
+| 3 | TASK-027 | Sorte, emboscadas e inimigos mutados | concluída | concluída em 2026-11-18 (ADR-0032) |
 | 4 | TASK-028 | Eventos de mapa e mini boss | agente | peso de evento está em 0; o crítico manipulável por evento (D6) depende disso |
 | 5 | TASK-014 | Exportação Web e Android e sessão de 20 minutos no celular | **Orlando** | templates, JDK e SDK só na máquina dele |
 | 6 | calibração | Ajustar números com o `telemetry.log` do Orlando (ouro, Coveiro, moeda por luta, mortes) | agente, depois que o Orlando enviar | os bots não jogam como uma pessoa |
@@ -113,7 +114,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 - **Vencibilidade versus faixa do mediano:** a faixa de 55% a 65% do jogador mediano e a garantia de mapa vencível (200 simulações, rota segura a 60%) só cabem juntas num intervalo estreito; já foi preciso aliviar o Coveiro quatro vezes (ADR-0020, 0023, 0027, 0028, 0029, 0030). Mexer em dificuldade exige rodar o simulador com checagem de mapa de 40 simulações ou mais.
 - **Tempo da suíte:** costuma levar 40 a 70 s; uma vez levou 24 minutos (lentidão da máquina ou do teste de vencibilidade que suaviza muitos mapas). Se repetir, medir os testes pesados em separado (`-gselect=test_winnability.gd`).
 - **Anúncio simulado** no baú e Éter/lenha ainda sem arte própria; tudo é protótipo cinza.
-- **Eventos, mini boss, mutados, emboscadas por sorte e roaming boss** não existem (TASK-027 e 028).
+- **Eventos, mini boss e roaming boss** não existem (TASK-028).
 - **A TASK-014** só foi configurada (presets, script, guia); nada foi exportado.
 
 ## Pendências do Orlando
@@ -136,6 +137,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 | 0005 | Observador de arquivos roda a suíte no PC do Orlando e grava o resultado em `reports/` para o Claude ler | Aceito (2026-11-16) |
 | 0006 | RNG próprio PCG32; quatro fluxos com sementes por SplitMix64; estado salvo como texto | Aceito (TASK-002) |
 | 0008 | Leituras do GDD §6 a §8 para o combate (PRE como bônus, arredondamento, Veterano 65%, aviso garantido contra inimigo rápido, durações) | Aceito, com 2 perguntas (TASK-004) |
+| 0032 | Mutações temáticas (Inchado, Voraz, Fantasma, Espinhoso), emboscada com bote inicial e Guarda aberta, SORTE e Maré de azar nas mutações, emboscadas e drops raros | Aceito (TASK-027) |
 | 0031 | Primeira Descida chamativa (`runs_played == 0`): Cidadão Infectado na camada 1, baú na camada 2, elite no meio, chefe de longe no mapa, Ecos em dobro e tela "Morte que ensina" | Aceito (TASK-026) |
 | 0030 | Fichas de inimigos, golpes de moeda temáticos, Leptospirose persistente, reações em dados, Coveiro 175/16 | Aceito (TASK-025) |
 | 0029 | Previsão de dano e acerto, descrição das skills, atacar devolve MP, Éter em combate, crítico por item e skill de fogueira, Coveiro 195/16 | Aceito (TASK-024) |
