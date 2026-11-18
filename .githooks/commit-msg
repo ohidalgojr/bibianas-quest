@@ -1,0 +1,19 @@
+#!/bin/sh
+# Confere o formato da mensagem de commit (CLAUDE.md, regra 2): a primeira linha precisa ser
+# "TASK-NNN: resumo (ADR-XXXX)" ou um dos prefixos de documentação (ADR-, FEEDBACK:,
+# HANDOFF:). Merge e revert passam. Instale com tools/setup_hooks.
+first_line=$(head -n 1 "$1")
+case "$first_line" in
+	Merge\ *|Revert\ *|fixup!\ *|squash!\ *) exit 0 ;;
+esac
+if echo "$first_line" | grep -Eq '^TASK-[0-9]{3}: .+ \(ADR-[0-9]{4}(, ADR-[0-9]{4})*\)$'; then
+	exit 0
+fi
+if echo "$first_line" | grep -Eq '^(ADR-[0-9]{4}|FEEDBACK|HANDOFF|DOCS): .+'; then
+	exit 0
+fi
+echo "Mensagem de commit fora do padrao do projeto:"
+echo "  $first_line"
+echo "Use: TASK-NNN: resumo (ADR-XXXX)   |   ADR-NNNN: ...   |   FEEDBACK: ...   |   HANDOFF: ...   |   DOCS: ..."
+echo "Regras: CLAUDE.md, secao 'Regras que nao podem ser quebradas', item 2."
+exit 1

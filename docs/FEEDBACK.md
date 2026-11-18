@@ -205,3 +205,14 @@ Tudo abaixo está **implementado e testado, mas ainda não jogado pelo Orlando**
 | F-017 moeda frequente | TASK-016 e 025 | intervalo de 2 golpes; o Corvo agora usa moeda (mais lances contra ele) |
 
 **Ainda aberto:** emboscadas e inimigos mais difíceis por sorte (precisam de variantes mutadas), evento de mapa que mexa no crítico, mini boss e roaming boss, anúncio de verdade, e calibrar tudo com o `telemetry.log` do Orlando.
+
+## 2026-11-18, pedido de design
+
+### F-019: a primeira Descida tem que ser chamativa
+
+- **Status:** aberto (anotado; vira a TASK-026, que ainda não começou).
+- **Fala do Orlando:** "a primeira descida tem que ser chamativa, dar um gostinho da dificuldade e recompensa pra fazer a pessoa ter vontade de continuar jogando".
+- **O que isso pede:** a primeira Descida de quem nunca jogou (`runs_played == 0`) precisa entregar, em poucos minutos: (1) um **gostinho da dificuldade** (um encontro tenso e justo, com a moeda e um golpe temático avisado, sem ser injusto), (2) uma **recompensa que se vê** (um item raro ou uma skill forte que mude o jogo, um nível subindo) e (3) um **motivo para a próxima** (Ecos, desbloqueio ou mistério que ficou, "o Coveiro me espera").
+- **Hoje:** a primeira Descida é igual às outras: mapa sorteado, recompensa aleatória, nenhum momento garantido. Quem tem azar de drops vê pouco.
+- **Direções a avaliar (propostas, não decididas):** elementos garantidos na primeira Descida (um baú nas primeiras camadas com item bom, um elite no meio com drop raro e a Moeda da Sorte, um primeiro encontro que demonstra a moeda e o aviso); o chefe mostrado de longe no mapa (aviso "O Coveiro te espera"); Ecos em dobro na primeira Descida, mesmo ao morrer; uma tela final que diga o que a pessoa conquistou e o que ficou para a próxima. A regra de ouro: a primeira Descida pode ser mais generosa, mas não pode ser fácil ao ponto de não ter tensão, nem tão difícil que ninguém chegue ao chefe.
+- **Restrições:** nada pode quebrar a vencibilidade do mapa (GDD §5) nem as regras de justiça da moeda; vale um ADR, porque muda regra para um caso (primeira Descida), e uma rodada do simulador com o perfil "primeira Descida".

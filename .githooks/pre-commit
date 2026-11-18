@@ -1,0 +1,22 @@
+#!/bin/sh
+# Testes verdes antes do commit (CLAUDE.md, regra 7). Roda a suite quando o commit mexe em
+# codigo, dados, testes ou ferramentas; commits so de documentacao passam direto.
+changed=$(git diff --cached --name-only)
+if ! echo "$changed" | grep -Eq '^(game/|tests/|tools/|project\.godot|export_presets\.cfg)'; then
+	exit 0
+fi
+echo "pre-commit: rodando a suite de testes (cerca de 1 minuto)..."
+root=$(git rev-parse --show-toplevel)
+if command -v powershell.exe >/dev/null 2>&1; then
+	powershell.exe -ExecutionPolicy Bypass -File "$root/tools/run_tests.ps1"
+elif command -v powershell >/dev/null 2>&1; then
+	powershell -ExecutionPolicy Bypass -File "$root/tools/run_tests.ps1"
+else
+	bash "$root/tools/run_tests.sh"
+fi
+status=$?
+if [ $status -ne 0 ]; then
+	echo "pre-commit: a suite falhou (codigo $status). Corrija antes de commitar."
+	exit 1
+fi
+exit 0

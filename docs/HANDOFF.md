@@ -1,14 +1,29 @@
 # HANDOFF
 
-Atualizado em 2026-11-16 (TASK-001 a 013 e TASK-015 concluídas e TASK-014 em verificação; suíte 285/285; desenvolvimento no Claude Code). Quem chega agora lê este arquivo, depois `CLAUDE.md`, depois a tarefa aberta em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md` (aprovado).
+Atualizado em 2026-11-18. **Estado:** TASK-001 a 013 e TASK-015 a 025 concluídas no código; TASK-014 (exportação) em verificação, esperando o Orlando; TASK-026 a 029 abertas e **não iniciadas**; suíte 285/285; `RULES_VERSION` = 13. Quem chega agora (qualquer agente: Claude, Gemini ou outro) lê este arquivo, depois `CLAUDE.md` (inclusive "Lições e armadilhas"), depois a tarefa que vai fazer em `docs/tasks/`. O plano até o MVP está em `docs/ROADMAP-MVP.md`.
 
-## Como retomar
+## Estado em um olhar
 
-1. Leia este arquivo, `CLAUDE.md` e a tarefa aberta em `docs/tasks/`. A TASK-014 está em verificação (ver pendências 7 e 8). Com ela fechada, a Fase 1 acaba e o próximo passo é decidir com o Orlando o ajuste do laço (`docs/FEEDBACK.md`, propostas TASK-016 e 017) e abrir o roteiro da Fase 2.
-2. **Harness atual: Claude Code (aplicativo desktop), com terminal.** Rode a suíte direto: `powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1` (precisa de `GODOT_BIN`, já definido, e de `addons/gut/`; em worktree nova rode `tools\setup.ps1`). O observador (ADR-0005) só é necessário em ambientes sem terminal, como o projeto do claude.ai usado antes.
-3. MCP do Godot e do Blender em `.mcp.json` (ver `docs/MCP.md`). O addon do Blender já foi instalado e ativado no Blender 5.3 do Orlando; falta conectar na aba BlenderMCP (`N`) a cada sessão. Os servidores só aparecem depois de reiniciar a sessão e aprová-los. Aprovação local: `.claude/settings.local.json` com `"enabledMcpjsonServers": ["godot", "blender"]` (fora do Git; copiar para cada checkout ou worktree). Testados em 2026-11-16: os dois respondem ao handshake MCP e o `blender` conecta no addon em `localhost:9876`. O pacote `blender-mcp` virou wrapper de `mcp-for-blender`; continua funcionando na versão fixada.
-4. Uma tarefa por vez. O Orlando liberou seguir as tarefas do roteiro (2026-11-16), parando ao fim de cada uma para o resumo.
-5. Git: remoto `origin` (GitHub `ohidalgojr/bibianas-quest`). A `main` tem tudo até a TASK-009 (mesclada em 2026-11-16 por avanço rápido, histórico linear; os branches e worktrees locais das sessões anteriores foram removidos; no GitHub, o branch padrão do repositório ainda é `claude/godot-blender-setup-0792cc` e pode ser trocado para `main` nas configurações). Regra do projeto: uma tarefa por vez, um commit por tarefa.
+| Item | Valor |
+| --- | --- |
+| Jogo | RPG tático de turnos roguelite, Godot 4.7, protótipo cinza 2D em retrato: menu, mapa de 6 camadas com névoa, combate com moeda, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save |
+| Classe | só o Guerreiro (Bibiana); 3 skills iniciais, 3 à venda, 5 espaços |
+| Cenário | só a Cidade Abandonada: 4 inimigos comuns, 1 elite (Carrasco Apodrecido), chefe O Coveiro (2 fases); cada um com ficha em `docs/enemies/` |
+| Regras | `RULES_VERSION` = 13 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0030 |
+| Equilíbrio (simulador, regras v13) | bot mediano vence 62,0% (meta 55% a 65%), cuidadoso 70,7%, mortes por moeda 12,3% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,3 s para criar a Descida |
+| Testes | 285 em 35 scripts, cerca de 40 a 70 s |
+| Git | `main` enviada ao GitHub (`ohidalgojr/bibianas-quest`); histórico linear; um commit por tarefa |
+| Nunca testado por pessoa | tudo depois da TASK-009 foi jogado só por bots e testes; o Orlando jogou uma Descida na TASK-020 e deu o feedback de `docs/FEEDBACK.md` |
+
+## Como retomar (qualquer agente)
+
+1. Leia este arquivo, `CLAUDE.md` e `AGENTS.md`. Abra a tarefa que vai executar em `docs/tasks/` (ou crie uma a partir de `docs/tasks/_modelo.md`: **sem tarefa aberta, nenhum código**).
+2. Rode a suíte antes de mexer: `powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1` (Windows) ou `bash tools/run_tests.sh`. Em checkout novo rode antes `tools\setup.ps1` e `tools\setup_hooks.ps1`. O Godot vem de `GODOT_BIN` (use o `*_console.exe`).
+3. **Ligue os hooks de git** (`tools\setup_hooks.ps1`): conferem a mensagem de commit (`TASK-NNN: resumo (ADR-XXXX)`) e rodam a suíte antes de commits que mexem em código. O teste `tests/unit/test_project_standards.gd` confere a estrutura de tarefas, ADRs, HANDOFF e fichas de inimigos.
+4. Uma tarefa por vez, um commit por tarefa, e **pare ao fim de cada tarefa** para o resumo. Não mude regra do GDD sem ADR, GDD atualizado no mesmo commit e `RULES_VERSION` incrementado. Depois de mudar regra, rode o simulador (comando em "Pontos de atenção").
+5. **Não envie ao GitHub sem o Orlando pedir.** Ao terminar uma tarefa, atualize este arquivo (feito, onde está, falta, decisões).
+6. O jogo se abre abrindo a **pasta raiz do repositório** no Godot 4.7 e apertando F5. Depois de criar script com `class_name`, rode `"$GODOT_BIN" --headless --path . --import` ou o editor mostra só uma tela escura.
+7. Revisão cruzada: o código das TASK-001 a 025 foi escrito por um só modelo. A TASK-029 pede revisão por outro modelo (`docs/REVIEW-CHECKLIST.md`).
 
 ## Como jogar
 
@@ -72,36 +87,41 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
 - Testes: `tests/unit/`. Rodar com `tools\run_tests.ps1` (Windows) ou `tools/run_tests.sh`.
 - `bibianas-quest.bundle` na raiz serviu só para trazer o commit da TASK-001. Está no `.gitignore` e pode ser apagado.
 
-## Congelamento por feedback (2026-11-16)
+## Backlog ordenado (próximos passos, para qualquer agente)
 
-**Levantado em 2026-11-16:** o Orlando respondeu D1 a D6 (ADR-0025) e o trabalho segue pelas TASK-021 a TASK-025, uma por vez, na ordem do ADR. Antes: o Orlando jogou uma Descida completa e pediu **nenhuma implementação nova** até os pontos serem corrigidos. O feedback (F-005 a F-017), as decisões D1 a D6 que dependem dele e o agrupamento proposto em tarefas estão no fim de `docs/FEEDBACK.md`. A TASK-014 (exportação) também espera. Ao retomar, comece pelas decisões D1 a D6.
+Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes de começar um, leia o arquivo da tarefa e `docs/FEEDBACK.md`.
 
-## Pendências do Orlando
-
-1. Conectar o addon do Blender (aba BlenderMCP, tecla `N`) quando for usar o Blender.
-2. **Jogar uma Descida (TASK-009):** F5 no Godot e "Nova Descida" (ver "Como jogar"), para ver se o mapa se lê bem e se o fluxo anda.
-3. **Teste de sensação da TASK-006:** jogar algumas lutas (o Coveiro inclusive) e anotar no fim de `docs/tasks/TASK-006-combate-jogavel.md` se a moeda dá tensão e se o aviso de um turno basta.
-4. Responder a pergunta do ADR-0008 (PRE como bônus sobre 90; Veterano com redução de 65% ou de 80%). A do ADR-0010 foi respondida no ADR-0014; confirmar que "acertar o lado" é o que o Orlando queria.
-5. **Decidir os dois pontos do ADR-0012:** o custo da checagem de mapa no celular (a thread já existe; falta medir no celular e decidir o save) e as mortes por moeda acima da meta (31% e 35%, contra 25%; recomendação: esperar o teste de sensação).
-6. Revisão cruzada do Gemini, TASK-001 a 013 e 015.
-7. **TASK-014:** instalar os templates de exportação (Editor > Projeto > Exportar > Gerenciar templates), rodar `tools\export_web.ps1 -Serve` e abrir o link; para o celular, instalar JDK e Android SDK (`docs/PLAYTEST.md`).
-8. **Sessão de 20 minutos no celular** e a ficha de `docs/PLAYTEST.md`.
-9. **Feedback de design (`docs/FEEDBACK.md`), F-005 a F-017 e decisões D1 a D6 (ver o congelamento acima).** Antes: F-001 e F-002 atendidos (TASK-016); F-003 depende da escolha entre drops, marcos ou curva do Poder (pergunta do ADR-0021).
-
-## Falta (ordem combinada; o roteiro completo e as mudanças propostas estão em `docs/ROADMAP-MVP.md`)
-
-| Tarefa | Entrega | GDD |
-| --- | --- | --- |
-| TASK-002 | **Feita**: RNG determinístico em 4 fluxos | 20 |
-| TASK-003 | **Feita** (sem o bot, que foi para a TASK-008): gerador de mapa em grafo e teste de propriedade | 5 |
-| TASK-004 | Motor de combate 1 contra 1 e moeda, com testes de fórmula (**em verificação**) | 6, 7, 8, 9 |
-| TASK-005 | Simulador headless de balanceamento e primeiro relatório | 23 |
+| # | Tarefa | O que é | Quem | Por quê |
+| --- | --- | --- | --- | --- |
+| 1 | TASK-029 | Revisão cruzada das TASK-001 a 025 por outro modelo | outro modelo, não o Claude | a pipeline (GDD §21, etapa 4) exige; nada foi revisado ainda |
+| 2 | TASK-026 | Primeira Descida chamativa (F-019) | agente | o Orlando quer que a primeira Descida dê gostinho de dificuldade e recompensa |
+| 3 | TASK-027 | Sorte, emboscadas e inimigos mutados | agente | pendência do ADR-0026 (item 6) e do pedido D1 |
+| 4 | TASK-028 | Eventos de mapa e mini boss | agente | peso de evento está em 0; o crítico manipulável por evento (D6) depende disso |
+| 5 | TASK-014 | Exportação Web e Android e sessão de 20 minutos no celular | **Orlando** | templates, JDK e SDK só na máquina dele |
+| 6 | calibração | Ajustar números com o `telemetry.log` do Orlando (ouro, Coveiro, moeda por luta, mortes) | agente, depois que o Orlando enviar | os bots não jogam como uma pessoa |
+| 7 | Santuário | Gastar Ecos (GDD §9: Biblioteca, Arsenal, Códice) | agente, com ADR | os Ecos hoje só se acumulam |
+| 8 | Fase 2 | Roteiro do vertical slice: arte, cena 3D, som, animação da moeda | agente propõe, Orlando decide | "dar cara de jogo" (GDD §22) |
+| 9 | monetização | Anúncio de verdade, o que o anúncio faz com a moeda, vender Moeda da Sorte? | Orlando decide | GDD §16; hoje o anúncio do baú é simulado |
 
 Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
-**Aprovado em 2026-11-16 (ROADMAP-MVP.md); a tabela acima fica como histórico da ordem original:** o bot de vencibilidade vai da TASK-003 para a TASK-008 (o combate só existe na 004), o simulador vira TASK-008 e entram TASK-005 (dados) e TASK-006 (combate jogável) antes do resto, até TASK-014 (portão da Fase 1).
+## Problemas conhecidos
 
-O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICENSES.md`, Style Bible, checklist de revisão cruzada, presets de exportação.
+- **Guerreiro único:** o Veterano que Defende anula a penalidade da coroa, inclusive a consequência temática (ADR-0030). Outras classes precisarão de regra própria.
+- **Vencibilidade versus faixa do mediano:** a faixa de 55% a 65% do jogador mediano e a garantia de mapa vencível (200 simulações, rota segura a 60%) só cabem juntas num intervalo estreito; já foi preciso aliviar o Coveiro quatro vezes (ADR-0020, 0023, 0027, 0028, 0029, 0030). Mexer em dificuldade exige rodar o simulador com checagem de mapa de 40 simulações ou mais.
+- **Tempo da suíte:** costuma levar 40 a 70 s; uma vez levou 24 minutos (lentidão da máquina ou do teste de vencibilidade que suaviza muitos mapas). Se repetir, medir os testes pesados em separado (`-gselect=test_winnability.gd`).
+- **Anúncio simulado** no baú e Éter/lenha ainda sem arte própria; tudo é protótipo cinza.
+- **Eventos, mini boss, mutados, emboscadas por sorte e roaming boss** não existem (TASK-027 e 028).
+- **A TASK-014** só foi configurada (presets, script, guia); nada foi exportado.
+
+## Pendências do Orlando
+
+1. **Jogar uma Descida inteira** na versão atual (F5 na pasta raiz) e dar o feedback; enviar o `telemetry.log` (`%APPDATA%\Godot\app_userdata\<nome do projeto>\telemetry.log`) para calibrar.
+2. **TASK-014:** instalar os templates de exportação (Editor > Projeto > Exportar > Gerenciar templates), rodar `tools\export_web.ps1 -Serve` e abrir o link; para o celular, JDK e Android SDK (`docs/PLAYTEST.md`); sessão de 20 minutos e a ficha.
+3. Trocar o branch padrão do repositório no GitHub para `main` (hoje é `claude/godot-blender-setup-0792cc`).
+4. Responder a pergunta do ADR-0008 (PRE como bônus sobre 90; Veterano com redução de 65% ou de 80%).
+5. Decidir a monetização que ficou aberta (item 9 do backlog).
+6. Conectar o addon do Blender (aba BlenderMCP, tecla `N`) quando for usar o Blender.
 
 ## Decisões
 
@@ -156,18 +176,18 @@ O restante da Fase 0 que não está nessa ordem: Skills do projeto, `assets/LICE
 ## Pontos de atenção para as próximas tarefas
 
 - Sorteio no núcleo só por `RngStreams` (`map()`, `combat()`, `loot()`, `coin()`); métodos do `Pcg32`: `draw_int`, `draw_float`, `draw_percent`, `draw_index`, `shuffled_copy`. Não usar `randi`, `shuffle` nem `pick_random`. O save usa `snapshot()` como está (texto, não número de 64 bits em JSON). A semente do próximo mapa vem de `RngStreams.derive_seed`.
-- **A garantia de vencibilidade do GDD §5 ainda não está provada**: a TASK-003 só cobre as regras estruturais. A TASK-008 liga o bot a `MapGraph.safest_route(custo)` e passa a conferir a opção segura por nível. Eventos são sorteados (9%) e mini boss não é colocado; a configuração do cenário 1 do protótipo decide os eventos na TASK-005 ou 007, com ADR.
 - **Godot 4.7 e enums:** um enum usado dentro da própria classe e por outras com dependência cíclica dá erro de tipo ("Cannot assign Combatant.Side as Side"). Nesses casos, usar constantes inteiras.
 - **Observador:** tem limite de tempo por rodada desde 2026-11-16 (status `timeout`, exit 124). Saída parcial fica em `reports/last_run.out.tmp` enquanto roda.
-- A suíte leva cerca de 20 s por causa dos testes de propriedade do mapa; se passar de 1 minuto, separar os testes longos em outra pasta.
+- A suíte leva de 40 a 70 s (testes de propriedade do mapa e de vencibilidade). Se passar de 2 minutos, medir com `-gselect=<arquivo>` e separar os testes longos em outra pasta.
 - **Telas:** as próximas telas (TASK-009 e 010) seguem o padrão do ADR-0010: um controlador `RefCounted` testável e uma tela montada em código. Nos testes, `time_scale = 0` deixa a animação instantânea. Para ver uma tela sem abrir o editor, rode o Godot com janela e um script `SceneTree` que salva `root.get_texture().get_image()` em PNG (o headless não desenha).
 - **Dados:** a TASK-006 monta a luta por `DataLoader.load_all()`, `make_player("warrior", poder)` e `make_enemy(id, nível)`. Não deve usar os `CombatFixtures`. `CombatSkill.warrior_set()` continua como referência, e um teste confere que é igual aos dados.
 - **Exportação (TASK-014):** o Godot não exporta `.json` por padrão. No preset, incluir `game/data/*.json` em "Filtros para exportar arquivos que não são recursos", senão o jogo exportado abre sem dados.
-- **Simulador:** `"$GODOT_BIN" --headless --path . -s tools/simulate.gd -- --runs 200 --check 40 --maps 200 --map-check 20`. Leva cerca de 7 min e passa do limite de 10 min com `--runs 300` ou mais, então rode em segundo plano. Script novo com `class_name` exige `--headless --import` antes de rodar fora da suíte.
-- **Criação da Descida:** o `GameScreen` já cria o `RunState` numa `Thread`, com `Winnability.DEFAULT_RUNS` (200). Leva cerca de 1,5 s no PC e falta medir no celular (TASK-014). Guardar o resultado no save fica para a TASK-012.
+- **Simulador:** `"$GODOT_BIN" --headless --path . -s tools/simulate.gd -- --runs 150 --check 20 --maps 40 --map-check 40`. Leva de 10 a 12 minutos, então rode em segundo plano e confira `reports/simulation.md` (a pasta `reports/` precisa existir e fica fora do Git). Com `--map-check 20` a checagem de vencibilidade é ruidosa; use 40 ou mais para decidir a dificuldade do Coveiro. Script novo com `class_name` exige `--headless --import` antes de rodar fora da suíte.
+- **Criação da Descida:** o `GameScreen` cria o `RunState` numa `Thread`, com `Winnability.DEFAULT_RUNS` (200). Leva cerca de 1,3 s no PC com o equilíbrio atual (era 686 s quando o Coveiro estava forte demais); falta medir no celular (TASK-014). Se o tempo passar de 2 s no PC, o equilíbrio está apertado demais para a garantia de vencibilidade.
 - **Telas novas:** os nós trocados com `queue_free` aparecem como "órfãos" no GUT. É esperado: liberar na hora pode derrubar o jogo, porque o botão que pediu a troca ainda está emitindo o sinal.
 - **Worktree e o Godot:** quem joga precisa abrir a pasta da worktree/branch com as mudanças (ou mesclar na `main`); abrir a raiz de outro checkout mostra o jogo antigo (foi o que fez a moeda parecer automática de novo).
-- **Calibração resolvida na TASK-008 (histórico):** o bot de regras vence só 8% das Descidas do cenário 1, contra a meta de 55% a 65%. Em 300 Descidas, 239 mortes foram no Coveiro (nível 6, 220 de HP, Golpe Mortal), contra uma Bibiana com Poder perto de 2,5. Antes de mexer em números, ver se o bot joga mal o chefe (não guarda poção, não defende o Golpe Mortal) e só então ajustar as alavancas do GDD §23, com ADR. O script de diagnóstico usado foi um `SceneTree` com `RunBot.play` em 300 sementes, contando `run.current_node()` nas derrotas.
-- **Calibração (TASK-008):** o Corvo Carniceiro dá 5,3 turnos por luta, abaixo da meta de 6 a 10. O Coveiro dá 28 turnos no teste com Poder suposto. A regra própria do Coveiro (covas e mortos) ainda não existe.
 - "Moedas" no GDD §15 é o ouro; "a moeda" do §7 é o cara ou coroa. No código: `gold` e `coin`.
 - Fórmulas do GDD só mudam com ADR, no mesmo commit do GDD (`docs/GDD.md`) e do código, com `CoreVersion.RULES_VERSION` incrementado.
+- **Padrões que o repositório confere sozinho:** `tests/unit/test_project_standards.gd` (estrutura de tarefas e ADRs, numeração, HANDOFF com o `RULES_VERSION` atual, uma ficha de inimigo por inimigo), `tests/unit/test_core_purity.gd` (núcleo sem nós nem aleatoriedade global), `test_untyped_declarations_are_errors` (tipagem) e os hooks `.githooks/` (mensagem de commit e suíte antes do commit).
+- **Mexer em dificuldade:** o Coveiro é a alavanca (HP e FOR em `game/data/enemies.json`); os inimigos comuns têm o ciclo e a consequência da coroa na ficha de `docs/enemies/`. Cada mudança precisa de ADR com a tabela do simulador.
+- **Galhos Secos, Moeda da Sorte, Maré de azar e SORTE** têm constantes em `game/core/run/run_rules.gd` (cada uma com o ADR no comentário). A concessão de Galhos do mapa acontece **antes** de gerar o mapa porque a checagem de vencibilidade usa os consumíveis da Descida.

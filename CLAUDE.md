@@ -5,9 +5,10 @@ O projeto é de uma pessoa (o arquiteto) com agentes de IA escrevendo o código.
 
 Leia nesta ordem antes de qualquer trabalho:
 
-1. `docs/HANDOFF.md`: o que já foi feito, onde está e o que falta.
-2. A tarefa aberta em `docs/tasks/`.
-3. As seções do GDD que a tarefa cita (`docs/GDD.md`).
+1. `docs/HANDOFF.md`: estado atual, backlog ordenado, pendências e problemas conhecidos.
+2. A tarefa que vai executar em `docs/tasks/` (e `docs/FEEDBACK.md`, o feedback de playtest do Orlando).
+3. As seções do GDD que a tarefa cita (`docs/GDD.md`) e os ADRs ligados em `docs/adr/`.
+4. Para inimigos, a ficha em `docs/enemies/`; para revisar, `docs/REVIEW-CHECKLIST.md`.
 
 ## Regras que não podem ser quebradas
 
@@ -19,6 +20,16 @@ Leia nesta ordem antes de qualquer trabalho:
 6. **O núcleo fala com a apresentação por eventos**, nunca chamando cenas. A dependência só vai de `presentation` e `services` para `core`.
 7. **Testes verdes antes do commit.** Regra nova no núcleo vem com teste; fórmula do GDD vem com teste de fórmula que cita a seção.
 8. **Ao terminar a tarefa, atualize `docs/HANDOFF.md`** (feito, onde está, falta, decisões) e pare para o resumo.
+9. **Mudou regra, rode o simulador** e registre a tabela no ADR (comando em `docs/HANDOFF.md`, "Pontos de atenção"). Metas: jogador mediano com 55% a 65% de vitória, mortes por moeda até 25%, nenhum mapa sem rota vencível, Descida criada em menos de 2 s no PC.
+10. **Cada inimigo tem uma ficha** em `docs/enemies/` (modelo em `_modelo.md`) antes ou junto do código dele, e a regra de justiça vale para todos: golpe perigoso avisado um turno antes, ao menos 2 golpes entre golpes de moeda, Golpe Mortal só em chefe.
+11. **Não envie ao GitHub sem o Orlando pedir** e nunca reescreva histórico publicado. Branch `main`, histórico linear.
+12. **Uma revisão por outro modelo** (etapa 4, GDD §21): quem escreveu não revisa o próprio trabalho. `docs/REVIEW-CHECKLIST.md` lista o que conferir.
+
+### Como o repositório faz cumprir isto
+
+- `tests/unit/test_project_standards.gd`: tarefas com as seções exigidas e título com o ID, numeração de tarefas e ADRs sem buracos, tarefa concluída com "Verificação" preenchida, HANDOFF citando o `RULES_VERSION` atual, uma ficha por inimigo.
+- `tests/unit/test_core_purity.gd`: núcleo sem nós, `Time`, `OS` e aleatoriedade global; `test_untyped_declarations_are_errors`: tipagem estática.
+- Hooks de git em `.githooks/` (ligue com `tools\setup_hooks.ps1` ou `bash tools/setup_hooks.sh`): `commit-msg` confere `TASK-NNN: resumo (ADR-XXXX)` (ou `ADR-NNNN:`, `FEEDBACK:`, `HANDOFF:`, `DOCS:`); `pre-commit` roda a suíte quando o commit mexe em `game/`, `tests/`, `tools/` ou `project.godot`.
 
 ## Comandos
 
@@ -26,6 +37,9 @@ Leia nesta ordem antes de qualquer trabalho:
 | --- | --- | --- |
 | Rodar todos os testes (headless) | `powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1` | `bash tools/run_tests.sh` |
 | Instalar o GUT fixado | `powershell -ExecutionPolicy Bypass -File tools\setup.ps1` | `bash tools/setup.sh` |
+| Ligar os hooks de git do projeto | `powershell -ExecutionPolicy Bypass -File tools\setup_hooks.ps1` | `bash tools/setup_hooks.sh` |
+| Simulador de equilíbrio (10 a 12 min, em segundo plano) | `& "$env:GODOT_BIN" --headless --path . -s tools/simulate.gd -- --runs 150 --check 20 --maps 40 --map-check 40` | `"$GODOT_BIN" --headless --path . -s tools/simulate.gd -- --runs 150 --check 20 --maps 40 --map-check 40` |
+| Reimportar o projeto (depois de script com `class_name` novo) | `& "$env:GODOT_BIN" --headless --path . --import` | `"$GODOT_BIN" --headless --path . --import` |
 | Observador: roda a suíte a cada mudança (ADR-0005) | `powershell -ExecutionPolicy Bypass -File tools\watch_tests.ps1` | não há |
 
 ### MCP (Claude Code)
@@ -114,3 +128,15 @@ Atributos: HP `hp`, MP `mp`, FOR `strength`, MEN `mind`, DEF `defense`, RES `res
 - Revisão cruzada por outro modelo (etapa 4) feita ou registrada como pendente no HANDOFF.
 - GDD, ADRs e HANDOFF atualizados.
 - Um commit com o ID da tarefa.
+
+## Lições e armadilhas (aprendidas nas TASK-001 a 025)
+
+- **Escrever arquivos com acento no Windows:** nunca passe texto em português por heredoc de shell para `python -`; a entrada padrão do Windows vira cp1252 e quebra a acentuação. Grave o script num arquivo `.py` (UTF-8) e rode `python arquivo.py`, ou edite com a ferramenta de edição de arquivos. Edite sempre os arquivos como UTF-8 com fim de linha LF (`.gitattributes` já força).
+- **Indentação do GDScript é tab**, e a profundidade varia (corpo de função com 1 tab, `match` e blocos com mais). Ao editar por substituição de texto, não presuma o número de tabs: confira com `cat -A` ou use busca por regex que capture a indentação.
+- **Classe nova com `class_name`** precisa de `--headless --import` antes de rodar fora do editor, senão aparece "Could not find type" ou o jogo abre com tela escura. O Godot que abre outra pasta (outro checkout ou worktree) mostra o jogo antigo: confira o caminho.
+- **Equilíbrio é restrição dupla:** a faixa do jogador mediano e a garantia de mapa vencível competem. Antes de endurecer um inimigo, rode o simulador com `--map-check 40`; mais de 1 mapa sem rota em 40, ou criação da Descida acima de 2 s, significa que ficou duro demais.
+- **Determinismo:** tudo que sorteia usa os quatro fluxos de `RngStreams`; adicionar um sorteio muda os resultados das sementes (suba o `RULES_VERSION`). A previsão de dano e a apresentação nunca sorteiam. Testes de distribuição usam sementes fixas e margens honestas.
+- **Só apresentação lê estado e anima eventos:** o núcleo emite `CombatEvent` e `RunEvent`; a tela nunca recalcula regra. Telas novas seguem o padrão do ADR-0010: controlador `RefCounted` testável e tela montada em código. Texto que pode ficar longo precisa de `autowrap_mode` (botão que não quebra linha alarga a tela inteira).
+- **Teste novo para regra nova, e teste antigo atualizado de propósito:** quando uma regra muda, os testes que fixavam o número antigo mudam junto, com a explicação no ADR. Nunca afrouxe um teste para passar sem entender a causa.
+- **Fonte de verdade do que foi decidido:** ADR e GDD. O código cita o ADR e a seção do GDD em comentário. Feedback do Orlando vai para `docs/FEEDBACK.md` antes de virar tarefa.
+- **Pare no fim de cada tarefa** com um resumo curto, honesto sobre o que não foi verificado (por exemplo, "não abri o jogo com janela"). Nunca diga que a suíte passou sem ter lido a saída desta rodada.
