@@ -17,6 +17,7 @@
 		{"id": "warden_plate", "name": "Placa do Carcereiro", "slot": "armor", "rarity": "rare", "price": 380, "stats": {"defense": 10, "resistance": 4, "speed": -2}},
 		{"id": "worn_charm", "name": "Amuleto Gasto", "slot": "relic", "rarity": "common", "price": 90, "stats": {"luck": 4}},
 		{"id": "iron_ring", "name": "Anel de Ferro", "slot": "relic", "rarity": "uncommon", "price": 150, "stats": {"defense": 3, "resistance": 3}},
+		{"id": "sharp_claw", "name": "Garra Afiada", "slot": "relic", "rarity": "uncommon", "price": 140, "stats": {"crit": 8}},
 		{"id": "grave_bell", "name": "Sino do Coveiro", "slot": "relic", "rarity": "rare", "price": 350, "stats": {"luck": 8, "hp": 15}}
 	]
 }

@@ -7,6 +7,7 @@ extends RefCounted
 ## Poções Turvas por luta no protótipo (ADR-0010); o inventário real é da TASK-007.
 const POTIONS_PER_FIGHT: int = 2
 const POTION_ID: String = "murky_potion"
+const ETHER_ID: String = "dirty_ether"
 const CLASS_ID: String = "warrior"
 
 var data: GameData
@@ -18,6 +19,7 @@ var run_seed: int = 0
 var potions_left: int = POTIONS_PER_FIGHT
 var skills: Array[CombatSkill] = []
 var potion: CombatItem
+var ether: CombatItem
 ## Descida dona da luta, quando a luta vem do mapa (ADR-0013). Sem ela, a luta é de
 ## teste e tem [constant POTIONS_PER_FIGHT] poções.
 var run: RunState
@@ -39,6 +41,7 @@ func _init(game_data: GameData, fight_enemy: String, fight_level: int, fight_pow
 	run_seed = fight_seed
 	skills = data.class_skills(CLASS_ID)
 	potion = data.combat_item(POTION_ID)
+	ether = data.combat_item(ETHER_ID)
 	if enemy_id.is_empty():
 		return
 	var enemy: Combatant = data.make_enemy(enemy_id, level)
@@ -116,6 +119,62 @@ func can_use_potion() -> bool:
 
 func potions_count() -> int:
 	return run.available_in_fight(POTION_ID) if run != null else potions_left
+
+
+func use_ether() -> Array[CombatEvent]:
+	if not can_use_ether():
+		return []
+	return combat.act(Combat.Action.ITEM, null, ether)
+
+
+func can_use_ether() -> bool:
+	return ethers_count() > 0 and combat.can_act(Combat.Action.ITEM, null, ether)
+
+
+func ethers_count() -> int:
+	return run.available_in_fight(ETHER_ID) if run != null else 0
+
+
+func ether_label() -> String:
+	return "%s (%d)" % [str(data.items[ETHER_ID]["name"]), ethers_count()]
+
+
+## Previsão do ataque básico: "dano 12-16 · acerto 90% · crít 5% · +2 MP" (ADR-0029).
+func attack_hint() -> String:
+	return "%s · +%d MP" % [_damage_hint(combat.preview_player_strike(1.0)),
+		roundi(combat.player.stats.max_mp * CombatFormulas.ATTACK_MP_RETURN)]
+
+
+## Previsão de uma skill: faixa de dano para as de dano; para as outras, o efeito.
+func skill_hint(index: int) -> String:
+	var skill: CombatSkill = skills[index]
+	match skill.effect:
+		CombatSkill.Effect.SHIELD_BASH, CombatSkill.Effect.CHARGE, CombatSkill.Effect.POWER_STRIKE:
+			var power: float = skill.power
+			return _damage_hint(combat.preview_player_strike(power))
+		CombatSkill.Effect.BULWARK:
+			return "DEF +%d%% e reflete %d%%" % [roundi(CombatEffect.BULWARK_DEFENSE * 100.0), roundi(CombatEffect.BULWARK_REFLECT * 100.0)]
+		CombatSkill.Effect.WAR_CRY:
+			return "FOR e MEN +%d%% por %d turnos" % [roundi(CombatEffect.EMPOWER_ATTACK * 100.0), CombatEffect.EMPOWER_TURNS]
+		CombatSkill.Effect.MEND:
+			return "cura %d de HP" % roundi(combat.player.stats.max_hp * CombatEffect.MEND_PERCENT / 100.0)
+	return ""
+
+
+## Descrição completa da skill, para a dica do botão.
+func skill_tip(index: int) -> String:
+	var skill: CombatSkill = skills[index]
+	var extra: String = ""
+	match skill.effect:
+		CombatSkill.Effect.SHIELD_BASH:
+			extra = " Moeda: acertar o lado atordoa o inimigo por 1 turno (em chefe, Lentidão)."
+		CombatSkill.Effect.CHARGE:
+			extra = " Deixa a guarda aberta: DEF -20% por 1 turno."
+	return "%s (%d MP): %s.%s" % [skill.display_name, skill.cost, skill_hint(index), extra]
+
+
+func _damage_hint(preview: Dictionary) -> String:
+	return "dano %d-%d · acerto %d%% · crít %d%%" % [int(preview["min"]), int(preview["max"]), int(preview["hit"]), int(preview["crit"])]
 
 
 func can_flee() -> bool:

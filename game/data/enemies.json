@@ -58,7 +58,7 @@
 		},
 		{
 			"id": "gravedigger", "name": "O Coveiro", "type": "boss", "base_level": 6,
-			"stats": {"hp": 205, "strength": 16, "defense": 10, "resistance": 8, "speed": 6, "evasion": 3},
+			"stats": {"hp": 195, "strength": 16, "defense": 10, "resistance": 8, "speed": 6, "evasion": 3},
 			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
 			"phases": [
 				{"below_hp_percent": 100, "moves": [

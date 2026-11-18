@@ -265,6 +265,8 @@ func campfire_view() -> Dictionary:
 
 
 static func campfire_skill_text(skill: Dictionary) -> String:
+	if str(skill["effect"]) == "crit_up":
+		return "CRIT +%d pontos por %d lutas" % [int(skill["percent"]), int(skill["combats"])]
 	var what: String = "FOR e MEN" if str(skill["effect"]) == "damage_up" else "DEF"
 	return "%s +%d%% por %d lutas" % [what, int(skill["percent"]), int(skill["combats"])]
 

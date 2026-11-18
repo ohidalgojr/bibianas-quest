@@ -181,10 +181,10 @@ O combate é 1 contra 1, em janela própria, com ordem de turnos por Ritmo e tod
 
 | Ação | Efeito | Custo | Moeda? |
 | --- | --- | --- | --- |
-| Atacar | Dano da arma equipada | Nenhum | Não |
+| Atacar | Dano da arma equipada; devolve 10% do MP máximo (ADR-0029) | Nenhum | Não |
 | Habilidade | Skills da classe e as aprendidas | MP | Depende da skill |
 | Defender | Reduz o dano em 50% até o próximo turno, devolve 10% do MP e reduz a penalidade de golpes de moeda (seção 7) | Nenhum | Não |
-| Item | Cura, MP, remoção de debuff ou dano | 1 item | Não |
+| Item | Cura, MP (Éter Sujo, usável em combate), remoção de debuff ou dano | 1 item | Não |
 | Roubar | Skill de furto (a do Ladino ou "Truque de Mão" aprendido) | MP | Sim |
 | Fugir | Sai do combate e perde o nó | Nenhum | Sim, base 50%; Ladino +25%. Chefes não permitem fuga |
 
@@ -211,6 +211,10 @@ O combate é 1 contra 1, em janela própria, com ordem de turnos por Ritmo e tod
 ### Atributos básicos
 
 HP, MP, FOR, MEN, DEF, RES, VEL, PRE, ESQ, CRIT e SORTE. Equipamentos e Poder alteram todos (seções 9 e 10).
+
+### Previsão das ações (ADR-0029)
+
+Antes de agir, o jogador vê nos botões o que a ação faz: faixa de dano (mínimo e máximo, sem crítico), chance de acerto e chance de crítico (inspirado em Darkest Dungeon), além do MP devolvido ao atacar. As skills que não dão dano mostram o efeito (por exemplo, "cura 32 de HP"), e toda skill tem uma dica com a descrição completa. O crítico (CRIT, dano ×1,5) continua como está, mas fica visível e pode ser aumentado por itens (Garra Afiada, +8), por skills de fogueira (Afiar o Fio) e, quando existirem, por eventos de mapa.
 
 ### IA dos inimigos
 
@@ -325,7 +329,7 @@ Cada classe começa com duas e pode aprender outras no fim dos cenários (seçã
 | Classe | Skills iniciais | Efeito |
 | --- | --- | --- |
 | Clérigo | Oração na Chama; Vigília | Cura 30% de HP e uma doença leve de graça; +RES por 3 combates |
-| Guerreiro | Afiar Lâmina; Reforçar Escudo | +15% de dano por 3 combates; +15% de DEF por 3 combates |
+| Guerreiro | Afiar Lâmina; Reforçar Escudo; Afiar o Fio | +15% de dano por 3 combates; +15% de DEF por 3 combates; +10 pontos de CRIT por 3 combates (ADR-0029) |
 | Mago | Estudar Grimório; Destilar Éter | +20% de dano mágico por 3 combates; restaura todo o MP |
 | Ladino | Forjar Veneno; Revistar Cinzas | Ataques aplicam Veneno por 3 combates; +20% de chance de drop e ouro por 3 combates |
 

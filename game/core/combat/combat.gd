@@ -91,6 +91,7 @@ func act(action: Action, skill: CombatSkill = null, item: CombatItem = null) -> 
 		Action.ATTACK:
 			_emit(CombatEvent.Type.ACTION, Combatant.PLAYER, "attack")
 			_strike(player, enemy, 1.0, CombatFormulas.Element.PHYSICAL, 1.0, "attack")
+			_restore(player, 0, roundi(player.stats.max_mp * CombatFormulas.ATTACK_MP_RETURN))
 		Action.SKILL:
 			_use_skill(skill)
 		Action.DEFEND:
@@ -119,6 +120,24 @@ func debug_kill_enemy() -> Array[CombatEvent]:
 		enemy.hp = 0
 		_check_end()
 	return _since(first)
+
+
+## Previsão de um golpe do jogador no inimigo (ADR-0029), sem sortear nada: dano mínimo e
+## máximo sem crítico, dano máximo com crítico, chance de acerto e chance de crítico (%).
+func preview_player_strike(power: float) -> Dictionary:
+	var attack: float = player.effective_strength()
+	var guard: float = enemy.effective_defense()
+	var element: float = enemy.element_multiplier(CombatFormulas.Element.PHYSICAL)
+	var low: int = CombatFormulas.final_damage(CombatFormulas.raw_damage(attack, power, guard, CombatFormulas.VARIANCE_LOW, 1.0, element, 1.0))
+	var high: int = CombatFormulas.final_damage(CombatFormulas.raw_damage(attack, power, guard, CombatFormulas.VARIANCE_HIGH, 1.0, element, 1.0))
+	var crit_high: int = CombatFormulas.final_damage(CombatFormulas.raw_damage(attack, power, guard, CombatFormulas.VARIANCE_HIGH, CombatFormulas.CRIT_MULTIPLIER, element, 1.0))
+	return {
+		"min": low,
+		"max": high,
+		"crit_max": crit_high,
+		"hit": CombatFormulas.hit_chance(player.stats.precision_bonus(), enemy.stats.evasion),
+		"crit": clampi(player.stats.crit, 0, 100),
+	}
 
 
 ## Moedas da Sorte que ainda podem ser usadas nesta luta (ADR-0026).

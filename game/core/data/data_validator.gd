@@ -16,7 +16,7 @@ const ELEMENTS: PackedStringArray = ["physical", "fire", "lightning", "holy", "s
 const ITEM_SLOTS: PackedStringArray = ["consumable", "weapon", "offhand", "armor", "head", "relic"]
 const RARITIES: PackedStringArray = ["worn", "common", "uncommon", "rare", "cursed", "soul", "rival"]
 const SKILL_EFFECTS: PackedStringArray = ["shield_bash", "charge", "bulwark", "power_strike", "war_cry", "mend"]
-const CAMPFIRE_EFFECTS: PackedStringArray = ["damage_up", "defense_up"]
+const CAMPFIRE_EFFECTS: PackedStringArray = ["damage_up", "defense_up", "crit_up"]
 const PASSIVES: PackedStringArray = ["veteran"]
 
 ## GDD §6: cada inimigo tem de 3 a 5 movimentos no ciclo.

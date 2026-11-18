@@ -136,6 +136,8 @@ func _stats_for(worn: Dictionary) -> Stats:
 				stats.mind = roundi(stats.mind * factor)
 			"defense_up":
 				stats.defense = roundi(stats.defense * factor)
+			"crit_up":
+				stats.crit += int(skill["percent"])
 	stats.max_hp = maxi(stats.max_hp, 1)
 	stats.speed = maxi(stats.speed, 1)
 	return stats
@@ -557,7 +559,7 @@ func _drop_pool(rarity: String, consumable: bool) -> Array[String]:
 			continue
 		var is_consumable: bool = str(item["slot"]) == "consumable"
 		if consumable:
-			if is_consumable and int(item.get("heal_hp_percent", 0)) > 0:
+			if is_consumable and (int(item.get("heal_hp_percent", 0)) > 0 or int(item.get("heal_mp_percent", 0)) > 0):
 				pool.append(str(item_id))
 		elif not is_consumable and str(item["rarity"]) == rarity:
 			pool.append(str(item_id))

@@ -10,6 +10,7 @@
 	],
 	"campfire": [
 		{"id": "sharpen_blade", "class": "warrior", "name": "Afiar Lâmina", "effect": "damage_up", "percent": 15, "combats": 3},
-		{"id": "reinforce_shield", "class": "warrior", "name": "Reforçar Escudo", "effect": "defense_up", "percent": 15, "combats": 3}
+		{"id": "reinforce_shield", "class": "warrior", "name": "Reforçar Escudo", "effect": "defense_up", "percent": 15, "combats": 3},
+		{"id": "sharpen_edge", "class": "warrior", "name": "Afiar o Fio", "effect": "crit_up", "percent": 10, "combats": 3}
 	]
 }

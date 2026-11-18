@@ -153,6 +153,8 @@ func perform(action: String) -> void:
 			events = session.defend()
 		"potion":
 			events = session.use_potion()
+		"ether":
+			events = session.use_ether()
 		"flee":
 			events = session.flee()
 		"skill_0", "skill_1", "skill_2", "skill_3", "skill_4":
@@ -206,7 +208,7 @@ func _apply(event: CombatEvent) -> void:
 				_enemy_hp = event.extra
 			else:
 				_player_hp = event.extra
-			_pop_text("-%d%s" % [event.value, "!" if event.flag else ""], COLOR_COIN if event.flag else COLOR_DANGER, on_enemy)
+			_pop_text("-%d%s" % [event.value, " CRÍTICO!" if event.flag else ""], COLOR_COIN if event.flag else COLOR_DANGER, on_enemy, 44 if event.flag else 30)
 			if on_enemy and event.extra <= 0:
 				_play_defeat()
 		CombatEvent.Type.MISS:
@@ -227,13 +229,13 @@ func _apply(event: CombatEvent) -> void:
 
 
 ## Número que sobe do alvo e some (ADR-0021). Sem tempo (testes), não desenha.
-func _pop_text(text: String, color: Color, on_enemy: bool) -> void:
+func _pop_text(text: String, color: Color, on_enemy: bool, size: int = 30) -> void:
 	if time_scale <= 0.0 or not is_inside_tree():
 		return
 	var target: Control = _enemy_shape if on_enemy else _player_shape
 	var label: Label = Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", 30)
+	label.add_theme_font_size_override("font_size", size)
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", Color.BLACK)
 	label.add_theme_constant_override("outline_size", 6)
@@ -345,14 +347,24 @@ func _refresh_timeline() -> void:
 func _refresh_buttons() -> void:
 	var can_go: bool = session != null and not _busy and session.can_act()
 	(_buttons["attack"] as Button).disabled = not can_go
+	if session != null:
+		(_buttons["attack"] as Button).text = "Atacar\n" + session.attack_hint()
 	(_buttons["defend"] as Button).disabled = not can_go
 	for index: int in RunRules.MAX_SKILLS:
 		var skill_ready: bool = can_go and session.can_use_skill(index)
-		(_buttons["skill_%d" % index] as Button).disabled = not skill_ready
+		var skill_button: Button = _buttons["skill_%d" % index]
+		skill_button.disabled = not skill_ready
+		if session != null and index < session.skills.size():
+			skill_button.text = "%s\n%s" % [session.skill_label(index), session.skill_hint(index)]
+			skill_button.tooltip_text = session.skill_tip(index)
 	var potion: Button = _buttons["potion"]
 	potion.disabled = not (can_go and session.can_use_potion())
 	if session != null:
 		potion.text = session.potion_label()
+	var ether: Button = _buttons["ether"]
+	ether.disabled = not (can_go and session != null and session.can_use_ether())
+	if session != null:
+		ether.text = session.ether_label()
 	var flee: Button = _buttons["flee"]
 	flee.disabled = not (can_go and session.can_flee())
 	flee.tooltip_text = "Moeda: acertar o lado foge"
@@ -519,11 +531,14 @@ func _build() -> void:
 	grid.add_theme_constant_override("v_separation", 8)
 	column.add_child(grid)
 	for entry: Array in [["attack", "Atacar"], ["defend", "Defender"], ["skill_0", "Skill"], ["skill_1", "Skill"],
-			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["flee", "Fugir"], ["luck", "Moeda da Sorte (0)"],
+			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["ether", "Éter Sujo"], ["flee", "Fugir"], ["luck", "Moeda da Sorte (0)"],
 			["speed", "Velocidade 1x"]]:
 		var button: Button = Button.new()
 		button.text = str(entry[1])
 		button.custom_minimum_size = Vector2(0, 56)
+		if str(entry[0]) == "attack" or str(entry[0]).begins_with("skill_"):
+			button.add_theme_font_size_override("font_size", 16)
+			button.custom_minimum_size = Vector2(0, 60)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var action: String = str(entry[0])
 		if action == "speed":

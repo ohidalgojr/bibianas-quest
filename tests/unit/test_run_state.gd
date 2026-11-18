@@ -246,6 +246,7 @@ func test_consumable_limit() -> void:
 	run.gold = 500
 	run._open_shop()
 	run.consumables["firewood"] = 0
+	run.shop_offer = ["murky_potion"] as Array[String]
 	run.consumables["murky_potion"] = 8
 	assert_false(run.can_buy("murky_potion"))
 	run.consumables["murky_potion"] = 7

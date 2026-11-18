@@ -90,7 +90,7 @@ func test_campfire_view_and_actions() -> void:
 	var panels: RunPanels = RunPanels.new(run)
 	var view: Dictionary = panels.campfire_view()
 	assert_true(bool(view["can_rest"]))
-	assert_eq((view["skills"] as Array).size(), 2)
+	assert_eq((view["skills"] as Array).size(), 3)
 	assert_eq(view["skills"][0]["description"], "FOR e MEN +15% por 3 lutas")
 	assert_true(panels.rest())
 	assert_gt(run.hp, 10)

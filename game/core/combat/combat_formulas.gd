@@ -20,6 +20,8 @@ const DEFEND_REDUCTION: float = 0.5
 const VETERAN_DEFEND_REDUCTION: float = 0.65
 ## Defender devolve 10% do MP máximo (GDD §6).
 const DEFEND_MP_RETURN: float = 0.10
+## Atacar devolve 10% do MP máximo, arredondado (ADR-0029).
+const ATTACK_MP_RETURN: float = 0.10
 ## Nunca há morte imediata com a vida acima de 60% (GDD §7).
 const LETHAL_GUARD_PERCENT: int = 60
 ## Multiplicador de dano em caso de falha (Coroa) por golpe de moeda (GDD §7).
