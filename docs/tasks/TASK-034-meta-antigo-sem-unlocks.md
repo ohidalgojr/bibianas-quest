@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Concluída |
+| Status | Em verificação (código e testes prontos; falta a revisão cruzada por outro modelo) |
 | Aberta em | 2026-11-19 |
 | Fase | 1, correção de robustez do save (GDD §20) |
 | GDD | 20 |
