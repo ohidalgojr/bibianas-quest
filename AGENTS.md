@@ -11,6 +11,7 @@ Resumo do que não pode ser quebrado:
 - Testes unitários rápidos verdes em headless antes do commit. **Enquanto não alcançar o MVP jogável (apresentação 3D, ADR-0036, TASK-040), não utilize recursos para simulador de balanceamento (`tools/simulate.gd`) nem testes muito complexos.**
 - Cada inimigo tem uma ficha em `docs/enemies/`; a regra de justiça (aviso, intervalo entre golpes de moeda) vale para todos.
 - **Tela ou gráfico: leia `docs/ART-DIRECTION.md` e o ADR-0036 antes.** O visual não é "provisório": GDD §17 e §18 mandam tabuleiro isométrico 3D com kits CC0. Tarefa de tela só fecha com print do jogo rodando com janela, anexado em `docs/tasks/prints/`.
+- **Executável de teste:** ao fim de cada tarefa que muda o jogo, rode `toolsbuild_windows.ps1` e informe o caminho do `.exe` (`buildwindowsBibianasQuest.exe` na pasta principal do repositório).
 - `docs/HANDOFF.md` atualizado ao fim da tarefa; pare e entregue o resumo.
 - Não envie ao GitHub sem o Orlando pedir.
 

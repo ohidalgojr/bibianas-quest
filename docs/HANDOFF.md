@@ -29,6 +29,8 @@ Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2
 
 ## Como jogar
 
+**Mais fácil: o executável.** `powershell -ExecutionPolicy Bypass -File toolsbuild_windows.ps1 -Run` gera e abre `buildwindowsBibianasQuest.exe` (pasta principal do repositório, mesmo se rodar de uma worktree), sem abrir o Godot. Build de depuração, com os atalhos F1 a F4. Os templates 4.7.2 do Windows já estão instalados neste PC.
+
 Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e aperte **F5**. A cena principal abre o `GameScreen`: "Nova Descida" gera o mapa do cenário 1 (cerca de 1,5 s) e leva a mapa, lutas, loja e fogueira provisórias, e fim; "Luta de teste (depuração)" abre o seletor de inimigo, nível e Poder. Se aparecer só uma tela escura com "regras vN", o Godot abriu uma cópia antiga do projeto (outra pasta ou worktree): confira que o caminho aberto é o da raiz do repositório atual.
 
 ## Feito

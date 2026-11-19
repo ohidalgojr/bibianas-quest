@@ -26,7 +26,7 @@ O mapa da Descida vira o **tabuleiro isométrico com altura** de `docs/ART-DIREC
 - [x] **Névoa de guerra por célula** (revelado, visível, oculto) em shader: destinos plenos; depois deles, escurecido e sem tipo; o chefe visível de longe e coberto de névoa; o já visitado esmaecido.
 - [x] **Câmera:** ortográfica isométrica; ao escolher um destino a Bibiana caminha (1 a 2 s, pulável) e a câmera desliza junto; ao chegar, a névoa recua em volta do novo nó (0,6 a 1 s). (A pré-visualização ao tocar num destino **não foi feita**: fica como melhoria, ver ADR-0037.)
 - [x] Toque mínimo de 48 px nos destinos; funciona em retrato 540x960; ligado ao `GameScreen` no lugar do `MapScreen` 2D, que fica como modo de depuração.
-- [ ] Print do mapa em três momentos (início, meio, perto do chefe) anexado, com as seis respostas do teste do print.
+- [x] Print do mapa em três momentos (início, meio, perto do chefe) anexado, com as seis respostas do teste do print.
 
 ## Arquivos afetados
 
@@ -55,7 +55,9 @@ Suíte em 2026-11-19: 326 testes, 326 passando (`test_map3d.gd`: planta determin
 5. Números sobre o mundo: **sim** (nível, recompensa, mutado).
 6. Retrato 540x960 e toque de 48 px: **sim** (áreas de 120 px, testado).
 
-**Limites:** (a) o chefe fica na borda da tela nas últimas camadas; a mira da câmera precisa de ajuste fino; (b) as lajes de estrada e de praça são lisas e o chão é pouco detalhado; (c) inimigos sem modelo próprio usam substitutos (ver `assets/LICENSES.md`); (d) o desempenho no celular não foi medido.
+**Ajuste de 2026-11-19 (pedido do Orlando):** a mira da câmera passou a incluir o chefe nas últimas camadas (agora aparece inteiro, com "Nv 7" e "chefe"), o zoom abriu para os três destinos caberem, e o tabuleiro ganhou muros baixos de borda e um lampião aceso ao lado de cada destino. Prints regerados.
+
+**Limites:** (a) ~~o chefe fica na borda~~ (resolvido); (b) as lajes de estrada e de praça são lisas e o chão é pouco detalhado; (c) inimigos sem modelo próprio usam substitutos (ver `assets/LICENSES.md`); (d) o desempenho no celular não foi medido.
 
 ## Revisão cruzada
 

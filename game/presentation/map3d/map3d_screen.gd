@@ -10,7 +10,7 @@ signal node_chosen(node_id: int)
 const K_MINI: String = "res://assets/kenney/mini_dungeon/"
 const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const SHRINK: int = 2
-const CAM_SIZE: float = 25.0
+const CAM_SIZE: float = 27.0
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.82, 1.0) * 22.0
 ## A câmera mira um pouco à frente da Bibiana, para mostrar o que vem pela névoa.
 const CAM_LOOKAHEAD: Vector3 = Vector3(0.0, 0.0, -2.5)
@@ -163,6 +163,7 @@ func _build_terrain() -> void:
 	_multimesh_from(K_GRAVE + "road.glb", road_tiles, Color(0.46, 0.42, 0.4))
 	for cell: Vector2i in layout.stairs.keys():
 		_place(K_MINI + "stairs.glb", layout.world_of(cell) + Vector3(0, 0.0, 0), float(layout.stairs[cell]))
+	_build_border_walls()
 	var keys: Array = layout.props.keys()
 	for cell: Vector2i in keys:
 		var pick: int = int(layout.props[cell]) % DECOR_PROPS.size()
@@ -331,6 +332,7 @@ func _build_node(info: Dictionary) -> void:
 		glow.omni_range = 4.2
 		glow.position = at + Vector3(0, 1.6, 0)
 		_node_root.add_child(glow)
+		_place(K_GRAVE + "lightpost-single.glb", at + Vector3(1.4, 0.0, 1.4), 0.0, 2.2, _node_root)
 	if state == MapView.State.CURRENT or kind == MapNode.Kind.START:
 		return
 	if node.is_fight() and not node.enemy_id.is_empty() and ModelRegistry.has_model(node.enemy_id):
@@ -507,4 +509,27 @@ func _aim_point(from_node_id: int) -> Vector3:
 	var sum: Vector3 = Vector3.ZERO
 	for id: int in next_ids:
 		sum += layout.node_world(id)
-	return here.lerp(sum / float(next_ids.size()), 0.6)
+	var centroid: Vector3 = sum / float(next_ids.size())
+	# Perto do fim, o chefe entra na mira para aparecer inteiro na tela.
+	var last_layer: int = view.run.map.layer_count + 1
+	if view.run.map.node_by_id(from_node_id).layer >= last_layer - 2:
+		for node: MapNode in view.run.map.nodes:
+			if node.kind == MapNode.Kind.BOSS:
+				centroid = centroid.lerp(layout.node_world(node.id), 0.5)
+	return here.lerp(centroid, 0.75)
+
+
+## Muros baixos na borda da planta: dão a sensação de ruína fechada, como nas referências.
+func _build_border_walls() -> void:
+	for z: int in range(1, layout.rows - 1, 2):
+		for x: int in [1, layout.cols - 2]:
+			var cell: Vector2i = Vector2i(x, z)
+			if layout.plaza_cells.has(cell) or layout.road_cells.has(cell):
+				continue
+			_place(K_GRAVE + "stone-wall.glb", layout.world_of(cell), 90.0, 1.0)
+	for x: int in range(1, layout.cols - 1, 2):
+		for z: int in [1, layout.rows - 2]:
+			var cell: Vector2i = Vector2i(x, z)
+			if layout.plaza_cells.has(cell) or layout.road_cells.has(cell):
+				continue
+			_place(K_GRAVE + "stone-wall.glb", layout.world_of(cell), 0.0, 1.0)
