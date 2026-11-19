@@ -12,7 +12,7 @@ const CAM_SIZE: float = 5.8
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.8, 1.0) * 16.0
 const CAM_TARGET: Vector3 = Vector3(0.2, 1.7, 0.2)
 const ENEMY_POS: Vector3 = Vector3(-1.4, 0.9, -1.4)
-const PLAYER_POS: Vector3 = Vector3(1.6, 0.9, 1.6)
+const PLAYER_POS: Vector3 = Vector3(0.2, 0.9, 2.9)
 const ENEMY_YAW: float = 45.0
 const PLAYER_YAW: float = 225.0
 const ARENA_HALF: int = 5
@@ -28,6 +28,8 @@ var _scene_root: Node3D
 var _enemy_id: String = ""
 var _enemy_scale: float = 2.4
 var _shake: float = 0.0
+var _dim: ColorRect
+var _portraits: Dictionary = {}
 
 
 func _ready() -> void:
@@ -55,6 +57,11 @@ func _ready() -> void:
 	_scene_root = Node3D.new()
 	_world.add_child(_scene_root)
 	_add_vignette()
+	_dim = ColorRect.new()
+	_dim.color = Color(0, 0, 0.02, 0.0)
+	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_dim)
 
 
 func _aim_camera(shake: Vector3) -> void:
@@ -88,7 +95,7 @@ func _build_environment() -> void:
 
 
 ## Monta o palco de uma luta. `kind` é o [enum MapNode.Kind] do nó (usa -1 para a luta de teste).
-func setup(enemy_id: String, kind: int) -> void:
+func setup(enemy_id: String, kind: int, mutation: String = "") -> void:
 	_enemy_id = enemy_id
 	for child: Node in _scene_root.get_children():
 		child.queue_free()
@@ -96,6 +103,8 @@ func setup(enemy_id: String, kind: int) -> void:
 	enemy_node = null
 	_build_arena(kind)
 	_spawn_actors(kind)
+	_apply_mutation(mutation)
+	_portraits.clear()
 
 
 func _build_arena(kind: int) -> void:
@@ -214,3 +223,121 @@ func _add_vignette() -> void:
 	mat.shader = shader
 	rect.material = mat
 	add_child(rect)
+
+
+## Mutação visível no modelo (GDD §11, ADR-0032): tamanho, transparência ou luz própria.
+func _apply_mutation(mutation: String) -> void:
+	if enemy_node == null or mutation.is_empty():
+		return
+	match mutation:
+		"bloated":
+			enemy_node.scale *= Vector3(1.3, 1.0, 1.3)
+		"voracious":
+			var red: OmniLight3D = OmniLight3D.new()
+			red.light_color = Color(1.0, 0.18, 0.12)
+			red.light_energy = 3.0
+			red.omni_range = 4.0
+			red.position = Vector3(0, 1.4, 0)
+			enemy_node.add_child(red)
+		"phantom":
+			for mesh: Node in enemy_node.find_children("*", "MeshInstance3D", true, false):
+				(mesh as MeshInstance3D).transparency = 0.5
+		"thorny":
+			enemy_node.scale *= 1.15
+			var thorn: OmniLight3D = OmniLight3D.new()
+			thorn.light_color = Color(0.7, 0.2, 0.5)
+			thorn.light_energy = 2.0
+			thorn.omni_range = 3.0
+			thorn.position = Vector3(0, 1.0, 0)
+			enemy_node.add_child(thorn)
+
+
+## Retrato do personagem (cabeça e ombros) para a linha do tempo. Cada um tem a própria
+## `SubViewport` com o modelo e uma câmera de frente, desenhada uma vez por luta.
+func portrait(on_enemy: bool) -> Texture2D:
+	var key: String = "enemy" if on_enemy else "player"
+	if _portraits.has(key):
+		return _portraits[key]
+	var id: String = _enemy_id if on_enemy else "bibiana"
+	if not ModelRegistry.has_model(id):
+		return null
+	var port: SubViewport = SubViewport.new()
+	port.size = Vector2i(64, 64)
+	port.own_world_3d = true
+	port.transparent_bg = true
+	port.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(port)
+	var model: Node3D = ModelRegistry.spawn(id)
+	port.add_child(model)
+	ModelRegistry.play(model, id, "idle")
+	var height: float = 1.0
+	var top: float = 1.0
+	var box: AABB = _aabb(model)
+	if box.size.y > 0.01:
+		height = box.size.y
+		top = box.position.y + box.size.y
+	var cam: Camera3D = Camera3D.new()
+	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
+	cam.size = height * 0.5
+	port.add_child(cam)
+	cam.position = Vector3(0, top - height * 0.2, 4.0)
+	var light: DirectionalLight3D = DirectionalLight3D.new()
+	light.rotation_degrees = Vector3(-25, 20, 0)
+	light.light_energy = 1.4
+	port.add_child(light)
+	var env: Environment = Environment.new()
+	env.background_mode = Environment.BG_CLEAR_COLOR
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.6, 0.62, 0.7)
+	var holder: WorldEnvironment = WorldEnvironment.new()
+	holder.environment = env
+	port.add_child(holder)
+	var tex: Texture2D = port.get_texture()
+	_portraits[key] = tex
+	return tex
+
+
+## Caixa do modelo no espaço do próprio `node` (acumula as transformações da malha até ele).
+func _aabb(node: Node3D) -> AABB:
+	var out: AABB = AABB()
+	var first: bool = true
+	for found: Node in node.find_children("*", "MeshInstance3D", true, false):
+		var mesh: MeshInstance3D = found as MeshInstance3D
+		var chain: Transform3D = mesh.transform
+		var parent: Node = mesh.get_parent()
+		while parent != null and parent != node:
+			if parent is Node3D:
+				chain = (parent as Node3D).transform * chain
+			parent = parent.get_parent()
+		var box: AABB = chain * mesh.get_aabb()
+		out = box if first else out.merge(box)
+		first = false
+	return out
+
+
+## Foco da moeda (GDD §7, §19): a cena escurece, a câmera se aproxima do centro e tudo fica
+## em silêncio; `false` devolve a cena ao normal.
+func set_focus(on: bool) -> void:
+	if time_scale <= 0.0 or not is_inside_tree():
+		return
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.tween_property(_dim, "color:a", 0.6 if on else 0.0, 0.35 * time_scale)
+	tween.tween_property(camera, "size", CAM_SIZE * (0.8 if on else 1.0), 0.35 * time_scale)
+
+
+## Hit-stop (GDD §19): congela as animações por um instante no acerto, para dar peso.
+func hit_stop(seconds: float = 0.08) -> void:
+	if time_scale <= 0.0 or not is_inside_tree():
+		return
+	var players: Array[AnimationPlayer] = []
+	for node: Node3D in [player_node, enemy_node]:
+		if node == null:
+			continue
+		for found: Node in node.find_children("*", "AnimationPlayer", true, false):
+			var player: AnimationPlayer = found as AnimationPlayer
+			players.append(player)
+			player.speed_scale = 0.0
+	await get_tree().create_timer(seconds, true, false, true).timeout
+	for player: AnimationPlayer in players:
+		if is_instance_valid(player):
+			player.speed_scale = 1.0

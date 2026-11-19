@@ -112,7 +112,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 6 | TASK-031 | Apresentação 2D vetorial e áudio procedural | concluída, **reprovada pelo Orlando como visual do MVP** (ADR-0036) | vira modo de depuração; `SoundFx` e `VisualTheme` continuam |
 | 7 | TASK-035 | Kits CC0, licenças, cena de prova isométrica, ferramenta de print | agente (download autorizado pelo Orlando) | **próxima tarefa**; sem ela nada de 3D começa |
 | 8 | TASK-036 | Tabuleiro 3D com altura, visão parcial, névoa e câmera que acompanha | em verificação | prints `docs/tasks/prints/TASK-036-*.png` esperando o OK do Orlando |
-| 9 | TASK-037 | Combate 3D com fundo derivado do nó | em andamento | palco 3D pronto; faltam coluna da linha do tempo, painel de previsão, moeda no palco e hit-stop |
+| 9 | TASK-037 | Combate 3D com fundo derivado do nó | em verificação | prints `docs/tasks/prints/TASK-037-*.png` esperando o OK do Orlando |
 | 10 | TASK-038 | Fogueira, loja, baú, recompensa, menu e Santuário em 3D | agente | ART-DIRECTION §5 |
 | 11 | TASK-039 | Estilo unificado, clima, luz e música | agente | os kits parecerem um jogo só |
 | 12 | TASK-040 | Fechamento visual: o Orlando joga e aprova | Orlando | fecha o "MVP jogável" |

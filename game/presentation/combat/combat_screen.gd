@@ -49,6 +49,8 @@ var _seed_counter: int = 0
 ## Palco 3D da luta (ADR-0036). Em headless (testes) a tela 2D de depuração continua valendo.
 var use_stage: bool = DisplayServer.get_name() != "headless"
 var _stage: Combat3DStage
+var _timeline_col: VBoxContainer
+var _forecast: Label
 ## Tipo de nó do palco quando a luta não vem de uma Descida (teste e depuração); -1 é a praça comum.
 var stage_kind: int = -1
 var _timeline: HBoxContainer
@@ -141,7 +143,7 @@ func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 	_enemy_shape.custom_minimum_size = Vector2(150, 150) if session.is_boss() else Vector2(110, 110)
 	if _stage != null:
 		_stage.time_scale = time_scale
-		_stage.setup(session.enemy_id, session.run.current_node().kind if session.run != null and session.run.current_node() != null else stage_kind)
+		_stage.setup(session.enemy_id, session.run.current_node().kind if session.run != null and session.run.current_node() != null else stage_kind, mut)
 	var current_power: float = session.run.power if session.run != null else _power
 	_player_shape.configure_player(current_power)
 	if session.enemy_id == "bell_warden" and time_scale > 0.0:
@@ -226,6 +228,7 @@ func _apply(event: CombatEvent) -> void:
 			if _stage != null:
 				_stage.play(not on_enemy, "attack")
 				_stage.play(on_enemy, "hit")
+				_stage.hit_stop(0.1 if event.flag else 0.07)
 			if on_enemy:
 				_enemy_hp = event.extra
 			else:
@@ -310,6 +313,8 @@ func _show_intent(move_id: String, reason: int = 0) -> void:
 ## gira por 1,2 s e o resultado mostra o lado em que caiu.
 func _show_coin(event: CombatEvent) -> void:
 	_coin_overlay.visible = true
+	if _stage != null:
+		_stage.set_focus(true)
 	if _coin_medallion != null:
 		_coin_medallion.show_call_prompt()
 	var odds: String = "Moeda da Sorte: se errar, rejoga!" if session.is_lucky_armed() else ""
@@ -332,6 +337,8 @@ func _show_coin(event: CombatEvent) -> void:
 		CombatTexts.coin_result(called, event.flag), again]
 	await _wait(EVENT_DELAY * 2.0)
 	_coin_overlay.visible = false
+	if _stage != null:
+		_stage.set_focus(false)
 
 
 ## Pede o lado ao jogador e devolve o escolhido. Sem tempo (testes) ou fora da árvore,
@@ -374,6 +381,9 @@ func _effects_text(side: int) -> String:
 
 
 func _refresh_timeline() -> void:
+	if _timeline_col != null:
+		_fill_timeline_column()
+		return
 	for child: Node in _timeline.get_children():
 		child.queue_free()
 	var title: Label = Label.new()
@@ -392,14 +402,14 @@ func _refresh_buttons() -> void:
 	var can_go: bool = session != null and not _busy and session.can_act()
 	(_buttons["attack"] as Button).disabled = not can_go
 	if session != null:
-		(_buttons["attack"] as Button).text = "Atacar\n" + session.attack_hint()
+		(_buttons["attack"] as Button).text = "Atacar" if _stage != null else "Atacar\n" + session.attack_hint()
 	(_buttons["defend"] as Button).disabled = not can_go
 	for index: int in RunRules.MAX_SKILLS:
 		var skill_ready: bool = can_go and session.can_use_skill(index)
 		var skill_button: Button = _buttons["skill_%d" % index]
 		skill_button.disabled = not skill_ready
 		if session != null and index < session.skills.size():
-			skill_button.text = "%s\n%s" % [session.skill_label(index), session.skill_hint(index)]
+			skill_button.text = session.skill_label(index) if _stage != null else "%s\n%s" % [session.skill_label(index), session.skill_hint(index)]
 			skill_button.tooltip_text = session.skill_tip(index)
 	var potion: Button = _buttons["potion"]
 	potion.disabled = not (can_go and session.can_use_potion())
@@ -416,6 +426,8 @@ func _refresh_buttons() -> void:
 	var coins: int = session.lucky_coins() if session != null else 0
 	luck.disabled = not (can_go and coins > 0)
 	luck.text = "Moeda da Sorte (%d)%s" % [coins, "  ARMADA" if session != null and session.is_lucky_armed() else ""]
+	if _forecast != null and session != null and _forecast.text.is_empty():
+		_set_forecast(_forecast_for("attack"))
 
 
 func _push_log(line: String) -> void:
@@ -637,6 +649,8 @@ func _build() -> void:
 		_call_row.add_child(call_button)
 		_call_buttons.append(call_button)
 	_coin_overlay.visible = false
+	if _stage != null:
+		_stage.set_focus(false)
 
 	_menu = _overlay()
 	var menu_box: VBoxContainer = VBoxContainer.new()
@@ -756,5 +770,78 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> void:
 		panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		panel.modulate = Color(1, 1, 1, 0.88)
 	log_panel.custom_minimum_size = Vector2(0, 44)
+	_timeline.visible = false
+	_timeline_col = VBoxContainer.new()
+	_timeline_col.add_theme_constant_override("separation", 3)
+	_timeline_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_timeline_col.position = Vector2(4, 56)
+	_stage.add_child(_timeline_col)
+	var forecast_panel: PanelContainer = PanelContainer.new()
+	forecast_panel.add_theme_stylebox_override("panel", _box(Color(0.05, 0.09, 0.18, 0.86)))
+	_forecast = Label.new()
+	_forecast.add_theme_font_size_override("font_size", 15)
+	_forecast.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	_forecast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	forecast_panel.add_child(_forecast)
+	bottom.add_child(forecast_panel)
+	bottom.move_child(forecast_panel, 0)
+	for action: String in _buttons.keys():
+		var hover_button: Button = _buttons[action]
+		hover_button.mouse_entered.connect(func() -> void: _set_forecast(_forecast_for(action)))
+		hover_button.focus_entered.connect(func() -> void: _set_forecast(_forecast_for(action)))
 	_intent_icon.add_theme_font_size_override("font_size", 18)
 	_intent_detail.add_theme_font_size_override("font_size", 13)
+
+
+## Coluna de retratos numerados com a ordem dos próximos turnos, à esquerda do palco (FFT):
+## moldura azul para a Bibiana e vermelha para o inimigo.
+func _fill_timeline_column() -> void:
+	for child: Node in _timeline_col.get_children():
+		child.queue_free()
+	if session == null or session.is_over():
+		return
+	var order: Array[int] = session.timeline(5)
+	for index: int in order.size():
+		var side: int = order[index]
+		var chip: PanelContainer = PanelContainer.new()
+		var box: StyleBoxFlat = StyleBoxFlat.new()
+		box.bg_color = Color(0.05, 0.06, 0.09, 0.85)
+		box.set_border_width_all(3 if index == 0 else 2)
+		box.border_color = (Color(0.35, 0.55, 0.95) if side == Combatant.PLAYER else VisualTheme.COLOR_DANGER)
+		if index == 0:
+			box.border_color = box.border_color.lightened(0.35)
+		box.set_content_margin_all(2)
+		chip.add_theme_stylebox_override("panel", box)
+		var row: HBoxContainer = HBoxContainer.new()
+		row.add_theme_constant_override("separation", 2)
+		chip.add_child(row)
+		var number: Label = Label.new()
+		number.text = str(index + 1)
+		number.add_theme_font_size_override("font_size", 14)
+		number.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95))
+		row.add_child(number)
+		var portrait: TextureRect = TextureRect.new()
+		portrait.texture = _stage.portrait(side != Combatant.PLAYER) if _stage != null else null
+		portrait.custom_minimum_size = Vector2(30, 30)
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		row.add_child(portrait)
+		_timeline_col.add_child(chip)
+
+
+## Painel de previsão (FFT): dano, acerto e crítico da ação sob o dedo, entre os dois lados.
+func _set_forecast(text: String) -> void:
+	if _forecast != null:
+		_forecast.text = text
+
+
+func _forecast_for(action: String) -> String:
+	if session == null:
+		return ""
+	if action == "attack":
+		return "Atacar   " + session.attack_hint()
+	if action.begins_with("skill_"):
+		var index: int = int(action.trim_prefix("skill_"))
+		if index < session.skills.size():
+			return "%s   %s" % [session.skill_label(index), session.skill_hint(index)]
+	return str((_buttons[action] as Button).text).replace("\n", "   ")
