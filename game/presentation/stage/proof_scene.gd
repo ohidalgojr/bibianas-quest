@@ -41,8 +41,18 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.05, 0.06, 0.09)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.36, 0.42, 0.55)
-	env.ambient_light_energy = 1.4
+	env.ambient_light_color = Color(0.3, 0.35, 0.48)
+	env.ambient_light_energy = 1.1
+	env.adjustment_enabled = true
+	env.adjustment_saturation = 0.55
+	env.adjustment_contrast = 1.15
+	env.adjustment_brightness = 0.92
+	env.fog_enabled = true
+	env.fog_light_color = Color(0.07, 0.09, 0.13)
+	env.fog_density = 0.045
+	env.glow_enabled = true
+	env.glow_intensity = 0.6
+	env.glow_bloom = 0.08
 	var we: WorldEnvironment = WorldEnvironment.new()
 	we.environment = env
 	_world.add_child(we)
@@ -99,9 +109,17 @@ func _build_terrain() -> void:
 	_place(K_GRAVE + "gravestone-cross.glb", Vector3(1.0, 3 * BLOCK_H, 0.0), 0.0, 1.2)
 	_place(K_GRAVE + "crypt-small.glb", Vector3(4.0, 1 * BLOCK_H, 0.6), 270.0, 1.0)
 	_place(K_MINI + "chest.glb", Vector3(3.0, 1 * BLOCK_H, 3.0), 200.0, 1.4)
+	_place(K_GRAVE + "gravestone-broken.glb", Vector3(0.0, 2 * BLOCK_H, 2.0), 90.0, 1.3)
+	_place(K_GRAVE + "gravestone-round.glb", Vector3(1.0, 2 * BLOCK_H, 2.0), 80.0, 1.2)
+	_place(K_GRAVE + "pine-crooked.glb", Vector3(4.0, 1 * BLOCK_H, 2.0), 0.0, 1.3)
+	_place(K_GRAVE + "coffin-old.glb", Vector3(2.0, 3 * BLOCK_H, 0.0), 30.0, 1.2)
+	_place(K_GRAVE + "stone-wall-damaged.glb", Vector3(0.0, 3 * BLOCK_H, 1.0), 90.0, 1.0)
+	_place(K_GRAVE + "debris.glb", Vector3(1.0, 1 * BLOCK_H, 4.0), 20.0, 1.4)
+	_place(K_GRAVE + "candle-multiple.glb", Vector3(2.0, 2 * BLOCK_H, 4.0), 0.0, 1.5)
+	_place(K_GRAVE + "iron-fence-damaged.glb", Vector3(3.0, 1 * BLOCK_H, 4.4), 0.0, 1.0)
 	var fire: OmniLight3D = OmniLight3D.new()
 	fire.light_color = Color(1.0, 0.55, 0.2)
-	fire.light_energy = 3.0
+	fire.light_energy = 4.5
 	fire.omni_range = 4.5
 	fire.position = Vector3(3.0, 2.0, 1.0)
 	_world.add_child(fire)
