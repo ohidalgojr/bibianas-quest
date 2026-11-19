@@ -1,0 +1,22 @@
+# Licenças dos assets de terceiros
+
+Todo asset externo do jogo entra aqui **antes** de ser usado (GDD §18, ADR-0036). Os pacotes abaixo são CC0 (domínio público); o texto de cada licença acompanha os arquivos na pasta do pacote.
+
+| Pacote | Autor | Fonte | Licença | Baixado em | Pasta | O que usamos |
+| --- | --- | --- | --- | --- | --- | --- |
+| Graveyard Kit 5.0 | Kenney | https://kenney.nl/assets/graveyard-kit (arquivo do espelho https://opengameart.org/content/graveyard-kit) | CC0 1.0 | 2026-11-19 | `assets/kenney/graveyard/` | Cenário do cenário 1: estrada, cercas, muros, lampiões, criptas, cruzes, fogueira em cesto, zumbi, esqueleto, fantasma, vigia |
+| Modular Dungeon Kit 2.0 | Kenney | https://kenney.nl/assets/modular-dungeon-kit (espelho https://opengameart.org/content/modular-dungeon-kit) | CC0 1.0 | 2026-11-19 | `assets/kenney/modular_dungeon/` | Corredores, salas, escadas, portões e peças de piso para passagens e sala do chefe |
+| Mini Dungeon 2.0 | Kenney | https://kenney.nl/assets/mini-dungeon (espelho https://opengameart.org/content/mini-dungeon) | CC0 1.0 | 2026-11-19 | `assets/kenney/mini_dungeon/` | Piso, escadas, muros, baú, moeda, poção, barril, personagem humano |
+| KayKit Character Pack: Adventurers 1.0 | Kay Lousberg | https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0 (Godot Asset Library 2129) | CC0 1.0 (conforme o autor; conferir `LICENSE.txt` ao atualizar) | 2026-11-19 | `assets/kaykit/adventurers/` | Bibiana (Knight, Barbarian) e humanoides |
+| Animated Monster Pack | Quaternius | https://opengameart.org/content/lowpoly-animated-monsters | CC0 1.0 | 2026-11-19 | `assets/quaternius/monsters/` | Morcego (corvo), esqueleto, lodo; só 4 monstros (o pacote Ultimate Monsters de 50 modelos está numa pasta do Google Drive e não foi baixado) |
+
+## Pendências de modelo (lista para o Blender)
+
+O Ultimate Monsters não veio. Estes inimigos ainda não têm modelo próprio e usam um substituto até a TASK-039 ou o Blender:
+
+- `giant_rat` (rato grande), `plague_hound` (cão de peste), `rotten_executioner` (Carrasco Apodrecido) e as mutações (Inchado, Voraz, Fantasma, Espinhoso, por cor e escala).
+- Mecha de cabelo da Bibiana por estágio de Poder (GDD §9): a fazer no Blender.
+
+## Regra
+
+Pacote novo: baixar, conferir o texto de licença do próprio pacote, adicionar uma linha aqui e só então usar no jogo. Teste `test_assets_licenses.gd` confere que toda pasta de `assets/` tem linha neste arquivo.
