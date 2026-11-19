@@ -17,7 +17,13 @@ const CUES: Array[String] = [
 	"step",
 	"victory",
 	"defeat",
+	"rain_loop",
+	"fire_loop",
+	"thunder",
 ]
+
+## Sons em laço (ambiente de fundo).
+const LOOPS: Array[String] = ["rain_loop", "fire_loop"]
 
 static var muted: bool = false
 static var _cache: Dictionary = {}
@@ -27,6 +33,10 @@ static func stream_for(cue: String) -> AudioStreamWAV:
 	if _cache.has(cue):
 		return _cache[cue]
 	var wav: AudioStreamWAV = _synthesize(cue)
+	if wav != null and LOOPS.has(cue):
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		wav.loop_begin = 0
+		wav.loop_end = wav.data.size() / 2
 	_cache[cue] = wav
 	return wav
 
@@ -100,6 +110,32 @@ static func _synthesize(cue: String) -> AudioStreamWAV:
 			return _make_wav(0.08, func(t: float) -> float:
 				var env: float = exp(-t * 36.0)
 				return (sin(TAU * 140.0 * t) * 0.7 + sin(t * 6151.0) * 0.3) * env)
+		"rain_loop":
+			var rain_state: Array[float] = [0.0]
+			return _make_wav(4.0, func(t: float) -> float:
+				var n: float = _noise(int(t * SAMPLE_RATE))
+				rain_state[0] += (n - rain_state[0]) * 0.32
+				var swell: float = 0.78 + 0.22 * sin(TAU * t / 4.0 * 2.0)
+				return rain_state[0] * 0.55 * swell)
+		"fire_loop":
+			var fire_state: Array[float] = [0.0]
+			return _make_wav(5.0, func(t: float) -> float:
+				var index: int = int(t * SAMPLE_RATE)
+				var n: float = _noise(index)
+				fire_state[0] += (n - fire_state[0]) * 0.06
+				var pop_slot: int = index / 2200
+				var pop_age: float = float(index % 2200) / float(SAMPLE_RATE)
+				var pop: float = 0.0
+				if _noise(pop_slot * 7 + 3) > 0.82:
+					pop = _noise(index * 3) * exp(-pop_age * 90.0) * 0.9
+				return fire_state[0] * 0.9 + pop * 0.7)
+		"thunder":
+			var thunder_state: Array[float] = [0.0]
+			return _make_wav(3.6, func(t: float) -> float:
+				var n: float = _noise(int(t * SAMPLE_RATE))
+				thunder_state[0] += (n - thunder_state[0]) * 0.025
+				var env: float = minf(t / 0.12, 1.0) * exp(-t * 0.9) * (0.65 + 0.35 * sin(t * 9.0))
+				return thunder_state[0] * 5.0 * env)
 		"victory":
 			return _make_wav(0.48, func(t: float) -> float:
 				var env: float = exp(-t * 5.0)
@@ -133,3 +169,10 @@ static func _make_wav(duration: float, generator: Callable) -> AudioStreamWAV:
 	wav.stereo = false
 	wav.data = bytes
 	return wav
+
+
+## Ruído branco determinístico em [-1, 1] a partir do índice da amostra (sem aleatoriedade global).
+static func _noise(index: int) -> float:
+	var h: int = (index * 374761393 + 668265263) & 0x7fffffff
+	h = ((h ^ (h >> 13)) * 1274126177) & 0x7fffffff
+	return float(h % 20001) / 10000.0 - 1.0

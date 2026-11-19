@@ -126,7 +126,7 @@ Atributos: HP `hp`, MP `mp`, FOR `strength`, MEN `mind`, DEF `defense`, RES `res
 - Tarefa aberta com critérios de aceite, e todos atendidos.
 - ADR criado ou ligado para cada decisão.
 - Testes e simulações verdes em headless.
-- **Executável de teste:** ao fim de cada tarefa que muda o jogo, rode `powershell -ExecutionPolicy Bypass -File toolsbuild_windows.ps1` e informe ao Orlando o caminho do `.exe` (`buildwindowsBibianasQuest.exe` na pasta principal do repositório), para ele testar sem abrir o Godot.
+- **Executável de teste:** ao fim de cada tarefa que muda o jogo, rode `powershell -ExecutionPolicy Bypass -File tools\build_windows.ps1` e informe ao Orlando o caminho do `.exe` (`build\windows\BibianasQuest.exe` na pasta principal do repositório), para ele testar sem abrir o Godot.
 - **Tarefa de tela (ADR-0036): print do jogo rodando com janela, anexado em `docs/tasks/prints/`, e o "teste do print" de `docs/ART-DIRECTION.md` §8 respondido.** Suíte verde não prova que a tela está certa.
 - Revisão cruzada por outro modelo (etapa 4) feita ou registrada como pendente no HANDOFF.
 - GDD, ADRs e HANDOFF atualizados.

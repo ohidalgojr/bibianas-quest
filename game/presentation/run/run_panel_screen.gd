@@ -252,6 +252,7 @@ func _render_event() -> void:
 
 func _title(text: String) -> void:
 	var label: Label = _text(text, 30)
+	label.theme_type_variation = "TitleLabel"
 	label.add_theme_color_override("font_color", Color(0.9, 0.75, 0.25))
 
 

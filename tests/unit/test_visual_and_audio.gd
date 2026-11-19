@@ -26,7 +26,7 @@ func test_hair_streak_follows_all_nine_gdd_power_stages() -> void:
 
 
 func test_sound_fx_synthesizes_valid_wav_streams_for_all_cues() -> void:
-	assert_eq(SoundFx.CUES.size(), 11)
+	assert_eq(SoundFx.CUES.size(), 14)
 	for cue: String in SoundFx.CUES:
 		var stream: AudioStreamWAV = SoundFx.stream_for(cue)
 		assert_not_null(stream, "stream gerado para %s" % cue)

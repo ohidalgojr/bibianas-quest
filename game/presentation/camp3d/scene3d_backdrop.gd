@@ -50,6 +50,7 @@ func _ready() -> void:
 	_build_scene()
 	var weather: WeatherLayer = WeatherLayer.new()
 	weather.rain = kind == "home" or kind == "victory" or kind == "defeat"
+	weather.embers = kind == "campfire" or kind == "victory"
 	add_child(weather)
 	_add_vignette()
 

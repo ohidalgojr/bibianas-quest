@@ -49,12 +49,14 @@ var _forced_coin: int = -1
 var _logged_events: int = 0
 var _telemetry: Telemetry
 var music: MusicBox
+var ambience: Ambience
+var _flash: LightningFlash
+var _fade: ColorRect
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	theme = Theme.new()
-	theme.default_font_size = 20
+	theme = DarkTheme.build()
 	if data == null:
 		data = DataLoader.load_all()
 	if save_enabled:
@@ -67,6 +69,14 @@ func _ready() -> void:
 		bestiary = (meta.get("bestiary", {}) as Dictionary).duplicate(true)
 	music = MusicBox.new()
 	add_child(music)
+	ambience = Ambience.new()
+	add_child(ambience)
+	_flash = LightningFlash.new()
+	_fade = ColorRect.new()
+	_fade.color = Color(0, 0, 0, 0)
+	_fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ambience.lightning.connect(_flash.strike)
 	_telemetry = Telemetry.new(telemetry_dir)
 	_telemetry.enabled = telemetry_enabled
 	if debug_enabled:
@@ -96,6 +106,7 @@ func _process(_delta: float) -> void:
 
 func show_home() -> void:
 	music.play_track("camp")
+	ambience.set_mood("home")
 	var box: VBoxContainer = _page("Bibiana's Quest", "Cidade Abandonada (regras v%d)" % CoreVersion.RULES_VERSION, "home")
 	if not data.is_valid():
 		box.add_child(_label("Dados inválidos. Veja o console."))
@@ -225,6 +236,7 @@ func _after_action() -> void:
 
 func _show_map() -> void:
 	music.play_track("map")
+	ambience.set_mood("map")
 	_clear()
 	if use_3d_map:
 		_map3d = Map3DScreen.new()
@@ -247,6 +259,7 @@ func choose_node(node_id: int) -> void:
 func _show_fight() -> void:
 	var fight_kind: int = run.current_node().kind
 	music.play_track("boss" if fight_kind == MapNode.Kind.BOSS or fight_kind == MapNode.Kind.MINI_BOSS or fight_kind == MapNode.Kind.ELITE else "combat")
+	ambience.set_mood("combat")
 	_clear()
 	_combat = CombatScreen.new()
 	_combat.data = data
@@ -312,6 +325,7 @@ func _show_event() -> void:
 
 func _open_panel(scene_kind: String = "") -> RunPanelScreen:
 	music.play_track("camp" if scene_kind == "campfire" else "map")
+	ambience.set_mood("camp" if scene_kind == "campfire" else "map")
 	var screen: RunPanelScreen = RunPanelScreen.new()
 	screen.panels = RunPanels.new(run)
 	screen.forced_coin = _forced_coin
@@ -328,6 +342,7 @@ func _open_panel(scene_kind: String = "") -> RunPanelScreen:
 ## creditados (em dobro na 1ª Descida) e "Outra Descida".
 func _show_result() -> void:
 	music.play_track("")
+	ambience.set_mood("")
 	var victory: bool = run.phase == RunState.Phase.VICTORY
 	var earned: int = run.echoes_earned()
 	echoes += earned
@@ -435,6 +450,16 @@ func _clear() -> void:
 func _set_content(control: Control) -> void:
 	_content = control
 	add_child(control)
+	# Relâmpago e fade ficam por cima da tela atual; a entrada é um fade a partir do preto.
+	for overlay: Control in [_flash, _fade]:
+		if overlay != null:
+			if overlay.get_parent() == self:
+				move_child(overlay, get_child_count() - 1)
+			else:
+				add_child(overlay)
+	if _fade != null and time_scale > 0.0:
+		_fade.color.a = 1.0
+		create_tween().tween_property(_fade, "color:a", 0.0, 0.45 * time_scale)
 
 
 ## Página simples centralizada com título e texto; devolve a caixa para os botões.
@@ -479,6 +504,7 @@ func _titled_box(title: String, text: String) -> VBoxContainer:
 	box.custom_minimum_size = Vector2(440, 0)
 	box.add_theme_constant_override("separation", 12)
 	var heading: Label = _label(title)
+	heading.theme_type_variation = "TitleLabel"
 	heading.add_theme_font_size_override("font_size", 30)
 	box.add_child(heading)
 	box.add_child(_label(text))

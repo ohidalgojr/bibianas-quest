@@ -85,8 +85,7 @@ var _continue: Button
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	theme = Theme.new()
-	theme.default_font_size = 20
+	theme = DarkTheme.build()
 	if data == null:
 		data = DataLoader.load_all()
 	_build()

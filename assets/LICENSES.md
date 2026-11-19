@@ -21,3 +21,10 @@ O Ultimate Monsters não veio. Estes inimigos ainda não têm modelo próprio e 
 ## Regra
 
 Pacote novo: baixar, conferir o texto de licença do próprio pacote, adicionar uma linha aqui e só então usar no jogo. Teste `test_assets_licenses.gd` confere que toda pasta de `assets/` tem linha neste arquivo.
+
+## Fontes (SIL Open Font License 1.1)
+
+| Fonte | Autor | Fonte do arquivo | Licença | Baixado em | Pasta | Uso |
+| --- | --- | --- | --- | --- | --- | --- |
+| Cinzel | The Cinzel Project Authors (NDISCOVER) | https://github.com/google/fonts/tree/main/ofl/cinzel | OFL 1.1 | 2026-11-19 | `assets/google_fonts/cinzel/` | Títulos, botões e números do jogo |
+| Alegreya | Juan Pablo del Peral (Huerta Tipográfica) | https://github.com/google/fonts/tree/main/ofl/alegreya | OFL 1.1 | 2026-11-19 | `assets/google_fonts/alegreya/` | Texto corrido |

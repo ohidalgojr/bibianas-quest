@@ -5,7 +5,7 @@ extends RefCounted
 ## Aplicado como material do `SubViewportContainer`, sobre a imagem de baixa resolução.
 
 const SHADER_CODE: String = """shader_type canvas_item;
-uniform float levels = 12.0;
+uniform float levels = 16.0;
 uniform float edge_strength = 0.6;
 uniform float edge_threshold = 0.15;
 uniform float blur_amount = 1.3;

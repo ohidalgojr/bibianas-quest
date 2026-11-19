@@ -5,19 +5,27 @@ extends Control
 
 var rain: bool = true
 var mist: bool = true
+var ash: bool = true
+var embers: bool = false
 
 var _rain_particles: CPUParticles2D
+var _specks: Array[Dictionary] = []
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	clip_contents = true
 	if not GfxSettings.weather or DisplayServer.get_name() == "headless":
 		return
 	if mist:
 		_add_mist()
 	if rain:
 		_add_rain()
+	if ash:
+		_add_specks(false)
+	if embers:
+		_add_specks(true)
 	resized.connect(_fit_rain)
 	_fit_rain()
 
@@ -53,12 +61,38 @@ func _add_rain() -> void:
 	_rain_particles.initial_velocity_max = 1050.0
 	_rain_particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
 	_rain_particles.color = Color(1, 1, 1, 0.38)
-	_rain_particles.z_index = 1
 	add_child(_rain_particles)
 
 
 func _fit_rain() -> void:
-	if _rain_particles == null:
-		return
-	_rain_particles.position = Vector2(size.x * 0.5 + 60.0, -20.0)
-	_rain_particles.emission_rect_extents = Vector2(size.x * 0.5 + 120.0, 2.0)
+	if _rain_particles != null:
+		_rain_particles.position = Vector2(size.x * 0.5 + 60.0, -20.0)
+		_rain_particles.emission_rect_extents = Vector2(size.x * 0.5 + 120.0, 2.0)
+	for entry: Dictionary in _specks:
+		var node: CPUParticles2D = entry["node"]
+		var rising: bool = bool(entry["rising"])
+		node.position = Vector2(size.x * 0.5, size.y + 10.0 if rising else -10.0)
+		node.emission_rect_extents = Vector2(size.x * 0.5, 2.0)
+
+
+## Cinzas que descem devagar ou brasas que sobem (TASK-042): pontos pequenos à deriva.
+func _add_specks(rising: bool) -> void:
+	var image: Image = Image.create(3, 3, false, Image.FORMAT_RGBA8)
+	image.fill(Color.WHITE)
+	var specks: CPUParticles2D = CPUParticles2D.new()
+	specks.texture = ImageTexture.create_from_image(image)
+	specks.amount = 36 if rising else 44
+	specks.lifetime = 5.0 if rising else 7.0
+	specks.preprocess = 6.0
+	specks.local_coords = false
+	specks.direction = Vector2(0.15, -1.0) if rising else Vector2(0.3, 1.0)
+	specks.spread = 25.0
+	specks.gravity = Vector2.ZERO
+	specks.initial_velocity_min = 25.0
+	specks.initial_velocity_max = 70.0 if rising else 40.0
+	specks.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	specks.color = Color(1.0, 0.55, 0.15, 0.85) if rising else Color(0.7, 0.7, 0.75, 0.45)
+	specks.scale_amount_min = 0.7
+	specks.scale_amount_max = 1.6
+	add_child(specks)
+	_specks.append({"node": specks, "rising": rising})
