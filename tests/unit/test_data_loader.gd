@@ -26,7 +26,7 @@ func test_real_data_loads_without_errors() -> void:
 	var data: GameData = DataLoader.load_all()
 	assert_true(data.is_valid(), "\n".join(data.errors))
 	assert_eq(data.classes.size(), 1)
-	assert_eq(data.enemies.size(), 7)
+	assert_eq(data.enemies.size(), 11)
 	assert_eq(data.events.size(), 6)
 	assert_eq(data.scenarios.size(), 1)
 

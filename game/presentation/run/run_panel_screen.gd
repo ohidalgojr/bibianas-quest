@@ -123,10 +123,10 @@ func _render_drop(drop: Dictionary) -> void:
 		equip_label += " (vende %s)" % str(drop["replaces"])
 	_button(equip_label, func() -> void:
 		panels.equip_drop()
-		_render())
+		_render(), IconRegistry.texture_for("item", str(drop["id"])))
 	_button("Vender por %d ouro" % int(drop["sell_value"]), func() -> void:
 		panels.sell_drop()
-		_render())
+		_render(), IconRegistry.texture_for("ui", "gold"))
 
 
 func _render_chest() -> void:
@@ -138,11 +138,11 @@ func _render_chest() -> void:
 		_text("Multiplicar o baú (sorteio de ×1,25 a ×2, uma vez):", 16)
 		var lucky: Button = _button("Usar Moeda da Sorte (%d)" % int(view["lucky_coins"]), func() -> void:
 			panels.boost_chest("lucky_coin")
-			_render())
+			_render(), IconRegistry.texture_for("ui", "luck"))
 		lucky.disabled = not bool(view["can_lucky"])
 		var ad: Button = _button("Assistir anúncio opcional (simulado)", func() -> void:
 			panels.boost_chest("ad")
-			_render())
+			_render(), IconRegistry.texture_for("ui", "gold"))
 		ad.disabled = not bool(view["can_ad"])
 	_button("Seguir", func() -> void: closed.emit())
 
@@ -155,14 +155,15 @@ func _render_shop() -> void:
 	if offer.is_empty():
 		_text("Nada mais à venda.")
 	for entry: Dictionary in offer:
-		_text("%s (%s): %s" % [str(entry["name"]), str(entry["slot"]), str(entry["description"])], 16)
-		var label: String = "Comprar %s: %d ouro" % [str(entry["name"]), int(entry["price"])]
+
+		var label: String = "%s (%s), %d ouro
+%s" % [str(entry["name"]), str(entry["slot"]), int(entry["price"]), str(entry["description"])]
 		if not bool(entry["can_buy"]):
 			label += " (%s)" % str(entry["reason"])
 		var item_id: String = str(entry["id"])
 		var buy: Button = _button(label, func() -> void:
 			panels.buy(item_id)
-			_render())
+			_render(), IconRegistry.texture_for("item", item_id))
 		buy.disabled = not bool(entry["can_buy"])
 	var skill: Dictionary = view["skill"]
 	if not skill.is_empty():
@@ -174,7 +175,7 @@ func _render_shop() -> void:
 			learn_label += " (%s)" % str(skill["reason"])
 		var learn: Button = _button(learn_label, func() -> void:
 			panels.buy_skill()
-			_render())
+			_render(), IconRegistry.texture_for("skill", str(skill["id"])))
 		learn.disabled = not bool(skill["can_buy"])
 	var reroll: Button = _button("Atualizar loja: %d ouro" % int(view["reroll_cost"]), func() -> void:
 		panels.reroll()
@@ -190,7 +191,7 @@ func _render_campfire() -> void:
 		_text("A fogueira está apagada. %s" % str(view["status"]), 18)
 		var light: Button = _button("Acender a fogueira (gasta 1 Galho Seco; você tem %d)" % int(view["firewood"]), func() -> void:
 			panels.light_campfire()
-			_render())
+			_render(), IconRegistry.texture_for("ui", "firewood"))
 		light.disabled = not bool(view["can_light"])
 		if not bool(view["can_light"]):
 			_text("Sem Galhos Secos não dá para acender. Eles caem raro de inimigos, baús e chefes, ou se compram na loja.", 16)
@@ -199,22 +200,23 @@ func _render_campfire() -> void:
 	_text("Brasas: %d. %s" % [int(view["embers"]), str(view["status"])])
 	var rest: Button = _button("Descansar (%d Brasas)" % int(view["rest_cost"]), func() -> void:
 		panels.rest()
-		_render())
+		_render(), IconRegistry.texture_for("ui", "embers"))
 	rest.disabled = not bool(view["can_rest"])
 	_text(str(view["rest_text"]), 16)
 	var sick: Array = view["diseases"]
 	if not sick.is_empty():
 		var treat: Button = _button("Tratar %s (%d Brasa)" % [str(sick[0]), int(view["treat_cost"])], func() -> void:
 			panels.treat_disease()
-			_render())
+			_render(), IconRegistry.texture_for("disease", Diseases.LEPTOSPIROSIS))
 		treat.disabled = not bool(view["can_treat"])
 		_text("Doença: -15% de HP máximo até tratar.", 16)
 	for entry: Dictionary in view["skills"]:
 		var skill_id: String = str(entry["id"])
-		var label: String = "%s (%d Brasas)" % [str(entry["name"]), int(view["skill_cost"])]
+		var label: String = "%s (%d Brasas)
+%s" % [str(entry["name"]), int(view["skill_cost"]), str(entry["description"])]
 		var skill: Button = _button(label, func() -> void:
 			panels.use_skill(skill_id)
-			_render())
+			_render(), IconRegistry.texture_for("skill", skill_id))
 		skill.disabled = not bool(entry["can_use"])
 		var detail: String = str(entry["description"])
 		if int(entry["left"]) > 0:
@@ -266,12 +268,21 @@ func _text(text: String, size: int = 20) -> Label:
 	return label
 
 
-func _button(text: String, action: Callable) -> Button:
+## Botão em forma de cartão: ícone à esquerda, texto em até duas linhas (nome e efeito).
+func _button(text: String, action: Callable, icon: Texture2D = null) -> Button:
 	var button: Button = Button.new()
 	button.text = text
-	button.custom_minimum_size = Vector2(0, 56)
+	button.custom_minimum_size = Vector2(0, 64 if icon != null else 56)
 	# Texto longo quebra de linha em vez de alargar o painel além da tela.
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if icon != null:
+		button.icon = icon
+		button.expand_icon = true
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.add_theme_constant_override("icon_max_width", 44)
+		button.add_theme_constant_override("h_separation", 12)
+		button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	button.pressed.connect(action)
 	_box.add_child(button)
 	return button

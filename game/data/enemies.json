@@ -54,6 +54,58 @@
 			"reactions": [{"when": "player_hp_below", "value": 50, "move": "maul"}]
 		},
 		{
+			"id": "bell_ghost", "name": "Sineiro Penado", "type": "common", "base_level": 1,
+			"mutation": "phantom",
+			"stats": {"hp": 34, "strength": 8, "defense": 1, "resistance": 6, "speed": 10, "evasion": 16},
+			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "chill_touch", "kind": "attack"},
+				{"id": "knell_wail", "kind": "heavy", "fail_effect": "cursed"},
+				{"id": "chill_touch", "kind": "attack"},
+				{"id": "grave_chill", "kind": "strong", "power": 1.25}
+			]}],
+			"reactions": [{"when": "player_buffed", "move": "knell_wail"}]
+		},
+		{
+			"id": "wandering_bones", "name": "Ossada Errante", "type": "common", "base_level": 1,
+			"mutation": "thorny",
+			"stats": {"hp": 44, "strength": 11, "defense": 7, "resistance": 2, "speed": 5, "evasion": 1},
+			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "attack", "kind": "attack"},
+				{"id": "bone_rattle", "kind": "heavy", "fail_effect": "weakened"},
+				{"id": "attack", "kind": "attack"},
+				{"id": "bone_crush", "kind": "strong", "power": 1.4}
+			]}],
+			"reactions": [{"when": "self_hp_below", "value": 30, "move": "bone_crush"}]
+		},
+		{
+			"id": "sewer_slime", "name": "Lodo de Esgoto", "type": "common", "base_level": 1,
+			"mutation": "bloated",
+			"stats": {"hp": 52, "strength": 7, "defense": 2, "resistance": 2, "speed": 4, "evasion": 0},
+			"element_mults": {"fire": 1.5}, "tags": ["diseased"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "attack", "kind": "attack"},
+				{"id": "acid_splash", "kind": "debuff", "power": 0.9, "effect": "poison", "effect_chance": 55},
+				{"id": "attack", "kind": "attack"},
+				{"id": "engulf", "kind": "heavy", "fail_effect": "slowed"}
+			]}],
+			"reactions": [{"when": "player_defended_twice", "move": "acid_splash"}]
+		},
+		{
+			"id": "alley_leech", "name": "Sanguessuga de Beco", "type": "common", "base_level": 1,
+			"mutation": "voracious",
+			"stats": {"hp": 40, "strength": 10, "defense": 3, "resistance": 3, "speed": 9, "evasion": 7},
+			"element_mults": {"fire": 1.5, "holy": 1.5}, "tags": ["diseased"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "attack", "kind": "attack"},
+				{"id": "blood_kiss", "kind": "heavy", "fail_effect": "poison"},
+				{"id": "pounce", "kind": "strong", "power": 1.3},
+				{"id": "attack", "kind": "attack"}
+			]}],
+			"reactions": [{"when": "player_hp_below", "value": 45, "move": "pounce"}]
+		},
+		{
 			"id": "rotten_executioner", "name": "Carrasco Apodrecido", "type": "elite", "base_level": 2,
 			"stats": {"hp": 95, "strength": 15, "defense": 9, "resistance": 4, "speed": 5, "evasion": 2},
 			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],

@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aberta (não iniciada; depois da TASK-042) |
+| Status | Em verificação (ícones e cartões prontos; barras com moldura, inventário visual e `xN` do baú pendentes; falta o Orlando aprovar os prints) |
 | Aberta em | 2026-11-19 |
 | Fase | 1, feedback do Orlando sobre o MVP visual |
 | GDD | 6, 7, 10, 15, 19 |
@@ -20,8 +20,8 @@ Trocar listas de texto e botões lisos por **interface de jogo**: **ícones** de
 
 ## Critérios de aceite
 
-- [ ] Conjunto de ícones CC0 (por exemplo Kenney "Game Icons" e "RPG Icons", ou Game-icons.net com a licença registrada) mapeado por id para todo item, skill, status e doença dos dados; teste de que nenhum id fica sem ícone.
-- [ ] **Cartões** no lugar dos botões de texto na loja, na fogueira, no baú, na recompensa e no combate (ícone, nome, custo, efeito em uma linha, seta verde ou vermelha de comparação).
+- [x] Conjunto de ícones CC0 (por exemplo Kenney "Game Icons" e "RPG Icons", ou Game-icons.net com a licença registrada) mapeado por id para todo item, skill, status e doença dos dados; teste de que nenhum id fica sem ícone.
+- [~] **Cartões** no lugar dos botões de texto na loja, na fogueira, no baú, na recompensa e no combate (ícone, nome, custo, efeito em uma linha, seta verde ou vermelha de comparação).
 - [ ] Barras de HP e MP com moldura, número dentro e animação de dano; ícones de status e intenção sobre os personagens.
 - [ ] Inventário e equipamento da Bibiana visíveis (slots com ícones) no mapa e na loja.
 - [ ] `xN` do multiplicador sobre o baú; prints de cada tela alterada; executável gerado.
@@ -40,7 +40,11 @@ Trocar listas de texto e botões lisos por **interface de jogo**: **ícones** de
 
 ## Verificação
 
-Ainda não executada.
+Suíte em 2026-11-19: 343 testes, 343 passando (`test_icons.gd`: todo item, skill, efeito e tipo de nó tem ícone). Prints: `docs/tasks/prints/TASK-043-icones|loja|fogueira|recompensa|combate.png`.
+
+**Feito:** pacote CC0 "496 RPG Icons" (gnola14) registrado em `assets/LICENSES.md`; `IconRegistry` por id (18 itens, 9 skills, 9 efeitos, doença, 9 tipos de nó, UI); cartões com ícone na loja (nome, espécie, preço e efeito), na fogueira (skills com efeito, descansar, acender, tratar), na recompensa (equipar e vender) e no baú (Moeda da Sorte e anúncio); botões de combate com ícone (atacar, defender, skills, poção, éter, fugir, Moeda da Sorte).
+
+**Falta (por isso `[~]` e `[ ]`):** seta verde ou vermelha de comparação na loja; barras de HP e MP com moldura e número dentro; ícones de status sobre os personagens no combate (o registro existe, falta desenhar); inventário e equipamento visuais; `xN` sobre o baú; ícone dos tipos de nó nas bolhas do mapa.
 
 ## Revisão cruzada
 

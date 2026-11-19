@@ -129,7 +129,7 @@ func _build_arena(kind: int) -> void:
 		StageKit.place(_scene_root, K_GRAVE + "brick-wall.glb" if boss else K_GRAVE + "stone-wall.glb", entry["p"] as Vector3, float(entry["yaw"]), 1.6 if boss else 1.2)
 	var warm: OmniLight3D = OmniLight3D.new()
 	warm.light_color = Color(1.0, 0.52, 0.2)
-	warm.light_energy = 4.0
+	warm.light_energy = 2.8
 	warm.omni_range = 7.0
 	warm.position = Vector3(0.2, 1.6, 0.2)
 	_scene_root.add_child(warm)
@@ -161,9 +161,13 @@ func _spawn_actors(kind: int) -> void:
 		return
 	enemy_node = ModelRegistry.spawn(_enemy_id)
 	enemy_node.position = ENEMY_POS
-	enemy_node.rotation_degrees.y = ENEMY_YAW
+	enemy_node.rotation_degrees.y = ENEMY_YAW + ModelRegistry.yaw_offset(_enemy_id)
 	var boss: bool = kind == MapNode.Kind.BOSS or kind == MapNode.Kind.MINI_BOSS
-	_enemy_scale = 2.9 if boss else (2.7 if kind == MapNode.Kind.ELITE else 2.5)
+	# Escala pela maior dimensão do modelo: o rato, o cão e o carrasco ocupam o mesmo palco.
+	var target: float = 2.7 if boss else (2.4 if kind == MapNode.Kind.ELITE else 2.2)
+	var box: AABB = _aabb(enemy_node)
+	var longest: float = maxf(box.size.x, maxf(box.size.y, box.size.z))
+	_enemy_scale = target / longest if longest > 0.05 else 2.4
 	enemy_node.scale = Vector3.ONE * _enemy_scale
 	_scene_root.add_child(enemy_node)
 	ModelRegistry.play(enemy_node, _enemy_id, "idle")

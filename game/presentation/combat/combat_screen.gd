@@ -156,6 +156,7 @@ func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 		skill_button.visible = index < session.skills.size()
 		if index < session.skills.size():
 			skill_button.text = session.skill_label(index)
+			_style_icon_button(skill_button, IconRegistry.texture_for("skill", session.skills[index].id))
 	_refresh_bars()
 
 
@@ -614,6 +615,11 @@ func _build() -> void:
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.custom_minimum_size = Vector2(0, (62 if use_stage else 76) if main_action else (44 if use_stage else 48))
 		button.add_theme_font_size_override("font_size", 16)
+		var ui_icon: Texture2D = IconRegistry.texture_for("ui", action if action != "luck" else "luck")
+		if action == "potion":
+			ui_icon = IconRegistry.texture_for("ui", "potion")
+		if ui_icon != null:
+			_style_icon_button(button, ui_icon)
 		if action == "speed":
 			button.pressed.connect(_toggle_speed)
 		elif action == "luck":
@@ -848,3 +854,13 @@ func _forecast_for(action: String) -> String:
 		if index < session.skills.size():
 			return "%s   %s" % [session.skill_label(index), session.skill_hint(index)]
 	return str((_buttons[action] as Button).text).replace("\n", "   ")
+
+
+## Botão de ação com ícone pequeno à esquerda do texto (TASK-043).
+func _style_icon_button(button: Button, icon: Texture2D) -> void:
+	button.icon = icon
+	button.expand_icon = true
+	button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.add_theme_constant_override("icon_max_width", 30)
+	button.add_theme_constant_override("h_separation", 10)
+	button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

@@ -76,12 +76,12 @@ func test_meta_unlocks_apply_to_run_state_and_survive_run_save() -> void:
 	assert_eq(loaded.meta_unlocks, meta_run.meta_unlocks)
 
 
-func test_bestiary_records_kills_and_deaths_for_all_seven_enemies() -> void:
+func test_bestiary_records_kills_and_deaths_for_all_enemies() -> void:
 	var bestiary: Dictionary = {}
 	var defeated: Array[String] = ["infected_citizen", "giant_rat", "infected_citizen", "bell_warden"]
 	bestiary = SanctuaryRules.record_run_in_bestiary(bestiary, defeated, "gravedigger")
 	var entries: Array[Dictionary] = SanctuaryRules.bestiary_entries(_data, bestiary)
-	assert_eq(entries.size(), 7, "todos os 7 inimigos aparecem no Códice")
+	assert_eq(entries.size(), 11, "todos os 11 inimigos aparecem no Códice")
 
 	var by_id: Dictionary = {}
 	for entry: Dictionary in entries:

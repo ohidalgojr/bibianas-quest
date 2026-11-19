@@ -11,7 +11,7 @@ Todo asset externo do jogo entra aqui **antes** de ser usado (GDD §18, ADR-0036
 | Ambient music loops (4 faixas) | congusbongus, CleytonKauffman, yd | https://opengameart.org/content/ancient-caverns-horror-ambient-loop e outras 3 páginas listadas em `License.txt` | CC0 1.0 | 2026-11-19 | `assets/opengameart/ambient_music/` | Música de mapa, combate, chefe e fogueira (TASK-039) |
 | Animated Monster Pack | Quaternius | https://opengameart.org/content/lowpoly-animated-monsters | CC0 1.0 | 2026-11-19 | `assets/quaternius/monsters/` | Morcego (corvo), esqueleto, lodo; só 4 monstros (o pacote Ultimate Monsters de 50 modelos está numa pasta do Google Drive e não foi baixado) |
 
-## Pendências de modelo (lista para o Blender)
+## Pendências de modelo
 
 O Ultimate Monsters não veio. Estes inimigos ainda não têm modelo próprio e usam um substituto até a TASK-039 ou o Blender:
 
@@ -28,3 +28,15 @@ Pacote novo: baixar, conferir o texto de licença do próprio pacote, adicionar 
 | --- | --- | --- | --- | --- | --- | --- |
 | Cinzel | The Cinzel Project Authors (NDISCOVER) | https://github.com/google/fonts/tree/main/ofl/cinzel | OFL 1.1 | 2026-11-19 | `assets/google_fonts/cinzel/` | Títulos, botões e números do jogo |
 | Alegreya | Juan Pablo del Peral (Huerta Tipográfica) | https://github.com/google/fonts/tree/main/ofl/alegreya | OFL 1.1 | 2026-11-19 | `assets/google_fonts/alegreya/` | Texto corrido |
+
+## Ícones (CC0)
+
+| Pacote | Autor | Fonte | Licença | Baixado em | Pasta | Uso |
+| --- | --- | --- | --- | --- | --- | --- |
+| 496 RPG Icons | gnola14 | https://opengameart.org/content/496-pixel-art-icons-for-medievalfantasy-rpg | CC0 1.0 | 2026-11-19 | `assets/gnola14/rpg_icons/` | Ícones de itens, skills, status, doenças e tipos de nó (TASK-043) |
+
+## Modelos do próprio projeto (CC0)
+
+| Pacote | Autor | Fonte | Licença | Criado em | Pasta | Uso |
+| --- | --- | --- | --- | --- | --- | --- |
+| Inimigos do cenário 1 | Projeto Bibiana's Quest (script de Blender) | `tools/blender/make_enemies.py` | CC0 1.0 | 2026-11-19 | `assets/bibiana/enemies/` | Rato Grande, Cão de Peste, Corvo Carniceiro e Carrasco Apodrecido (TASK-044) |

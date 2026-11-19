@@ -49,7 +49,7 @@ func test_scenario_one_matches_gdd_section_17() -> void:
 	assert_eq(int(scenario["min_level"]), 1)
 	assert_eq(int(scenario["max_level"]), 6)
 	assert_eq(scenario["boss"], "gravedigger")
-	assert_between((scenario["common_enemies"] as Array).size(), 4, 5, "4 a 5 comuns (roteiro)")
+	assert_between((scenario["common_enemies"] as Array).size(), 4, 8, "4 a 8 comuns (ADR-0038)")
 	assert_eq((scenario["elite_enemies"] as Array).size(), 1)
 
 

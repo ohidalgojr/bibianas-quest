@@ -32,6 +32,15 @@ const MOVE_ID_NAMES: Dictionary = {
 	"deafening_toll": "Badalo Ensurdecedor",
 	"toll_curse": "Repique Fúnebre",
 	"cage_slam": "Golpe de Jaula",
+	"chill_touch": "Toque Gélido",
+	"knell_wail": "Lamento do Sino",
+	"grave_chill": "Frio de Cova",
+	"bone_rattle": "Chacoalhar de Ossos",
+	"bone_crush": "Esmagar Ossos",
+	"acid_splash": "Respingo Ácido",
+	"engulf": "Engolir",
+	"blood_kiss": "Beijo de Sangue",
+	"pounce": "Salto",
 }
 ## Por que o inimigo reagiu, pelo código do evento de intenção (ADR-0030).
 const REACTION_TEXTS: Dictionary = {
