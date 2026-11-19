@@ -36,17 +36,40 @@ func test_every_node_has_a_plaza_and_the_destinations_stay_free_of_props() -> vo
 					assert_false(layout.props.has(Vector2i(cell.x + dx, cell.y + dz)), "prop perto do nó %d (semente %d)" % [node.id, seed_value])
 
 
-func test_terrain_rises_with_the_layers_and_roads_connect_the_plazas() -> void:
+func test_terrain_varies_and_the_boss_stands_on_a_high_plateau() -> void:
 	var run: RunState = _run(3)
 	var layout: Map3DLayout = Map3DLayout.new(run.map, 3)
-	var start_h: int = layout.height_at(layout.node_cells[run.map.start_id])
-	var boss: MapNode = run.map.nodes[run.map.nodes.size() - 1]
+	var boss_level: int = 0
+	var descents: int = 0
 	for node: MapNode in run.map.nodes:
 		if node.kind == MapNode.Kind.BOSS:
-			boss = node
-	assert_gt(layout.height_at(layout.node_cells[boss.id]), start_h, "o chefe fica no ponto mais alto")
+			boss_level = int(layout.node_levels[node.id])
+		for next_id: int in node.next_ids:
+			if int(layout.node_levels[next_id]) < int(layout.node_levels[node.id]):
+				descents += 1
+	assert_eq(boss_level, Map3DLayout.MAX_PLAZA_LEVEL, "o chefe fica no platô mais alto")
+	assert_gt(descents, 0, "o caminho desce em algum trecho, não é só subida")
 	assert_gt(layout.road_cells.size(), 10)
 	assert_gt(layout.stairs.size(), 0, "há degraus onde a altura muda")
+	assert_gt(layout.water_cells.size(), 0, "há canais de água")
+	assert_gt(layout.ruins.size(), 0, "há ruínas e casas")
+	assert_gt(layout.lamps.size(), 0, "há postes ao longo das ruas")
+
+
+func test_roads_step_one_block_at_a_time_and_stairs_point_up() -> void:
+	for seed_value: int in [1, 2, 3, 4, 5, 6]:
+		var run: RunState = _run(seed_value)
+		var layout: Map3DLayout = Map3DLayout.new(run.map, seed_value)
+		for cell: Vector2i in layout.road_cells.keys():
+			assert_false(layout.water_cells.has(cell), "estrada fora d'água")
+			for offset: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var near: Vector2i = cell + offset
+				if layout.road_cells.has(near) or layout.plaza_cells.has(near):
+					assert_lte(absi(layout.height_at(cell) - layout.height_at(near)), 1, "degrau de 1 bloco em %s (semente %d)" % [cell, seed_value])
+		var yaw_offsets: Dictionary = {0.0: Vector2i(0, -1), 90.0: Vector2i(-1, 0), 180.0: Vector2i(0, 1), 270.0: Vector2i(1, 0)}
+		for cell: Vector2i in layout.stairs.keys():
+			var up: Vector2i = cell + (yaw_offsets[float(layout.stairs[cell])] as Vector2i)
+			assert_eq(layout.height_at(up), layout.height_at(cell) + 1, "o degrau de %s aponta para o lado mais alto" % cell)
 
 
 func test_fog_hides_what_comes_after_the_destinations() -> void:

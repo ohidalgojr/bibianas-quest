@@ -166,6 +166,7 @@ func _build_terrain() -> void:
 	for cell: Vector2i in layout.stairs.keys():
 		_place(K_MINI + "stairs.glb", layout.world_of(cell) + Vector3(0, 0.0, 0), float(layout.stairs[cell]))
 	_build_border_walls()
+	_build_world_details()
 	var keys: Array = layout.props.keys()
 	for cell: Vector2i in keys:
 		var pick: int = int(layout.props[cell]) % DECOR_PROPS.size()
@@ -509,3 +510,85 @@ func _build_border_walls() -> void:
 			if layout.plaza_cells.has(cell) or layout.road_cells.has(cell):
 				continue
 			_place(K_GRAVE + "stone-wall.glb", layout.world_of(cell), 0.0, 1.0)
+
+
+## Canais de água, postes ao longo das ruas e ruínas em clareiras (TASK-046).
+func _build_world_details() -> void:
+	_build_water()
+	var lit: int = 0
+	for index: int in layout.lamps.size():
+		var cell: Vector2i = layout.lamps[index]
+		var top: Vector3 = layout.world_of(cell)
+		_place(K_GRAVE + "lightpost-single.glb", top, float((index * 90) % 360), 1.5)
+		if index % 3 == 0 and lit < 14:
+			lit += 1
+			var lamp: OmniLight3D = OmniLight3D.new()
+			lamp.light_color = Color(1.0, 0.72, 0.38)
+			lamp.light_energy = 1.4
+			lamp.omni_range = 4.0
+			lamp.position = top + Vector3(0, 1.9, 0)
+			_world.add_child(lamp)
+	for ruin: Dictionary in layout.ruins:
+		_build_ruin(ruin["cell"] as Vector2i, int(ruin["kind"]))
+
+
+func _build_water() -> void:
+	if layout.water_cells.is_empty():
+		return
+	var plane: PlaneMesh = PlaneMesh.new()
+	plane.size = Vector2(1.0, 1.0)
+	var shader: Shader = Shader.new()
+	shader.code = "shader_type spatial;\nrender_mode blend_mix, cull_disabled, depth_draw_never;\nvoid fragment() {\n\tvec2 p = UV * 6.0;\n\tfloat ripple = sin(p.x * 3.0 + TIME * 1.4) * sin(p.y * 3.0 - TIME * 1.1);\n\tvec3 deep = vec3(0.03, 0.09, 0.14);\n\tvec3 light = vec3(0.12, 0.28, 0.36);\n\tALBEDO = mix(deep, light, 0.5 + 0.5 * ripple);\n\tALPHA = 0.88;\n\tROUGHNESS = 0.15;\n\tMETALLIC = 0.4;\n}\n"
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = shader
+	plane.material = material
+	var multi: MultiMesh = MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.mesh = plane
+	multi.instance_count = layout.water_cells.size()
+	var index: int = 0
+	for cell: Vector2i in layout.water_cells.keys():
+		multi.set_instance_transform(index, Transform3D(Basis.IDENTITY, Vector3(cell.x, (layout.height_at(cell) + 1) * Map3DLayout.BLOCK_H - 0.08, cell.y)))
+		index += 1
+	var holder: MultiMeshInstance3D = MultiMeshInstance3D.new()
+	holder.multimesh = multi
+	holder.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_world.add_child(holder)
+
+
+## Três tipos de ruína: casa (anel de muros com porta e cripta), torre (pilares e fogo) e cemitério
+## (cerca, lápides e cruz).
+func _build_ruin(center: Vector2i, kind: int) -> void:
+	var base: Vector3 = layout.world_of(center)
+	var door_side: int = (center.x + center.y) % 4
+	match kind:
+		0:
+			for i: int in range(-2, 3):
+				if not (door_side == 0 and i == 0):
+					_place(K_GRAVE + "brick-wall.glb", base + Vector3(i, 0, -2), 0.0, 1.0)
+				if not (door_side == 1 and i == 0):
+					_place(K_GRAVE + "brick-wall.glb", base + Vector3(i, 0, 2), 0.0, 1.0)
+				if not (door_side == 2 and i == 0):
+					_place(K_GRAVE + "brick-wall.glb", base + Vector3(-2, 0, i), 90.0, 1.0)
+				if not (door_side == 3 and i == 0):
+					_place(K_GRAVE + "brick-wall.glb", base + Vector3(2, 0, i), 90.0, 1.0)
+			_place(K_GRAVE + "crypt-small.glb", base, float(door_side * 90), 1.3)
+		1:
+			for corner: Vector2 in [Vector2(-1.6, -1.6), Vector2(1.6, -1.6), Vector2(-1.6, 1.6), Vector2(1.6, 1.6)]:
+				_place(K_GRAVE + "pillar-large.glb", base + Vector3(corner.x, 0, corner.y), 0.0, 1.6)
+			_place(K_GRAVE + "column-large.glb", base, 0.0, 2.6)
+			_place(K_GRAVE + "fire-basket.glb", base + Vector3(0.0, 0.0, 1.0), 0.0, 1.6)
+			var glow: OmniLight3D = OmniLight3D.new()
+			glow.light_color = Color(1.0, 0.5, 0.18)
+			glow.light_energy = 2.4
+			glow.omni_range = 4.5
+			glow.position = base + Vector3(0.0, 1.4, 1.0)
+			_world.add_child(glow)
+		_:
+			for i: int in range(-2, 3):
+				_place(K_GRAVE + "iron-fence.glb", base + Vector3(i, 0, -2), 0.0, 1.0)
+				_place(K_GRAVE + "iron-fence.glb", base + Vector3(i, 0, 2), 0.0, 1.0)
+			var stones: Array[String] = ["gravestone-cross.glb", "gravestone-round.glb", "gravestone-broken.glb", "gravestone-wide.glb", "gravestone-bevel.glb", "gravestone-roof.glb"]
+			for k: int in stones.size():
+				_place(K_GRAVE + stones[k], base + Vector3(float(k % 3) - 1.0, 0, float(k / 3) - 0.5), 0.0, 1.2)
+			_place(K_GRAVE + "gravestone-cross-large.glb", base + Vector3(0, 0, 1.4), 0.0, 1.6)
