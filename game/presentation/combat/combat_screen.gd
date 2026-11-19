@@ -51,6 +51,8 @@ var _seed_counter: int = 0
 var use_stage: bool = DisplayServer.get_name() != "headless"
 var _stage: Combat3DStage
 var _timeline_col: VBoxContainer
+var _status_enemy: HBoxContainer
+var _status_player: HBoxContainer
 var _forecast: Label
 ## Tipo de nó do palco quando a luta não vem de uma Descida (teste e depuração); -1 é a praça comum.
 var stage_kind: int = -1
@@ -366,9 +368,13 @@ func _wait(seconds: float) -> void:
 
 func _refresh_bars() -> void:
 	_enemy_hp_bar.value = _enemy_hp
+	_set_bar_text(_enemy_hp_bar, "%d / %d" % [_enemy_hp, int(_enemy_hp_bar.max_value)])
 	_enemy_hp_label.text = "HP %d / %d" % [_enemy_hp, int(_enemy_hp_bar.max_value)]
 	_player_hp_bar.value = _player_hp
+	_set_bar_text(_player_hp_bar, "HP %d / %d" % [_player_hp, int(_player_hp_bar.max_value)])
 	_player_mp_bar.value = _player_mp
+	_set_bar_text(_player_mp_bar, "MP %d / %d" % [_player_mp, int(_player_mp_bar.max_value)])
+	_fill_status_icons()
 	_player_stats.text = "HP %d / %d    MP %d / %d" % [_player_hp, int(_player_hp_bar.max_value),
 		_player_mp, int(_player_mp_bar.max_value)]
 	_player_effects.text = _effects_text(Combatant.PLAYER)
@@ -742,13 +748,40 @@ func _overlay() -> PanelContainer:
 	return overlay
 
 
+## Barra com moldura de bronze e o número dentro (TASK-043).
 func _bar(color: Color) -> ProgressBar:
 	var bar: ProgressBar = ProgressBar.new()
-	bar.custom_minimum_size = Vector2(0, 18)
+	bar.custom_minimum_size = Vector2(0, 22)
 	bar.show_percentage = false
-	bar.add_theme_stylebox_override("fill", _box(color))
-	bar.add_theme_stylebox_override("background", _box(Color(0.2, 0.2, 0.22)))
+	var fill: StyleBoxFlat = StyleBoxFlat.new()
+	fill.bg_color = color
+	fill.set_corner_radius_all(3)
+	fill.border_color = color.lightened(0.35)
+	fill.border_width_top = 2
+	var back: StyleBoxFlat = StyleBoxFlat.new()
+	back.bg_color = Color(0.04, 0.04, 0.06)
+	back.border_color = Color(0.42, 0.35, 0.24)
+	back.set_border_width_all(1)
+	back.set_corner_radius_all(3)
+	bar.add_theme_stylebox_override("fill", fill)
+	bar.add_theme_stylebox_override("background", back)
+	var text: Label = Label.new()
+	text.name = "BarText"
+	text.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text.add_theme_font_size_override("font_size", 13)
+	text.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	text.add_theme_constant_override("outline_size", 4)
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.add_child(text)
 	return bar
+
+
+func _set_bar_text(bar: ProgressBar, label: String) -> void:
+	var text: Label = bar.get_node_or_null("BarText") as Label
+	if text != null:
+		text.text = label
 
 
 func _box(color: Color) -> StyleBoxFlat:
@@ -780,6 +813,12 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> void:
 		panel.modulate = Color(1, 1, 1, 0.88)
 	log_panel.custom_minimum_size = Vector2(0, 44)
 	_timeline.visible = false
+	_status_enemy = HBoxContainer.new()
+	_status_enemy.position = Vector2(300, 68)
+	_stage.add_child(_status_enemy)
+	_status_player = HBoxContainer.new()
+	_status_player.position = Vector2(8, 252)
+	_stage.add_child(_status_player)
 	_timeline_col = VBoxContainer.new()
 	_timeline_col.add_theme_constant_override("separation", 3)
 	_timeline_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -864,3 +903,25 @@ func _style_icon_button(button: Button, icon: Texture2D) -> void:
 	button.add_theme_constant_override("icon_max_width", 30)
 	button.add_theme_constant_override("h_separation", 10)
 	button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+
+## Ícones dos efeitos ativos sobre os personagens (TASK-043): o do inimigo no alto do palco, o da
+## Bibiana embaixo à esquerda. Sem palco 3D os efeitos ficam só em texto.
+func _fill_status_icons() -> void:
+	if _status_enemy == null or _status_player == null:
+		return
+	for entry: Array in [[_status_enemy, Combatant.ENEMY], [_status_player, Combatant.PLAYER]]:
+		var row: HBoxContainer = entry[0]
+		for child: Node in row.get_children():
+			child.queue_free()
+		for label: String in _effects[int(entry[1])]:
+			var tex: Texture2D = IconRegistry.texture_for("effect", label)
+			if tex == null:
+				continue
+			var icon: TextureRect = TextureRect.new()
+			icon.texture = tex
+			icon.custom_minimum_size = Vector2(30, 30)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			icon.tooltip_text = CombatTexts.effect_name(label)
+			row.add_child(icon)

@@ -15,7 +15,7 @@ const STAT_FIELDS: Array[Array] = [
 	["luck", "SORTE"],
 ]
 const RARITY_NAMES: Dictionary = {"worn": "Gasto", "common": "Comum", "uncommon": "Incomum", "rare": "Raro"}
-const SLOT_NAMES: Dictionary = {"weapon": "Arma", "armor": "Armadura", "relic": "Relíquia", "consumable": "Consumível"}
+const SLOT_NAMES: Dictionary = {"weapon": "Arma", "armor": "Armadura", "relic": "Relíquia", "consumable": "Consumível", "head": "Cabeça", "offhand": "Mão secundária"}
 
 var run: RunState
 
@@ -121,6 +121,7 @@ func chest_view() -> Dictionary:
 		"title": "Baú",
 		"lines": lines,
 		"boosted": boosted,
+		"multiplier": int(chest.get("multiplier", 100)),
 		"lucky_coins": run.consumable_count(RunRules.LUCKY_COIN_ID),
 		"can_lucky": run.can_boost_chest("lucky_coin"),
 		"can_ad": run.can_boost_chest("ad"),
@@ -205,6 +206,7 @@ func item_view(item_id: String) -> Dictionary:
 		"description": item_description(item_id),
 		"can_buy": run.can_buy(item_id),
 		"reason": reason,
+		"delta": _net_gain(item_id),
 	}
 
 
@@ -362,3 +364,17 @@ func close_event() -> void:
 		run.sell_drop()
 	run.last_event_result = {}
 
+
+
+## Ganho líquido de atributos ao equipar o item (soma das diferenças); 0 para consumíveis.
+## A loja mostra seta para cima (positivo) ou para baixo (negativo) pelo sinal.
+func _net_gain(item_id: String) -> int:
+	if str(run.data.items[item_id]["slot"]) == "consumable":
+		return 0
+	var before: Stats = run.player_stats()
+	var after: Stats = run.stats_with(item_id)
+	var total: int = 0
+	for entry: Array in STAT_FIELDS:
+		var field: String = str(entry[0])
+		total += int(after.get(field)) - int(before.get(field))
+	return total

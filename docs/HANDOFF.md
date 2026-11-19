@@ -118,7 +118,8 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-048 | 20 itens novos (cabeça e mão secundária incluídas) com ícones | agente | em verificação |
 | 12 | TASK-049 | Preparar o jogo para as classes (estudo `docs/design/ESTUDO-quando-entram-as-classes.md`) | Orlando decide | aguardando decisão |
 | 12 | TASK-046 e 047 | Mapa com relevo variado, canais, ruínas; criaturas de horror e 3 inimigos novos | agente | em verificação (ver as tarefas) |
-| 12 | TASK-043 e 044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
+| 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
+| 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
 | 12 | TASK-045 | Ritmo e variedade de gameplay (estudo, decisão do Orlando) | agente | próximo do feedback "enjoativo" |
 | 12 | TASK-040 | Fechamento visual: o Orlando joga e aprova | Orlando | fecha o "MVP jogável" |

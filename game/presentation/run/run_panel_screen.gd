@@ -132,6 +132,11 @@ func _render_drop(drop: Dictionary) -> void:
 func _render_chest() -> void:
 	var view: Dictionary = panels.chest_view()
 	_title(str(view["title"]))
+	if bool(view["boosted"]):
+		var mult: Label = _text("×%.2f" % (float(view.get("multiplier", 100)) / 100.0), 64)
+		mult.theme_type_variation = "TitleLabel"
+		mult.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		mult.add_theme_font_size_override("font_size", 64)
 	for line: Variant in view["lines"]:
 		_text(str(line))
 	if not bool(view["boosted"]):

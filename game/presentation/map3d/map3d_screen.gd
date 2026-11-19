@@ -53,6 +53,7 @@ var _overlay: Control
 var _header: Label
 var _taps: Dictionary = {}
 var _bubbles: Dictionary = {}
+var _gear_row: HBoxContainer
 
 
 func _ready() -> void:
@@ -93,6 +94,11 @@ func _ready() -> void:
 	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_header)
+	_gear_row = HBoxContainer.new()
+	_gear_row.position = Vector2(10, 104)
+	_gear_row.add_theme_constant_override("separation", 6)
+	_gear_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_gear_row)
 	refresh()
 	_start_reveal()
 
@@ -285,6 +291,7 @@ func refresh() -> void:
 	for child: Node in _node_root.get_children():
 		child.queue_free()
 	_header.text = view.header()
+	_fill_gear()
 	for node_view: Dictionary in view.nodes():
 		_build_node(node_view)
 	_build_hero()
@@ -592,3 +599,48 @@ func _build_ruin(center: Vector2i, kind: int) -> void:
 			for k: int in stones.size():
 				_place(K_GRAVE + stones[k], base + Vector3(float(k % 3) - 1.0, 0, float(k / 3) - 0.5), 0.0, 1.2)
 			_place(K_GRAVE + "gravestone-cross-large.glb", base + Vector3(0, 0, 1.4), 0.0, 1.6)
+
+
+## Equipamento e mochila da Bibiana em ícones, sob o cabeçalho (TASK-043): arma, mão secundária,
+## armadura, cabeça e relíquia (vazio aparece como moldura apagada), mais poções e Galhos Secos.
+func _fill_gear() -> void:
+	for child: Node in _gear_row.get_children():
+		child.queue_free()
+	var run: RunState = view.run
+	for slot: String in ["weapon", "offhand", "armor", "head", "relic"]:
+		var item_id: String = str(run.equipment.get(slot, ""))
+		var tip: String = RunPanels.SLOT_NAMES.get(slot, slot)
+		var tex: Texture2D = IconRegistry.texture_for("item", item_id) if not item_id.is_empty() else null
+		if not item_id.is_empty():
+			tip = "%s: %s" % [tip, str(run.data.items[item_id]["name"])]
+		_gear_row.add_child(_gear_slot(tex, tip, ""))
+	_gear_row.add_child(_gear_slot(IconRegistry.texture_for("ui", "potion"), "Poções", "x%d" % run.consumable_count("murky_potion")))
+	_gear_row.add_child(_gear_slot(IconRegistry.texture_for("ui", "firewood"), "Galhos Secos", "x%d" % run.consumable_count(RunRules.FIREWOOD_ID)))
+
+
+func _gear_slot(tex: Texture2D, tip: String, count: String) -> Control:
+	var frame: PanelContainer = PanelContainer.new()
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = Color(0.05, 0.055, 0.08, 0.8)
+	box.border_color = Color(0.42, 0.35, 0.24) if tex != null else Color(0.2, 0.18, 0.15)
+	box.set_border_width_all(1)
+	box.set_corner_radius_all(4)
+	box.set_content_margin_all(2)
+	frame.add_theme_stylebox_override("panel", box)
+	frame.tooltip_text = tip
+	frame.mouse_filter = Control.MOUSE_FILTER_PASS
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 3)
+	frame.add_child(row)
+	var icon: TextureRect = TextureRect.new()
+	icon.texture = tex
+	icon.custom_minimum_size = Vector2(30, 30)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	row.add_child(icon)
+	if not count.is_empty():
+		var label: Label = Label.new()
+		label.text = count
+		label.add_theme_font_size_override("font_size", 13)
+		row.add_child(label)
+	return frame
