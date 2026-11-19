@@ -40,6 +40,7 @@ func _ready() -> void:
 	container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(container)
+	PostFx.apply(container)
 	_viewport = SubViewport.new()
 	_viewport.size = Vector2i(270, 300)
 	_viewport.msaa_3d = Viewport.MSAA_DISABLED
@@ -57,6 +58,7 @@ func _ready() -> void:
 	_scene_root = Node3D.new()
 	_world.add_child(_scene_root)
 	_add_vignette()
+	add_child(WeatherLayer.new())
 	_dim = ColorRect.new()
 	_dim.color = Color(0, 0, 0.02, 0.0)
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

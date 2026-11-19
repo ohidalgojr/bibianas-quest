@@ -1,0 +1,13 @@
+Ambient music loops from OpenGameArt.org, all released under CC0 1.0 (public domain):
+https://creativecommons.org/publicdomain/zero/1.0/
+
+map.ogg    "Ancient caverns (horror ambient loop)" by congusbongus
+           https://opengameart.org/content/ancient-caverns-horror-ambient-loop
+combat.ogg "Ambient Horror Track 01" by CleytonKauffman
+           https://opengameart.org/content/ambient-horror-track-01
+boss.ogg   "Dungeon Ambience" by yd
+           https://opengameart.org/content/dungeon-ambience
+camp.ogg   "Cathedral in the forest (ambient loop)" by congusbongus
+           https://opengameart.org/content/cathedral-in-the-forest-ambient-loop
+
+Downloaded 2026-11-19. Attribution is not required by CC0; it is kept here for the record.

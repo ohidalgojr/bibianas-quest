@@ -65,6 +65,7 @@ func _ready() -> void:
 	container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(container)
+	PostFx.apply(container)
 	_viewport = SubViewport.new()
 	_viewport.size = Vector2i(270, 480)
 	_viewport.msaa_3d = Viewport.MSAA_DISABLED
@@ -77,6 +78,7 @@ func _ready() -> void:
 	_node_root = Node3D.new()
 	_world.add_child(_node_root)
 	_build_fog()
+	add_child(WeatherLayer.new())
 	_overlay = Control.new()
 	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE

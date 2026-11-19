@@ -28,6 +28,8 @@ func _init() -> void:
 func _capture() -> void:
 	for i: int in _frames:
 		await process_frame
+	var info: String = "fps=%d chamadas=%d primitivas=%d" % [int(Performance.get_monitor(Performance.TIME_FPS)), int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)), int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))]
+	print("DESEMPENHO ", info)
 	var image: Image = root.get_texture().get_image()
 	var err: int = image.save_png(_out)
 	print("print salvo em ", _out, " (", image.get_size(), ") erro=", err)

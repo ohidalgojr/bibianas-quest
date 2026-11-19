@@ -34,6 +34,7 @@ func _ready() -> void:
 	container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(container)
+	PostFx.apply(container)
 	_viewport = SubViewport.new()
 	_viewport.size = Vector2i(270, 480)
 	_viewport.msaa_3d = Viewport.MSAA_DISABLED
@@ -47,6 +48,9 @@ func _ready() -> void:
 	_camera.far = 80.0
 	_world.add_child(_camera)
 	_build_scene()
+	var weather: WeatherLayer = WeatherLayer.new()
+	weather.rain = kind == "home" or kind == "victory" or kind == "defeat"
+	add_child(weather)
 	_add_vignette()
 
 

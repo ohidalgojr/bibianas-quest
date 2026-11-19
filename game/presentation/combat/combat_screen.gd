@@ -4,6 +4,7 @@ extends Control
 ## retrato. Desenha o que o [CombatSession] entrega e anima os eventos do núcleo em
 ## fila. Nenhuma regra é calculada aqui.
 
+signal coin_focus(on: bool)
 signal fight_finished(outcome: int)
 ## Na luta da Descida, o jogador apertou "Continuar" depois do resultado (ADR-0013).
 signal run_fight_done
@@ -315,6 +316,7 @@ func _show_coin(event: CombatEvent) -> void:
 	_coin_overlay.visible = true
 	if _stage != null:
 		_stage.set_focus(true)
+	coin_focus.emit(true)
 	if _coin_medallion != null:
 		_coin_medallion.show_call_prompt()
 	var odds: String = "Moeda da Sorte: se errar, rejoga!" if session.is_lucky_armed() else ""
@@ -339,6 +341,7 @@ func _show_coin(event: CombatEvent) -> void:
 	_coin_overlay.visible = false
 	if _stage != null:
 		_stage.set_focus(false)
+	coin_focus.emit(false)
 
 
 ## Pede o lado ao jogador e devolve o escolhido. Sem tempo (testes) ou fora da árvore,
@@ -651,6 +654,7 @@ func _build() -> void:
 	_coin_overlay.visible = false
 	if _stage != null:
 		_stage.set_focus(false)
+	coin_focus.emit(false)
 
 	_menu = _overlay()
 	var menu_box: VBoxContainer = VBoxContainer.new()

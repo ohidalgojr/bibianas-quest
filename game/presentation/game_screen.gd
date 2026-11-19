@@ -48,6 +48,7 @@ var _debug_label: Label
 var _forced_coin: int = -1
 var _logged_events: int = 0
 var _telemetry: Telemetry
+var music: MusicBox
 
 
 func _ready() -> void:
@@ -64,6 +65,8 @@ func _ready() -> void:
 		for id: Variant in meta.get("unlocks", []):
 			meta_unlocks.append(str(id))
 		bestiary = (meta.get("bestiary", {}) as Dictionary).duplicate(true)
+	music = MusicBox.new()
+	add_child(music)
 	_telemetry = Telemetry.new(telemetry_dir)
 	_telemetry.enabled = telemetry_enabled
 	if debug_enabled:
@@ -92,6 +95,7 @@ func _process(_delta: float) -> void:
 # --- Telas -------------------------------------------------------------------------
 
 func show_home() -> void:
+	music.play_track("camp")
 	var box: VBoxContainer = _page("Bibiana's Quest", "Cidade Abandonada (regras v%d)" % CoreVersion.RULES_VERSION, "home")
 	if not data.is_valid():
 		box.add_child(_label("Dados inválidos. Veja o console."))
@@ -220,6 +224,7 @@ func _after_action() -> void:
 
 
 func _show_map() -> void:
+	music.play_track("map")
 	_clear()
 	if use_3d_map:
 		_map3d = Map3DScreen.new()
@@ -240,11 +245,14 @@ func choose_node(node_id: int) -> void:
 
 
 func _show_fight() -> void:
+	var fight_kind: int = run.current_node().kind
+	music.play_track("boss" if fight_kind == MapNode.Kind.BOSS or fight_kind == MapNode.Kind.MINI_BOSS or fight_kind == MapNode.Kind.ELITE else "combat")
 	_clear()
 	_combat = CombatScreen.new()
 	_combat.data = data
 	_combat.time_scale = time_scale
 	_combat.run_fight_done.connect(_on_fight_done)
+	_combat.coin_focus.connect(music.duck)
 	_set_content(_combat)
 	run.combat.forced_coin = _forced_coin
 	_combat.start_run_fight(run)
@@ -303,6 +311,7 @@ func _show_event() -> void:
 
 
 func _open_panel(scene_kind: String = "") -> RunPanelScreen:
+	music.play_track("camp" if scene_kind == "campfire" else "map")
 	var screen: RunPanelScreen = RunPanelScreen.new()
 	screen.panels = RunPanels.new(run)
 	screen.forced_coin = _forced_coin
@@ -318,6 +327,7 @@ func _open_panel(scene_kind: String = "") -> RunPanelScreen:
 ## Bibiana (e com quanto de HP ficou), dica tática, o que foi conquistado, os Ecos
 ## creditados (em dobro na 1ª Descida) e "Outra Descida".
 func _show_result() -> void:
+	music.play_track("")
 	var victory: bool = run.phase == RunState.Phase.VICTORY
 	var earned: int = run.echoes_earned()
 	echoes += earned
