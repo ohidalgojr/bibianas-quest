@@ -41,6 +41,14 @@ const MOVE_ID_NAMES: Dictionary = {
 	"engulf": "Engolir",
 	"blood_kiss": "Beijo de Sangue",
 	"pounce": "Salto",
+	"hood_drop": "Capuz na Cabeça",
+	"sway_kick": "Chute Pendurado",
+	"wrecking_arm": "Braço Remendado",
+	"stitch_rip": "Costura Rasgada",
+	"gnaw": "Roer",
+	"swarm_bite": "Mordida do Enxame",
+	"plague_squeal": "Guincho da Peste",
+	"rat_wave": "Onda de Ratos",
 }
 ## Por que o inimigo reagiu, pelo código do evento de intenção (ADR-0030).
 const REACTION_TEXTS: Dictionary = {

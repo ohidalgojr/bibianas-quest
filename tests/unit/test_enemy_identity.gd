@@ -28,6 +28,7 @@ func test_every_enemy_has_a_themed_coin_move_and_a_reaction() -> void:
 		"infected_citizen": "feverish_hug", "giant_rat": "filthy_bite", "carrion_crow": "eye_peck",
 		"plague_hound": "unrelenting_fangs", "rotten_executioner": "guillotine", "gravedigger": "shovel",
 		"bell_ghost": "knell_wail", "wandering_bones": "bone_rattle", "sewer_slime": "engulf", "alley_leech": "blood_kiss",
+		"hanged_man": "hood_drop", "stitched_horror": "wrecking_arm", "rat_mother": "swarm_bite",
 	}
 	for enemy_id: String in themes:
 		var move: EnemyMove = _coin_move(enemy_id, themes[enemy_id])

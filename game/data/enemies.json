@@ -106,6 +106,32 @@
 			"reactions": [{"when": "player_hp_below", "value": 45, "move": "pounce"}]
 		},
 		{
+			"id": "hanged_man", "name": "Enforcado", "type": "common", "base_level": 1,
+			"mutation": "phantom",
+			"stats": {"hp": 38, "strength": 9, "defense": 2, "resistance": 5, "speed": 8, "evasion": 10},
+			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "attack", "kind": "attack"},
+				{"id": "hood_drop", "kind": "heavy", "fail_effect": "blinded"},
+				{"id": "attack", "kind": "attack"},
+				{"id": "sway_kick", "kind": "strong", "power": 1.3}
+			]}],
+			"reactions": [{"when": "player_hp_below", "value": 40, "move": "sway_kick"}]
+		},
+		{
+			"id": "stitched_horror", "name": "Costurado", "type": "common", "base_level": 1,
+			"mutation": "bloated",
+			"stats": {"hp": 60, "strength": 12, "defense": 5, "resistance": 2, "speed": 4, "evasion": 0},
+			"element_mults": {"fire": 1.5}, "tags": ["diseased"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "attack", "kind": "attack"},
+				{"id": "wrecking_arm", "kind": "heavy", "fail_effect": "slowed"},
+				{"id": "attack", "kind": "attack"},
+				{"id": "stitch_rip", "kind": "strong", "power": 1.5}
+			]}],
+			"reactions": [{"when": "self_hp_below", "value": 50, "move": "stitch_rip"}]
+		},
+		{
 			"id": "rotten_executioner", "name": "Carrasco Apodrecido", "type": "elite", "base_level": 2,
 			"stats": {"hp": 95, "strength": 15, "defense": 9, "resistance": 4, "speed": 5, "evasion": 2},
 			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
@@ -117,6 +143,22 @@
 				{"id": "mend", "kind": "heal", "heal_percent": 15}
 			]}],
 			"reactions": [{"when": "self_hp_below", "value": 40, "move": "beheading"}]
+		},
+		{
+			"id": "rat_mother", "name": "Mãe das Ratazanas", "type": "elite", "base_level": 2,
+			"stats": {"hp": 90, "strength": 13, "defense": 6, "resistance": 3, "speed": 6, "evasion": 4},
+			"element_mults": {"fire": 1.5}, "tags": ["diseased"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "gnaw", "kind": "attack"},
+				{"id": "swarm_bite", "kind": "cruel", "fail_disease": "leptospirosis"},
+				{"id": "plague_squeal", "kind": "debuff", "power": 0.9, "effect": "poison", "effect_chance": 60},
+				{"id": "rat_wave", "kind": "strong", "power": 1.4},
+				{"id": "gnaw", "kind": "attack"}
+			]}],
+			"reactions": [
+				{"when": "self_hp_below", "value": 50, "move": "plague_squeal"},
+				{"when": "player_hp_below", "value": 40, "move": "swarm_bite"}
+			]
 		},
 		{
 			"id": "bell_warden", "name": "Carcereiro do Sino", "type": "mini_boss", "base_level": 4,

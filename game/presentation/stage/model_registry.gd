@@ -18,12 +18,15 @@ const MODELS: Dictionary = {
 	"carrion_crow": {"path": OWN + "carrion_crow.glb", "scale": 0.9, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"plague_hound": {"path": OWN + "plague_hound.glb", "scale": 0.7, "yaw_offset": 55.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"rotten_executioner": {"path": OWN + "rotten_executioner.glb", "scale": 0.85, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"bell_ghost": {"path": K_GRAVE + "character-ghost.glb", "scale": 1.0, "idle": "idle", "walk": "walk", "attack": "attack-melee-right", "hit": "idle", "death": "die", "placeholder": false},
-	"wandering_bones": {"path": K_GRAVE + "character-skeleton.glb", "scale": 1.0, "idle": "idle", "walk": "walk", "attack": "attack-melee-left", "hit": "idle", "death": "die", "placeholder": false},
+	"bell_ghost": {"path": OWN + "bell_ghost.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"wandering_bones": {"path": OWN + "wandering_bones.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"hanged_man": {"path": OWN + "hanged_man.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"stitched_horror": {"path": OWN + "stitched_horror.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"rat_mother": {"path": OWN + "rat_mother.glb", "scale": 1.0, "yaw_offset": 55.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"sewer_slime": {"path": QUAT + "Slime.fbx", "scale": 30.0, "idle": "Armature|Slime_Idle", "walk": "Armature|Slime_Walk", "attack": "Armature|Slime_Attack", "hit": "Armature|Slime_Idle", "death": "Armature|Slime_Death", "placeholder": false},
-	"alley_leech": {"path": K_GRAVE + "character-vampire.glb", "scale": 1.0, "idle": "idle", "walk": "walk", "attack": "attack-melee-right", "hit": "idle", "death": "die", "placeholder": false},
-	"bell_warden": {"path": K_GRAVE + "character-keeper.glb", "scale": 1.25, "idle": "idle", "walk": "walk", "attack": "attack-melee-left", "hit": "idle", "death": "die", "placeholder": true},
-	"gravedigger": {"path": K_GRAVE + "character-keeper.glb", "scale": 1.6, "idle": "idle", "walk": "walk", "attack": "attack-melee-right", "hit": "idle", "death": "die", "placeholder": false},
+	"alley_leech": {"path": OWN + "alley_leech.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bell_warden": {"path": OWN + "bell_warden.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"gravedigger": {"path": OWN + "gravedigger.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 }
 
 

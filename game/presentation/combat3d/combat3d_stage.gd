@@ -10,7 +10,7 @@ const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const SHRINK: int = 2
 const CAM_SIZE: float = 5.8
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.8, 1.0) * 16.0
-const CAM_TARGET: Vector3 = Vector3(0.2, 1.7, 0.2)
+const CAM_TARGET: Vector3 = Vector3(0.2, 2.0, 0.2)
 const ENEMY_POS: Vector3 = Vector3(-1.4, 0.9, -1.4)
 const PLAYER_POS: Vector3 = Vector3(0.2, 0.9, 2.9)
 const ENEMY_YAW: float = 45.0
@@ -164,7 +164,7 @@ func _spawn_actors(kind: int) -> void:
 	enemy_node.rotation_degrees.y = ENEMY_YAW + ModelRegistry.yaw_offset(_enemy_id)
 	var boss: bool = kind == MapNode.Kind.BOSS or kind == MapNode.Kind.MINI_BOSS
 	# Escala pela maior dimensão do modelo: o rato, o cão e o carrasco ocupam o mesmo palco.
-	var target: float = 2.7 if boss else (2.4 if kind == MapNode.Kind.ELITE else 2.2)
+	var target: float = 2.4 if boss else (2.1 if kind == MapNode.Kind.ELITE else 1.9)
 	var box: AABB = _aabb(enemy_node)
 	var longest: float = maxf(box.size.x, maxf(box.size.y, box.size.z))
 	_enemy_scale = target / longest if longest > 0.05 else 2.4
