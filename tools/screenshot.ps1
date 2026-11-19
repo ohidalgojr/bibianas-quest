@@ -3,12 +3,13 @@
 param(
 	[string]$Scene = "res://game/presentation/stage/proof_scene.tscn",
 	[string]$Out = "docs\tasks\prints\print.png",
-	[int]$Frames = 90
+	[int]$Frames = 90,
+	[string[]]$Extra = @()
 )
 $godot = $env:GODOT_BIN
 if (-not $godot) { Write-Error "Defina GODOT_BIN (o executável *_console.exe)."; exit 1 }
 $root = Split-Path -Parent $PSScriptRoot
 $outAbs = Join-Path $root $Out
 New-Item -ItemType Directory -Force (Split-Path -Parent $outAbs) | Out-Null
-& $godot --path $root -s tools/screenshot.gd -- "cena=$Scene" "saida=$outAbs" "quadros=$Frames"
+& $godot --path $root -s tools/screenshot.gd -- "cena=$Scene" "saida=$outAbs" "quadros=$Frames" @Extra
 exit $LASTEXITCODE

@@ -1,6 +1,6 @@
 # HANDOFF
 
-Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2D vetorial, sem assets, visão de cima): o GDD manda tabuleiro isométrico 3D com kits CC0. Leia o ADR-0036 (análise de onde as instruções falharam) e `docs/ART-DIRECTION.md`. Estado: núcleo e regras prontos (TASK-001 a 034, suíte 319/319, `RULES_VERSION` = 17); **TASK-035 feita (kits CC0, prova isométrica, ferramenta de print; aguarda o seu OK ao print)**, seguem 036 a 040; TASK-014, 032 e 033 esperam.
+Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2D vetorial, sem assets, visão de cima): o GDD manda tabuleiro isométrico 3D com kits CC0. Leia o ADR-0036 (análise de onde as instruções falharam) e `docs/ART-DIRECTION.md`. Estado: núcleo e regras prontos (TASK-001 a 034, suíte 326/326, `RULES_VERSION` = 17); **TASK-035 feita (kits CC0, prova isométrica, ferramenta de print; aguarda o seu OK ao print)**, seguem 036 a 040; TASK-014, 032 e 033 esperam.
 - **`TASK-029` (`b08098f`), `TASK-026` (`09b6a04`), `TASK-027` (`35d06b4`), `TASK-028` (`5ccfeb6`), `TASK-030` (`9fa4254`) e `TASK-031`**: **100% concluídas, validadas (315/315 testes em 40 scripts) e enviadas para `origin/main`**.
 - **Numeração:** as tarefas de calibração e do portão da Fase 1 (propostas pelo Claude) são a TASK-032 e a TASK-033; as TASK-030 e 031 são as do Argon.
 
@@ -11,7 +11,7 @@ Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2
 | Jogo | RPG tático de turnos roguelite, Godot 4.7. **Visual atual = telas 2D de depuração (reprovadas, ADR-0036); o visual 3D vem nas TASK-035 a 040.** Hoje: gráficos vetoriais e áudio procedural (`SoundFx`): menu com Santuário (Biblioteca, Arsenal e Códice/Bestiário), tabuleiro visual com estradas curvas, brasões e peão da Bibiana com os 9 estágios da mecha (GDD §9), combate com silhuetas de personagem/inimigos, medalhão giratório de Cara/Coroa, emboscadas e inimigos mutados, eventos de mapa, mini boss anunciado, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
 | Classe | só o Guerreiro (Bibiana); 3 skills iniciais, 3 à venda, 5 espaços |
 | Cenário | só a Cidade Abandonada: 4 inimigos comuns (com mutações temáticas Inchado, Voraz, Fantasma e Espinhoso), 1 elite (Carrasco Apodrecido), 1 mini boss anunciado (Carcereiro do Sino), chefe O Coveiro (2 fases), 6 eventos temáticos; cada inimigo com ficha em `docs/enemies/` |
-| Regras | `RULES_VERSION` = 17 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0036 |
+| Regras | `RULES_VERSION` = 17 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0037 |
 | Equilíbrio (simulador, regras v15) | bot mediano vence 66,0% (meta 55% a 65%), cuidadoso 72,0%, 1ª Descida 49,3% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 13,7% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,28 s para criar a Descida |
 | Testes | 315 em 40 scripts, cerca de 11 s |
 | Git | `main` sincronizado com `origin/main` até `TASK-031` |
@@ -109,7 +109,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 5 | TASK-030 | Santuário e meta-progresso (Biblioteca, Arsenal, Códice/Bestiário) | concluída | concluída em 2026-11-18 (ADR-0034) |
 | 6 | TASK-031 | Apresentação 2D vetorial e áudio procedural | concluída, **reprovada pelo Orlando como visual do MVP** (ADR-0036) | vira modo de depuração; `SoundFx` e `VisualTheme` continuam |
 | 7 | TASK-035 | Kits CC0, licenças, cena de prova isométrica, ferramenta de print | agente (download autorizado pelo Orlando) | **próxima tarefa**; sem ela nada de 3D começa |
-| 8 | TASK-036 | Tabuleiro 3D com altura, visão parcial, névoa e câmera que acompanha | agente | a tela mais importante (ART-DIRECTION §3) |
+| 8 | TASK-036 | Tabuleiro 3D com altura, visão parcial, névoa e câmera que acompanha | em verificação | prints `docs/tasks/prints/TASK-036-*.png` esperando o OK do Orlando |
 | 9 | TASK-037 | Combate 3D com fundo derivado do nó | agente | ART-DIRECTION §4 |
 | 10 | TASK-038 | Fogueira, loja, baú, recompensa, menu e Santuário em 3D | agente | ART-DIRECTION §5 |
 | 11 | TASK-039 | Estilo unificado, clima, luz e música | agente | os kits parecerem um jogo só |
