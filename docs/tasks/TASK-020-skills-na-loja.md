@@ -37,4 +37,6 @@ A loja passa a oferecer uma skill nova do Guerreiro por visita, para comprar com
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §6, §8, §15 e `ADR-0024`**: `learned_skills` no `RunState` (limite `RunRules.MAX_SKILLS = 5`), `whirlwind`, `war_cry` e `second_wind` em `game/data/skills.json`, oferta de 1 skill ainda não aprendida na loja (`buy_skill()`), uso de `dirty_ether` em combate (`use_ether()`) e serialização completa no `RunSave`.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

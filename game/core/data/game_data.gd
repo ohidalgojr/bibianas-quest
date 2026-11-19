@@ -49,6 +49,7 @@ var campfire_skills: Dictionary = {}
 var enemies: Dictionary = {}
 var items: Dictionary = {}
 var scenarios: Dictionary = {}
+var events: Dictionary = {}
 
 
 ## Valida e indexa por id. Com erro, o catálogo fica vazio e [member errors] diz o motivo.
@@ -63,6 +64,7 @@ static func from_documents(documents: Dictionary) -> GameData:
 	data.enemies = _index(documents["enemies"]["enemies"])
 	data.items = _index(documents["items"]["items"])
 	data.scenarios = _index(documents["scenarios"]["scenarios"])
+	data.events = _index(documents["events"]["events"])
 	return data
 
 
@@ -143,7 +145,7 @@ static func level_power(level: int, base_level: int) -> float:
 	return 1.0 + float(maxi(level - base_level, 0))
 
 
-func make_enemy(enemy_id: String, level: int) -> Combatant:
+func make_enemy(enemy_id: String, level: int, mutation_id: String = "") -> Combatant:
 	var entry: Dictionary = _entry(enemies, enemy_id)
 	var phases: Array[EnemyPhase] = []
 	for phase: Dictionary in entry["phases"]:
@@ -159,12 +161,20 @@ func make_enemy(enemy_id: String, level: int) -> Combatant:
 		phases.append(EnemyPhase.make(int(phase["below_hp_percent"]), moves))
 	var boss: bool = str(entry["type"]) == "boss"
 	var unit: Combatant = Combatant.enemy(str(entry["name"]), enemy_stats(enemy_id, level), phases, boss)
+	if str(entry["type"]) == "mini_boss":
+		unit.can_flee = false
 	var mults: Dictionary = entry["element_mults"]
 	for element: Variant in mults:
 		unit.element_mults[ELEMENTS[str(element)]] = float(mults[element])
 	for rule: Variant in entry.get("reactions", []):
 		unit.reactions.append((rule as Dictionary).duplicate())
+	if not mutation_id.is_empty():
+		Mutations.apply_to(unit, mutation_id)
 	return unit
+
+
+func enemy_mutation(enemy_id: String) -> String:
+	return str(_entry(enemies, enemy_id).get("mutation", ""))
 
 
 func enemy_type(enemy_id: String) -> String:
@@ -173,6 +183,17 @@ func enemy_type(enemy_id: String) -> String:
 
 func scenario(scenario_id: String) -> Dictionary:
 	return _entry(scenarios, scenario_id)
+
+
+func scenario_events(scenario_id: String) -> Array[String]:
+	var found: Array[String] = []
+	var ids: Array = events.keys()
+	ids.sort()
+	for event_id: Variant in ids:
+		var entry: Dictionary = events[event_id]
+		if str(entry.get("scenario", "")) == scenario_id:
+			found.append(str(event_id))
+	return found
 
 
 func _entry(table: Dictionary, entry_id: String) -> Dictionary:

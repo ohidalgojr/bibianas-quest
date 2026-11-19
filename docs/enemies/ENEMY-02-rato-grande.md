@@ -23,7 +23,7 @@ Mordida, Mordida Imunda, Mordida, Frenesi. Vida 36, FOR 9, VEL 9 (o mais rápido
 
 ## Drops e textos
 
-Drops comuns. Aviso: "MOEDA Mordida Imunda. Errar: dano +50% e Leptospirose (-15% de HP máx. até a fogueira)".
+Drops comuns (ou tabela de **inimigo mutado** quando aparece como **Voraz**: cura 25% do dano causado, nível +1 e Poder ×1,5; GDD §11, ADR-0032). Aviso: "MOEDA Mordida Imunda. Errar: dano +50% e Leptospirose (-15% de HP máx. até a fogueira)".
 
 ## Regras que a ficha não pode quebrar
 

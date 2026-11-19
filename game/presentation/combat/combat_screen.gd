@@ -47,8 +47,8 @@ var _power: float = 1.0
 var _seed_counter: int = 0
 
 var _timeline: HBoxContainer
-var _enemy_shape: ColorRect
-var _player_shape: ColorRect
+var _enemy_shape: VisualTheme.PortraitCanvas
+var _player_shape: VisualTheme.PortraitCanvas
 var _enemy_name: Label
 var _enemy_hp_bar: ProgressBar
 var _enemy_hp_label: Label
@@ -62,6 +62,7 @@ var _player_stats: Label
 var _player_effects: Label
 var _buttons: Dictionary = {}
 var _coin_overlay: PanelContainer
+var _coin_medallion: VisualTheme.CoinMedallion
 var _coin_label: Label
 var _call_row: HBoxContainer
 var _call_buttons: Array[Button] = []
@@ -129,8 +130,14 @@ func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 	var level: int = session.level
 	_enemy_name.text = "%s  (nível %d)" % [session.enemy_name(), level]
 	_enemy_shape.color = COLOR_BOSS if session.is_boss() else COLOR_ENEMY
+	var mut: String = session.run.current_node().mutation if session.run != null and session.run.current_node() != null else ""
+	_enemy_shape.configure_enemy(session.enemy_id, mut)
 	_enemy_shape.modulate = Color.WHITE
 	_enemy_shape.custom_minimum_size = Vector2(150, 150) if session.is_boss() else Vector2(110, 110)
+	var current_power: float = session.run.power if session.run != null else _power
+	_player_shape.configure_player(current_power)
+	if session.enemy_id == "bell_warden" and time_scale > 0.0:
+		SoundFx.play(self, "bell")
 	_enemy_hp_bar.max_value = session.combat.enemy.stats.max_hp
 	_player_hp_bar.max_value = session.combat.player.stats.max_hp
 	_player_mp_bar.max_value = session.combat.player.stats.max_mp
@@ -183,6 +190,8 @@ func _play(events: Array[CombatEvent]) -> void:
 	_refresh_buttons()
 	if session.is_over():
 		var result: int = session.combat.outcome
+		if time_scale > 0.0:
+			SoundFx.play(self, "victory" if result == Combat.Outcome.VICTORY else "defeat")
 		if session.run != null:
 			_open_result(session.outcome_text())
 		else:
@@ -198,6 +207,8 @@ func _apply(event: CombatEvent) -> void:
 		CombatEvent.Type.ACTION:
 			if event.side == Combatant.PLAYER:
 				_player_mp -= event.value
+				if event.label == "defend" and time_scale > 0.0:
+					SoundFx.play(self, "defend")
 			else:
 				_intent_icon.text = "..."
 				_intent_detail.text = ""
@@ -208,6 +219,8 @@ func _apply(event: CombatEvent) -> void:
 				_enemy_hp = event.extra
 			else:
 				_player_hp = event.extra
+			if time_scale > 0.0:
+				SoundFx.play(self, "crit" if event.flag else "hit")
 			_pop_text("-%d%s" % [event.value, " CRÍTICO!" if event.flag else ""], COLOR_COIN if event.flag else COLOR_DANGER, on_enemy, 44 if event.flag else 30)
 			if on_enemy and event.extra <= 0:
 				_play_defeat()
@@ -282,11 +295,23 @@ func _show_intent(move_id: String, reason: int = 0) -> void:
 ## gira por 1,2 s e o resultado mostra o lado em que caiu.
 func _show_coin(event: CombatEvent) -> void:
 	_coin_overlay.visible = true
+	if _coin_medallion != null:
+		_coin_medallion.show_call_prompt()
 	var odds: String = "Moeda da Sorte: se errar, rejoga!" if session.is_lucky_armed() else ""
 	var called: int = await _ask_call(event.value, odds)
 	session.coin_call = called
+	if _coin_medallion != null:
+		_coin_medallion.set_side(called)
+		_coin_medallion.spinning = true
+	if time_scale > 0.0:
+		SoundFx.play(self, "coin_tick")
 	_coin_label.text = "Você escolheu %s\nA moeda gira...\n%s" % [CombatTexts.side_name(called), odds]
 	await _wait(COIN_DELAY)
+	var landed_side: int = called if event.flag else (CoinRules.TAILS if called == CoinRules.HEADS else CoinRules.HEADS)
+	if _coin_medallion != null:
+		_coin_medallion.set_side(landed_side)
+	if time_scale > 0.0:
+		SoundFx.play(self, "coin_heads" if event.flag else "coin_tails")
 	var again: String = "\nA Moeda da Sorte rejogou o lance!" if event.extra == 1 else ""
 	_coin_label.text = "Você escolheu %s\n%s%s" % [CombatTexts.side_name(called),
 		CombatTexts.coin_result(called, event.flag), again]
@@ -372,7 +397,6 @@ func _refresh_buttons() -> void:
 	var flee: Button = _buttons["flee"]
 	flee.disabled = not (can_go and session.can_flee())
 	flee.tooltip_text = "Moeda: acertar o lado foge"
-	(_buttons["skill_0"] as Button).tooltip_text = "Moeda: acertar o lado atordoa"
 	var luck: Button = _buttons["luck"]
 	var coins: int = session.lucky_coins() if session != null else 0
 	luck.disabled = not (can_go and coins > 0)
@@ -463,9 +487,10 @@ func _build() -> void:
 	var enemy_row: HBoxContainer = HBoxContainer.new()
 	enemy_row.add_theme_constant_override("separation", 12)
 	column.add_child(enemy_row)
-	_enemy_shape = ColorRect.new()
+	_enemy_shape = VisualTheme.PortraitCanvas.new()
 	_enemy_shape.color = COLOR_ENEMY
 	_enemy_shape.custom_minimum_size = Vector2(110, 110)
+	_enemy_shape.configure_enemy("infected_citizen")
 	enemy_row.add_child(_enemy_shape)
 	var enemy_info: VBoxContainer = VBoxContainer.new()
 	enemy_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -511,9 +536,10 @@ func _build() -> void:
 	var player_row: HBoxContainer = HBoxContainer.new()
 	player_row.add_theme_constant_override("separation", 12)
 	column.add_child(player_row)
-	_player_shape = ColorRect.new()
+	_player_shape = VisualTheme.PortraitCanvas.new()
 	_player_shape.color = COLOR_PLAYER
 	_player_shape.custom_minimum_size = Vector2(80, 80)
+	_player_shape.configure_player(1.0)
 	player_row.add_child(_player_shape)
 	var player_info: VBoxContainer = VBoxContainer.new()
 	player_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -565,6 +591,10 @@ func _build() -> void:
 	coin_box.add_theme_constant_override("separation", 16)
 	coin_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	_coin_overlay.add_child(coin_box)
+	var coin_center: CenterContainer = CenterContainer.new()
+	coin_box.add_child(coin_center)
+	_coin_medallion = VisualTheme.CoinMedallion.new()
+	coin_center.add_child(_coin_medallion)
 	_coin_label = Label.new()
 	_coin_label.add_theme_font_size_override("font_size", 30)
 	_coin_label.add_theme_color_override("font_color", COLOR_COIN)

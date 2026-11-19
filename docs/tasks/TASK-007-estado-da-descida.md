@@ -56,4 +56,6 @@ O núcleo passa a conduzir uma Descida inteira sem tela. O estado guarda a semen
 
 ## Revisão cruzada
 
-Pendente (etapa 4).
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §4, §5, §9, §12, §14, §15 e `ADR-0011`**: `RunState`, `RunRules` e `RunEvent` coordenam mapa, Poder, nível derivado `floor(Poder)`, ouro, drops, loja pós-combate, baú, fogueira com 3 Brasas e cálculo de Ecos ao fim da Descida, tudo puro e determinístico pelos quatro fluxos de `RunRngStreams`.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

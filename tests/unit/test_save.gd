@@ -128,3 +128,15 @@ func test_game_screen_autosaves_resumes_and_keeps_echoes() -> void:
 	assert_ne(second.run.current_node_id, saved_node, "retomou do último nó salvo, não do início")
 	assert_eq(second.run.current_node_id, chest.id)
 	assert_gt(second.run.gold, 0, "o ouro do baú foi salvo")
+
+
+## TASK-034: meta gravado antes do Santuário (sem unlocks nem bestiary) ainda carrega.
+func test_old_meta_without_unlocks_or_bestiary_loads_with_defaults() -> void:
+	var file: FileAccess = FileAccess.open(DIR + SaveStore.META_FILE, FileAccess.WRITE)
+	file.store_string(JSON.stringify({"format": SaveStore.META_FORMAT, "echoes": 78, "runs_played": 9}))
+	file.close()
+	var meta: Dictionary = _store.load_meta()
+	assert_eq(meta["echoes"], 78)
+	assert_eq(meta["runs_played"], 9)
+	assert_eq((meta["unlocks"] as Array).size(), 0)
+	assert_eq((meta["bestiary"] as Dictionary).size(), 0)

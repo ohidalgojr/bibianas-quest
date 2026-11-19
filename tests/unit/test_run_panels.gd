@@ -80,6 +80,8 @@ func test_item_descriptions() -> void:
 	assert_string_contains(panels.item_description("worn_longsword"), "FOR +3")
 	assert_string_contains(panels.item_description("worn_longsword"), "equipado: Espada e Escudo")
 	assert_string_contains(panels.item_description("dented_plate"), "DEF +5, VEL -2")
+	assert_string_contains(panels.item_description("spiked_mace"), "PRE +5")
+	assert_eq(panels.item_view("worn_charm")["slot"], "Relíquia")
 
 
 func test_campfire_view_and_actions() -> void:

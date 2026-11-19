@@ -5,7 +5,7 @@ extends RefCounted
 ## caminho do problema. Lista vazia é dado válido.
 
 const FORMAT: int = 1
-const DOCUMENTS: PackedStringArray = ["classes", "skills", "enemies", "items", "scenarios"]
+const DOCUMENTS: PackedStringArray = ["classes", "skills", "enemies", "items", "scenarios", "events"]
 
 const STAT_KEYS: PackedStringArray = ["hp", "mp", "strength", "mind", "defense", "resistance",
 	"speed", "precision", "evasion", "crit", "luck"]
@@ -15,6 +15,7 @@ const DEBUFF_EFFECT_IDS: PackedStringArray = ["poison", "weakened"]
 ## Consequências de errar o lado e condições de reação dos inimigos (ADR-0030).
 const FAIL_EFFECT_IDS: PackedStringArray = ["poison", "weakened", "slowed", "blinded", "cursed"]
 const DISEASE_IDS: PackedStringArray = ["leptospirosis"]
+const MUTATION_IDS: PackedStringArray = ["bloated", "voracious", "phantom", "thorny"]
 const REACTION_WHEN: PackedStringArray = ["player_hp_below", "self_hp_below", "player_defended_twice", "player_buffed"]
 const ELEMENTS: PackedStringArray = ["physical", "fire", "lightning", "holy", "shadow"]
 const ITEM_SLOTS: PackedStringArray = ["consumable", "weapon", "offhand", "armor", "head", "relic"]
@@ -29,6 +30,9 @@ const MAX_MOVES: int = 5
 ## GDD §13: chefes têm de 2 a 3 fases.
 const BOSS_MIN_PHASES: int = 2
 const BOSS_MAX_PHASES: int = 3
+## ADR-0033: cada evento tem de 2 a 3 escolhas.
+const MIN_EVENT_CHOICES: int = 2
+const MAX_EVENT_CHOICES: int = 3
 
 var _errors: PackedStringArray = PackedStringArray()
 
@@ -60,13 +64,15 @@ func _run(documents: Dictionary) -> void:
 	var enemies: Array = _list(documents["enemies"], "enemies", "enemies")
 	var items: Array = _list(documents["items"], "items", "items")
 	var scenarios: Array = _list(documents["scenarios"], "scenarios", "scenarios")
+	var events: Array = _list(documents["events"], "events", "events")
 
 	var combat_ids: Dictionary = _ids(combat_skills, "skills.combat")
 	var campfire_ids: Dictionary = _ids(campfire_skills, "skills.campfire")
 	var enemy_ids: Dictionary = _ids(enemies, "enemies")
 	var item_ids: Dictionary = _ids(items, "items")
 	var class_ids: Dictionary = _ids(classes, "classes")
-	_ids(scenarios, "scenarios")
+	var scenario_ids: Dictionary = _ids(scenarios, "scenarios")
+	_ids(events, "events")
 
 	for entry: Variant in combat_skills:
 		_check_combat_skill(entry, class_ids)
@@ -80,6 +86,8 @@ func _run(documents: Dictionary) -> void:
 		_check_class(entry, combat_ids, campfire_ids, item_ids)
 	for entry: Variant in scenarios:
 		_check_scenario(entry, enemy_ids)
+	for entry: Variant in events:
+		_check_event(entry, scenario_ids, item_ids, campfire_ids)
 
 
 # --- Entidades -------------------------------------------------------------------
@@ -179,6 +187,10 @@ func _check_enemy(entry: Variant) -> void:
 	_string_field(data, "name", path)
 	var enemy_type: String = _string_field(data, "type", path)
 	_check_choice(enemy_type, ENEMY_TYPES, path, "type")
+	if enemy_type == "common" or data.has("mutation"):
+		var mutation: String = _string_field(data, "mutation", path)
+		if not mutation.is_empty():
+			_check_choice(mutation, MUTATION_IDS, path, "mutation")
 	_check_min(_int_field(data, "base_level", path), 1, path, "base_level")
 	_check_stats(data, path, false)
 	_string_list(data, "tags", path)
@@ -310,10 +322,86 @@ func _check_scenario(entry: Variant, enemy_ids: Dictionary) -> void:
 	_check_range(_int_field(data, "winnable_target", path), 1, 100, path, "winnable_target")
 	_check_enemy_refs(data, "common_enemies", "common", path, enemy_ids)
 	_check_enemy_refs(data, "elite_enemies", "elite", path, enemy_ids)
+	if data.has("mini_bosses"):
+		_check_enemy_refs(data, "mini_bosses", "mini_boss", path, enemy_ids)
 	var boss_id: String = _string_field(data, "boss", path)
 	if not boss_id.is_empty():
 		_check_enemy_ref(boss_id, "boss", path, enemy_ids)
 	_string_list(data, "weather", path)
+
+
+func _check_event(entry: Variant, scenario_ids: Dictionary, item_ids: Dictionary, campfire_ids: Dictionary) -> void:
+	if typeof(entry) != TYPE_DICTIONARY:
+		return
+	var data: Dictionary = entry
+	var path: String = _path("events", data)
+	_string_field(data, "title", path)
+	_string_field(data, "description", path)
+	var scenario_id: String = _string_field(data, "scenario", path)
+	if not scenario_id.is_empty() and not scenario_ids.has(scenario_id):
+		_error(path, "cenário inexistente: %s" % scenario_id)
+	if not data.has("choices") or typeof(data["choices"]) != TYPE_ARRAY:
+		_error(path, "campo faltando ou não é lista: choices")
+		return
+	var choices: Array = data["choices"]
+	if choices.size() < MIN_EVENT_CHOICES or choices.size() > MAX_EVENT_CHOICES:
+		_error(path, "precisa de %d a %d escolhas (ADR-0033), tem %d" % [MIN_EVENT_CHOICES, MAX_EVENT_CHOICES, choices.size()])
+	_ids(choices, "%s.choices" % path)
+	for index: int in choices.size():
+		if typeof(choices[index]) != TYPE_DICTIONARY:
+			_error("%s.choices[%d]" % [path, index], "a escolha precisa ser um objeto")
+			continue
+		var choice: Dictionary = choices[index]
+		var c_path: String = "%s.choices[%d]" % [path, index]
+		_string_field(choice, "label", c_path)
+		if choice.has("cost_gold"):
+			_check_min(_int_field(choice, "cost_gold", c_path), 1, c_path, "cost_gold")
+		if choice.has("cost_hp_percent"):
+			_check_range(_int_field(choice, "cost_hp_percent", c_path), 1, 90, c_path, "cost_hp_percent")
+		if choice.has("cost_item"):
+			var cost_item: String = _string_field(choice, "cost_item", c_path)
+			if not cost_item.is_empty() and not item_ids.has(cost_item):
+				_error(c_path, "cost_item inexistente: %s" % cost_item)
+		var is_coin: bool = _bool_field(choice, "coin", c_path)
+		if is_coin:
+			_check_event_outcome(choice.get("heads"), c_path + ".heads", item_ids, campfire_ids)
+			_check_event_outcome(choice.get("tails"), c_path + ".tails", item_ids, campfire_ids)
+		else:
+			_check_event_outcome(choice.get("outcome"), c_path + ".outcome", item_ids, campfire_ids)
+
+
+func _check_event_outcome(raw: Variant, path: String, item_ids: Dictionary, campfire_ids: Dictionary) -> void:
+	if typeof(raw) != TYPE_DICTIONARY:
+		_error(path, "resultado de escolha faltando ou não é objeto")
+		return
+	var data: Dictionary = raw
+	_string_field(data, "text", path)
+	if data.has("gold"):
+		_int_field(data, "gold", path)
+	if data.has("hp_percent"):
+		_check_range(_int_field(data, "hp_percent", path), -90, 100, path, "hp_percent")
+	if data.has("mp_percent"):
+		_check_range(_int_field(data, "mp_percent", path), -100, 100, path, "mp_percent")
+	if data.has("power") and _number_field(data, "power", path) <= 0.0:
+		_error(path, "power precisa ser positivo")
+	if data.has("item"):
+		var item_id: String = _string_field(data, "item", path)
+		if not item_id.is_empty() and not item_ids.has(item_id):
+			_error(path, "item inexistente: %s" % item_id)
+	if data.has("buff"):
+		var buff_id: String = _string_field(data, "buff", path)
+		if not buff_id.is_empty() and not campfire_ids.has(buff_id):
+			_error(path, "buff inexistente: %s" % buff_id)
+	if data.has("disease"):
+		var disease_id: String = _string_field(data, "disease", path)
+		if not disease_id.is_empty() and disease_id != "cure" and not DISEASE_IDS.has(disease_id):
+			_error(path, "disease desconhecida: %s" % disease_id)
+	if data.has("crit_bonus") or data.has("crit_combats"):
+		var bonus: int = _int_field(data, "crit_bonus", path)
+		if bonus == 0:
+			_error(path, "crit_bonus não pode ser 0")
+		_check_range(bonus, -50, 50, path, "crit_bonus")
+		_check_range(_int_field(data, "crit_combats", path), 1, 10, path, "crit_combats")
 
 
 func _check_enemy_refs(data: Dictionary, key: String, enemy_type: String, path: String, enemy_ids: Dictionary) -> void:

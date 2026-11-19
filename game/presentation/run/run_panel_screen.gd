@@ -7,6 +7,7 @@ extends Control
 signal closed
 
 var panels: RunPanels
+var forced_coin: int = -1
 
 var _box: VBoxContainer
 var _mode: String = ""
@@ -20,7 +21,9 @@ func _ready() -> void:
 	add_child(dim)
 	var panel: PanelContainer = PanelContainer.new()
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.05, 0.05, 0.08, 0.97)
+	style.bg_color = Color(0.06, 0.065, 0.09, 0.98)
+	style.border_color = VisualTheme.COLOR_BORDER_BRONZE
+	style.set_border_width_all(2)
 	style.set_corner_radius_all(8)
 	style.set_content_margin_all(16)
 	panel.add_theme_stylebox_override("panel", style)
@@ -59,6 +62,12 @@ func show_campfire() -> void:
 		_render()
 
 
+func show_event() -> void:
+	_mode = "event"
+	if _box != null:
+		_render()
+
+
 func _render() -> void:
 	for child: Node in _box.get_children():
 		_box.remove_child(child)
@@ -72,6 +81,8 @@ func _render() -> void:
 			_render_chest()
 		"campfire":
 			_render_campfire()
+		"event":
+			_render_event()
 
 
 func _render_reward() -> void:
@@ -195,6 +206,33 @@ func _render_campfire() -> void:
 			detail += ". Ativa por mais %d lutas" % int(entry["left"])
 		_text(detail, 16)
 	_button("Seguir", func() -> void: closed.emit())
+
+
+func _render_event() -> void:
+	var view: Dictionary = panels.event_view()
+	if view.is_empty():
+		return
+	_title(str(view["title"]))
+	_text(str(view["description"]), 18)
+	if bool(view["resolved"]):
+		for line: Variant in view["result_lines"]:
+			var eff: Label = _text(str(line), 17)
+			eff.add_theme_color_override("font_color", Color(0.85, 0.8, 0.55))
+		var drop: Dictionary = view["drop"]
+		if not drop.is_empty():
+			_render_drop(drop)
+		_button("Seguir (vende o drop)" if not drop.is_empty() else "Seguir", func() -> void: closed.emit())
+		return
+	for choice: Dictionary in view["choices"]:
+		var idx: int = int(choice["index"])
+		var label: String = str(choice["label"])
+		var can_pick: bool = bool(choice["can_choose"])
+		if not can_pick:
+			label += " (%s)" % str(choice["reason"])
+		var btn: Button = _button(label, func() -> void:
+			panels.choose_event_option(idx, CoinRules.HEADS, forced_coin)
+			_render())
+		btn.disabled = not can_pick
 
 
 func _title(text: String) -> void:

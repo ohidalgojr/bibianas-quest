@@ -6,7 +6,7 @@ extends RefCounted
 
 const STAT_LABELS: Dictionary = {
 	"hp": "HP", "mp": "MP", "strength": "FOR", "mind": "MEN", "defense": "DEF", "resistance": "RES",
-	"speed": "VEL", "accuracy": "PRE", "evasion": "ESQ", "crit": "CRIT", "luck": "SORTE",
+	"speed": "VEL", "precision": "PRE", "accuracy": "PRE", "evasion": "ESQ", "crit": "CRIT", "luck": "SORTE",
 }
 ## Campo de [Stats] e rótulo, na ordem em que a recompensa lista as mudanças.
 const STAT_FIELDS: Array[Array] = [
@@ -15,7 +15,7 @@ const STAT_FIELDS: Array[Array] = [
 	["luck", "SORTE"],
 ]
 const RARITY_NAMES: Dictionary = {"worn": "Gasto", "common": "Comum", "uncommon": "Incomum", "rare": "Raro"}
-const SLOT_NAMES: Dictionary = {"weapon": "Arma", "armor": "Armadura", "consumable": "Consumível"}
+const SLOT_NAMES: Dictionary = {"weapon": "Arma", "armor": "Armadura", "relic": "Relíquia", "consumable": "Consumível"}
 
 var run: RunState
 
@@ -36,6 +36,9 @@ func reward_view() -> Dictionary:
 	var gold: int = int(reward.get("gold", 0))
 	if not reward.is_empty():
 		var enemy_name: String = str(run.data.enemies[reward["enemy_id"]]["name"])
+		var mut_id: String = str(reward.get("mutation", ""))
+		if not mut_id.is_empty():
+			enemy_name = "%s [%s]" % [enemy_name, Mutations.display_name(mut_id)]
 		lines.append("%s (nível %d) foi derrotado. Inimigos derrotados: %d." % [
 			enemy_name, int(reward["level"]), run.enemies_defeated])
 		lines.append("Poder %.2f → %.2f" % [run.power - power, run.power])
@@ -106,6 +109,11 @@ func chest_view() -> Dictionary:
 		return {}
 	var boosted: bool = bool(chest["boosted"])
 	var lines: Array[String] = ["Baú: +%d de ouro (total %d)." % [int(chest["gold"]), run.gold]]
+	var chest_item: String = str(chest.get("item", ""))
+	if not chest_item.is_empty() and run.data.items.has(chest_item):
+		lines.append("Encontrou: %s." % str(run.data.items[chest_item]["name"]))
+	if bool(chest.get("lucky_coin", false)):
+		lines.append("Encontrou: Moeda da Sorte.")
 	if boosted:
 		lines.append("Multiplicador ×%.2f: +%d de ouro%s." % [int(chest["multiplier"]) / 100.0, int(chest["bonus"]),
 			" e uma Poção Turva" if bool(chest.get("potion", false)) else ""])
@@ -288,3 +296,69 @@ func rest() -> bool:
 
 func use_skill(skill_id: String) -> bool:
 	return run.use_campfire_skill(skill_id)
+
+
+# --- Eventos (GDD §5, §10; D6) -------------------------------------------------------
+
+func event_view() -> Dictionary:
+	if not run.last_event_result.is_empty():
+		var res: Dictionary = run.last_event_result
+		var lines: Array[String] = []
+		if bool(res.get("coin", false)):
+			var called_name: String = "Cara" if int(res.get("coin_called", CoinRules.HEADS)) == CoinRules.HEADS else "Coroa"
+			var verdict: String = "Cara (acertou)" if bool(res.get("coin_success", false)) else "Coroa (errou)"
+			lines.append("Lance de moeda (apostou %s): %s!" % [called_name, verdict])
+		for effect_line: Variant in res.get("effects", []):
+			lines.append(str(effect_line))
+		return {
+			"title": str(res.get("title", "Evento")),
+			"description": str(res.get("text", "")),
+			"resolved": true,
+			"choices": [],
+			"result_lines": lines,
+			"drop": drop_view(),
+		}
+	var current: Dictionary = run.current_event()
+	if current.is_empty():
+		return {}
+	var raw_choices: Array = current["choices"]
+	var choices: Array[Dictionary] = []
+	for i: int in raw_choices.size():
+		var choice: Dictionary = raw_choices[i]
+		var can_pick: bool = run.can_choose_event_option(i)
+		var reason: String = ""
+		if not can_pick:
+			var cost_item: String = str(choice.get("cost_item", ""))
+			if run.gold < int(choice.get("cost_gold", 0)):
+				reason = "Ouro insuficiente"
+			elif not cost_item.is_empty() and run.consumable_count(cost_item) <= 0:
+				reason = "Falta item"
+			else:
+				reason = "HP insuficiente"
+		choices.append({
+			"index": i,
+			"id": str(choice["id"]),
+			"label": str(choice["label"]),
+			"has_coin": bool(choice.get("coin", false)),
+			"can_choose": can_pick,
+			"reason": reason,
+		})
+	return {
+		"title": str(current["title"]),
+		"description": str(current["description"]),
+		"resolved": false,
+		"choices": choices,
+		"result_lines": [],
+		"drop": {},
+	}
+
+
+func choose_event_option(index: int, called_side: int = CoinRules.HEADS, forced_coin: int = -1) -> bool:
+	return run.choose_event_option(index, called_side, forced_coin)
+
+
+func close_event() -> void:
+	if not run.pending_drop.is_empty():
+		run.sell_drop()
+	run.last_event_result = {}
+

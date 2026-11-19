@@ -29,6 +29,9 @@ const MOVE_ID_NAMES: Dictionary = {
 	"maul": "Estraçalhar",
 	"beheading": "Decapitação",
 	"sweep": "Varredura",
+	"deafening_toll": "Badalo Ensurdecedor",
+	"toll_curse": "Repique Fúnebre",
+	"cage_slam": "Golpe de Jaula",
 }
 ## Por que o inimigo reagiu, pelo código do evento de intenção (ADR-0030).
 const REACTION_TEXTS: Dictionary = {

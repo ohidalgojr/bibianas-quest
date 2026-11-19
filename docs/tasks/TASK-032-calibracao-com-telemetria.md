@@ -1,4 +1,4 @@
-# TASK-030: calibração com o telemetry.log do playtest
+# TASK-032: calibração com o telemetry.log do playtest
 
 | Campo | Valor |
 | --- | --- |

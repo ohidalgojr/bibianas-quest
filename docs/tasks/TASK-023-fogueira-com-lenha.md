@@ -38,4 +38,6 @@ Armar uma fogueira passa a gastar **Galhos Secos**. Cada mapa garante os Galhos 
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §12, §14 e `ADR-0028`**: item `firewood` ("Galhos Secos") na mochila, `campfire_lit` começando `false` ao entrar num nó `BONFIRE`, `light_campfire()` consumindo 1 Galho Seco e liberando as 3 Brasas, e persistência de `campfire_lit` em `RunSave`.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

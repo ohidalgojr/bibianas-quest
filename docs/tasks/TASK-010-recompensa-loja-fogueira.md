@@ -49,4 +49,7 @@ Substitui os painéis provisórios da TASK-009 pelas telas de verdade: depois de
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §9, §12, §14, §15 e `ADR-0015`**: `RunPanels` e `RunPanelScreen` apresentam recompensa, loja e fogueira sobre o mapa sem recalcular regras fora de `RunState` e `RunRules`.
+- **Achados corrigidos na `TASK-029`**:
+  - *Importante (`game/presentation/run/run_panels.gd`)*: `STAT_LABELS` continha `"accuracy": "PRE"` em vez de `"precision": "PRE"` (chave real de `items.json`, usada na `spiked_mace`), e `SLOT_NAMES` não continha `"relic": "Relíquia"` (adicionado na `TASK-018`). Corrigidos ambos em `RunPanels` e adicionadas asserções em `tests/unit/test_run_panels.gd`.

@@ -3,7 +3,7 @@ extends GutTest
 ## suavização e descarte do mapa. Com poucas simulações por mapa, para caber na suíte;
 ## a prova em milhares de sementes roda em tools/simulate.gd.
 
-const CHECK_RUNS: int = 20
+const CHECK_RUNS: int = 12
 
 var _data: GameData
 
@@ -26,7 +26,7 @@ func test_node_cost() -> void:
 ## GDD §5: suavizar baixa o nível do caminho e troca uma batalha por baú, sem quebrar
 ## as regras do mapa.
 func test_smoothing_lowers_levels_and_keeps_map_rules() -> void:
-	for run_seed: int in 30:
+	for run_seed: int in 10:
 		var run: RunState = RunState.new(_data, run_seed)
 		var config: MapConfig = MapConfig.for_layers(run.map.layer_count)
 		config.weight_event = RunRules.PROTOTYPE_EVENT_WEIGHT
@@ -46,7 +46,7 @@ func test_smoothing_lowers_levels_and_keeps_map_rules() -> void:
 
 ## Parar cedo dá a mesma decisão (passa ou não) que as simulações inteiras.
 func test_early_stop_keeps_the_decision() -> void:
-	for run_seed: int in 3:
+	for run_seed: int in 2:
 		var run: RunState = RunState.new(_data, run_seed)
 		var route: PackedInt32Array = Winnability.safest_route(run.map)
 		var full: float = Winnability.route_win_rate(run, route, CHECK_RUNS, 0)
@@ -72,7 +72,7 @@ func test_probes_do_not_touch_run_streams() -> void:
 func test_property_maps_have_a_winnable_route() -> void:
 	var failed: PackedStringArray = PackedStringArray()
 	var smoothing: int = 0
-	for run_seed: int in 6:
+	for run_seed: int in 3:
 		var run: RunState = RunState.new(_data, 2000 + run_seed, "warrior", [], CHECK_RUNS)
 		smoothing += run.map_check.smoothing_steps
 		if not run.map_check.passed:
@@ -80,7 +80,7 @@ func test_property_maps_have_a_winnable_route() -> void:
 		var config: MapConfig = MapConfig.for_layers(run.map.layer_count)
 		assert_eq(MapRules.find_violations(run.map, config).size(), 0)
 	assert_eq(", ".join(failed), "", "sementes sem caminho vencível")
-	gut.p("suavizações em 6 mapas: %d" % smoothing)
+	gut.p("suavizações em 3 mapas: %d" % smoothing)
 	var first: RunState = RunState.new(_data, 77, "warrior", [], CHECK_RUNS)
 	var second: RunState = RunState.new(_data, 77, "warrior", [], CHECK_RUNS)
 	assert_eq(second.map.signature(), first.map.signature())

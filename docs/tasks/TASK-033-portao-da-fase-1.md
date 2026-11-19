@@ -1,8 +1,8 @@
-# TASK-031: portão da Fase 1 (MVP jogável)
+# TASK-033: portão da Fase 1 (MVP jogável)
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aberta (não iniciada; fecha o MVP depois das TASK-014, 029 e 030) |
+| Status | Aberta (não iniciada; fecha o MVP depois das TASK-014 e 032) |
 | Aberta em | 2026-11-18 |
 | Fase | 1, portão de saída (GDD §22, §23) |
 | GDD | 21, 22, 23 |
@@ -19,10 +19,10 @@ Registrar formalmente que o protótipo cinza passou (ou não) no portão da Fase
 ## Critérios de aceite
 
 - [ ] TASK-014 concluída: Web exportado e aberto, APK no celular, sessão de 20 minutos feita e ficha preenchida (`docs/PLAYTEST.md`).
-- [ ] TASK-029 concluída (revisão cruzada por outro modelo) e achados críticos resolvidos.
-- [ ] TASK-030 concluída (números calibrados com dados humanos).
+- [ ] TASK-029 concluída (feita; conferir achados abertos).
+- [ ] TASK-032 concluída (números calibrados com dados humanos).
 - [ ] Portão do GDD §22 e §23 avaliado por escrito: a pessoa quer "só mais uma" depois de 3 Descidas e nenhuma morte acontece sem aviso. Se falhar, a lista de ajustes vira tarefas antes de qualquer arte.
-- [ ] Primeira Descida chamativa (TASK-026) concluída ou adiada com justificativa no HANDOFF.
+- [x] Primeira Descida chamativa (TASK-026) concluída (ADR-0031).
 - [ ] `docs/ROADMAP-MVP.md` e `docs/HANDOFF.md` marcam o MVP como entregue e apontam o roteiro da Fase 2 (vertical slice: arte, cena 3D, som, animação da moeda, Santuário, anúncio real).
 - [ ] Suíte verde e `main` no GitHub com o branch padrão corrigido.
 

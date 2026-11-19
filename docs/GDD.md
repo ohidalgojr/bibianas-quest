@@ -95,6 +95,7 @@ O jogo tem quatro laços aninhados: turno, nó, cenário e Descida. Cada um entr
 - **O que persiste:** Ecos, desbloqueios de skills e itens, códice, Almas guardadas na Forja e a memória dos rivais (Nemesis).
 - **Auto-save** a cada nó, para o jogador poder sair a qualquer momento.
 - **Loja após cada batalha:** o jogador abre a loja, compra, vende e equipa o que dropou antes de escolher o próximo nó.
+- **Primeira Descida chamativa (ADR-0031):** quando `runs_played == 0`, a Descida usa o mesmo mapa determinístico, mas garante o Cidadão Infectado no primeiro encontro, um baú na camada 2 com equipamento incomum e Moeda da Sorte, um elite no meio do mapa com drop raro e Moeda da Sorte, Ecos em dobro (mesmo na derrota) e tensão calibrada no chefe (meta de 35% a 55% de vitória do bot mediano, com quase todas as tentativas chegando ao chefe).
 
 ### Interpretação adotada
 
@@ -121,6 +122,7 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 
 - Os três nós alcançáveis mostram tudo: inimigo, nível, mutação e dica de recompensa (ouro, equipamento, baú).
 - As camadas seguintes aparecem como silhuetas escuras, com as ligações esmaecidas e sem revelar o tipo do nó.
+- O chefe no topo do mapa é mostrado de longe com nome e nível ("O Coveiro te espera", ADR-0031).
 - Mini bosses são anunciados: o sino toca e um aviso vermelho marca a rota que leva a ele.
 - A Lanterna (item) amplia a visão em 1 camada por um cenário.
 
@@ -131,11 +133,11 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 | Batalha | 49% | Inimigo comum, nível próximo do nível do cenário |
 | Elite | 10% (sobe com o cenário) | Não aparece nos primeiros 30% das camadas. Mais Poder e melhor drop |
 | Baú | 14% (ADR-0027) | Dinheiro, item ou armadilha com moeda. Nunca dois em sequência |
-| Evento | 9% | Escolha com risco e recompensa; usa moeda em parte dos casos |
+| Evento | 9% (ADR-0033) | Escolha com risco e recompensa; usa moeda em parte dos casos e pode alterar CRIT por alguns combates |
 | Fogueira | Garantida (seção 12) | Nunca duas fogueiras ligadas entre si |
-| Mini boss | 0 ou 1 por cenário (chance cresce com a profundidade) | Anunciado. Recompensa rara garantida |
+| Mini boss | 0 ou 1 por cenário (chance cresce com a profundidade; ADR-0033) | Anunciado pelo sino rachado na segunda metade do mapa. Recompensa rara, Galhos Secos e Moeda da Sorte garantidos |
 | Chefe | 1 por cenário | Nó final |
-| Inimigo emboscado | 18% (restante) | Batalha comum com um status inicial, como sangramento ou pavor |
+| Inimigo emboscado | 18% (restante) | Avisado no mapa ("Emboscada (age 1º)"): o inimigo começa com Carga cheia (age primeiro, sem golpe de moeda sem aviso) e a Bibiana inicia com Guarda aberta (DEF -20%) por 1 turno (ADR-0032) |
 
 Os valores são ponto de partida para o protótipo; a seção 23 explica como calibrar.
 
@@ -186,7 +188,7 @@ O combate é 1 contra 1, em janela própria, com ordem de turnos por Ritmo e tod
 | Defender | Reduz o dano em 50% até o próximo turno, devolve 10% do MP e reduz a penalidade de golpes de moeda (seção 7) | Nenhum | Não |
 | Item | Cura, MP (Éter Sujo, usável em combate), remoção de debuff ou dano | 1 item | Não |
 | Roubar | Skill de furto (a do Ladino ou "Truque de Mão" aprendido) | MP | Sim |
-| Fugir | Sai do combate e perde o nó | Nenhum | Sim, base 50%; Ladino +25%. Chefes não permitem fuga |
+| Fugir | Sai do combate e perde o nó | Nenhum | Sim, base 50%; Ladino +25%. Chefes e mini bosses não permitem fuga |
 
 ### Ordem de turnos
 
@@ -214,7 +216,7 @@ HP, MP, FOR, MEN, DEF, RES, VEL, PRE, ESQ, CRIT e SORTE. Equipamentos e Poder al
 
 ### Previsão das ações (ADR-0029)
 
-Antes de agir, o jogador vê nos botões o que a ação faz: faixa de dano (mínimo e máximo, sem crítico), chance de acerto e chance de crítico (inspirado em Darkest Dungeon), além do MP devolvido ao atacar. As skills que não dão dano mostram o efeito (por exemplo, "cura 32 de HP"), e toda skill tem uma dica com a descrição completa. O crítico (CRIT, dano ×1,5) continua como está, mas fica visível e pode ser aumentado por itens (Garra Afiada, +8), por skills de fogueira (Afiar o Fio) e, quando existirem, por eventos de mapa.
+Antes de agir, o jogador vê nos botões o que a ação faz: faixa de dano (mínimo e máximo, sem crítico), chance de acerto e chance de crítico (inspirado em Darkest Dungeon), além do MP devolvido ao atacar. As skills que não dão dano mostram o efeito (por exemplo, "cura 32 de HP"), e toda skill tem uma dica com a descrição completa. O crítico (CRIT, dano ×1,5) continua como está, mas fica visível e pode ser aumentado por itens (Garra Afiada, +8), por skills de fogueira (Afiar o Fio) e por eventos de mapa (ADR-0033).
 
 ### IA dos inimigos
 
@@ -242,9 +244,9 @@ A moeda é a assinatura do jogo: decide momentos de risco, é sempre avisada ant
 **A chance do lance é sempre 50%** e não é exibida: a moeda é só cara ou coroa (ADR-0025, ADR-0026).
 
 - O jogador **escolhe Cara ou Coroa antes de cada lance**, nunca automático. **Acertar o lado é o sucesso** e errar é a falha: a moeda cai no lado escolhido quando o lance dá sucesso e no outro quando dá falha. A escolha é ritual; a chance vem só da fórmula (ADR-0014).
-- **SORTE não mexe na moeda.** Ela influencia o resto do jogo: +1 ponto na chance de equipamento por ponto de SORTE (até +15), raridade dos drops deslocada para o raro, mais ouro nos baús e mais chance de Moeda da Sorte. Inimigos mais difíceis e emboscadas também serão influenciados pela sorte (TASK-025).
-- **Maré de azar:** depois de 3 lances perdidos seguidos, a próxima vitória com drop garante o equipamento com raridade melhor, e a maré zera. É o seguro contra o azar da moeda.
-- **Moeda da Sorte (re-jogada):** item raro, fora da loja, que cai de baús, elites e chefes. O jogador a arma antes do lance; no primeiro lance que cair errado, ele é rejogado uma vez e a moeda é gasta. Nada de trapaça por anúncio nem por item: a chance fica em 50%.
+- **SORTE não mexe na moeda.** Ela influencia o resto do jogo (ADR-0026, ADR-0032): +1 ponto na chance de equipamento por ponto de SORTE (até +15), raridade dos drops deslocada para o raro, mais ouro nos baús, mais chance de Moeda da Sorte e Galhos Secos, menor chance de inimigos mutados (-2 pontos por ponto de SORTE) e chance de evitar emboscadas nas camadas reveladas (+4% por ponto de SORTE positiva). SORTE negativa aumenta mutações e converte batalhas comuns em emboscadas (+4% por ponto de SORTE abaixo de zero).
+- **Maré de azar:** depois de 3 lances perdidos seguidos, a próxima camada revelada tem +25 pontos de chance de mutar um inimigo comum e 35% de chance por batalha comum de virar emboscada, enquanto a próxima vitória com drop garante o equipamento com raridade melhor (+35 pontos deslocados para incomum/raro) e zera a maré (ADR-0026, ADR-0032).
+- **Moeda da Sorte (re-jogada):** item raro, fora da loja, que cai de baús (10%), inimigos mutados (12%), elites (20%) e chefes (100%). O jogador a arma antes do lance; no primeiro lance que cair errado, ele é rejogado uma vez e a moeda é gasta. Nada de trapaça por anúncio nem por item: a chance fica em 50%.
 - Animação de cerca de 1,2 s com som de tique, câmera lenta e vibração. É o momento de maior tensão, então merece polimento.
 
 ### Onde a moeda aparece
@@ -357,7 +359,7 @@ Dentro da Descida, a Bibiana cresce por Poder, um número contínuo que sobe a c
 \Delta Poder = 0{,}4 \times N_{inimigo} \times m_{tipo}
 ```
 
-- m\_tipo: comum 1, elite 1,5, mini boss 2,5, roaming boss 3, chefe 4.
+- m\_tipo: comum 1, mutado 1,5 (ADR-0032), elite 1,5, mini boss 2,5, roaming boss 3, chefe 4.
 - Poder inicial: 1,0. Fugir de um combate não dá Poder.
 - **Nível da Bibiana** é a parte inteira do Poder (Poder 2,4 é nível 2). É só um rótulo: aparece no mapa e a recompensa anuncia "Subiu de nível!". O coeficiente passou de 0,15 para 0,4 no protótipo (ADR-0023), porque com 0,15 uma luta comum mudava 1 ou 2 pontos de HP e a Bibiana não parecia crescer; o mapa do MVP tem poucas lutas por cenário.
 - Atributos crescem de forma contínua com o Poder: HP +10% por ponto acima de 1; FOR e MEN +8%; DEF e RES +6%; VEL +2%. PRE, ESQ e SORTE vêm dos equipamentos e do clima, não do Poder.
@@ -387,9 +389,9 @@ O Santuário é o menu entre Descidas, em estilo de acampamento. Os Ecos ganhos 
 
 | Parte do Santuário | O que faz |
 | --- | --- |
-| Biblioteca | Desbloqueia skills de combate e de fogueira no pool aleatório |
-| Arsenal | Desbloqueia equipamentos e consumíveis no pool de drops |
-| Códice | Bestiário, lore e conquistas |
+| Biblioteca | Desbloqueia skills de combate e de fogueira no pool aleatório. No MVP (ADR-0034): *Tomo do Grito de Guerra* (12 Ecos, começa a Descida com Grito de Guerra) e *Manual do Fio Afiado* (16 Ecos, acender uma fogueira concede também Afiar o Fio por 2 lutas) |
+| Arsenal | Desbloqueia equipamentos e consumíveis no pool de drops e bênçãos iniciais. No MVP (ADR-0034): *Bênção da Malha Antiga* (15 Ecos, +8% de HP máx. e +8% de DEF base) e *Fardo do Viajante* (18 Ecos, +35 de ouro inicial e 1 Éter Sujo extra) |
+| Códice | Bestiário, lore e conquistas. No MVP (ADR-0034): catálogo dos 7 inimigos da Cidade Abandonada com golpe de moeda temático, reação e contadores persistentes de vitórias e quedas da Bibiana |
 | Forja de Almas | Troca Almas de chefe por equipamentos exclusivos (seção 13) |
 | Cemitério de Rivais | Lista de roaming bosses que mataram a Bibiana (seção 13) |
 
@@ -461,7 +463,7 @@ Exemplos de malditos: Anel do Cobrador (+30% de dano, mas perde 5 de ouro por tu
 ### Drops e inventário
 
 - Inimigos sempre dão moedas. Chance de equipamento: 12% comum, 35% elite, garantido raro em mini boss (valores iniciais).
-- **No protótipo (ADR-0022):** inimigos comuns e elites soltam também um consumível de cura (30% e 50%). A raridade do equipamento sai de pesos: comum 30% gasto, 55% comum, 15% incomum; elite 30% comum, 45% incomum, 25% raro. O chefe não solta equipamento. Itens raros só caem; não entram na loja. O jogador decide na hora: Equipar (o item trocado é vendido a 40%) ou Vender o drop a 40% (seção 15); sair da loja vende o drop pendente.
+- **No protótipo (ADR-0022, ADR-0032, ADR-0033):** inimigos comuns, mutados, elites e mini bosses soltam também um consumível de cura (30%, 45%, 50% e 65%). A chance base de equipamento é 12% comum, 30% mutado, 35% elite e **100% mini boss**. A raridade do equipamento sai de pesos: comum 30% gasto, 55% comum, 15% incomum; mutado 35% comum, 45% incomum, 20% raro; elite 30% comum, 45% incomum, 25% raro; mini boss **100% raro**. Inimigos mutados também têm 12% de chance (+SORTE) de soltar Moeda da Sorte e 15% (+SORTE) de soltar Galhos Secos; o mini boss garante **1 Galho Seco e 1 Moeda da Sorte (100%)**. O chefe não solta equipamento. Itens raros só caem; não entram na loja. O jogador decide na hora: Equipar (o item trocado é vendido a 40%) ou Vender o drop a 40% (seção 15); sair da loja vende o drop pendente.
 - O nível do item acompanha o cenário. Qualidade vem de pesos de raridade que sobem com a profundidade.
 - Inventário: 8 consumíveis e 6 equipamentos reserva. Passou disso, o jogador vende algo na hora.
 - Ao morrer, o jogador perde tudo o que carrega na Descida. Nada do inventário vai para o Santuário, a não ser Almas e o que foi forjado.
@@ -476,7 +478,7 @@ Inimigos podem passar doenças que duram entre combates e só saem com dinheiro,
 
 ### Doenças
 
-**Implementadas (ADR-0030):** a **Leptospirose** tira 15% do HP máximo, vem do golpe de moeda do Rato Grande, persiste entre combates, aparece no mapa e se trata na fogueira por 1 Brasa. As demais doenças da tabela abaixo seguem como proposta.
+**Implementadas (ADR-0030, ADR-0033):** a **Leptospirose** e o **Pulmão de Cinza** (`ash_lung`) tiram 15% do HP máximo, vêm do golpe de moeda do Rato Grande ou de eventos de mapa, persistem entre combates, aparecem no mapa e se tratam na fogueira por 1 Brasa (ou em eventos de purificação). As demais doenças da tabela abaixo seguem como proposta.
 
 | Doença | Efeito | Fonte típica | Custo base de cura |
 | --- | --- | --- | --- |
@@ -514,19 +516,26 @@ Inimigos podem passar doenças que duram entre combates e só saem com dinheiro,
 
 ### Mutações de inimigos
 
-Mutações são raras e deixam o inimigo mais forte, mas sempre visíveis antes da luta, para não punir demais. Um inimigo mutado dá ×1,5 de Poder e drops melhores.
+Mutações são raras e deixam o inimigo mais forte, mas sempre visíveis antes da luta, para não punir demais. Um inimigo mutado tem nível +1 (respeitando o teto do cenário), dá ×1,5 de Poder, drops melhores (com 20% de peso de item raro) e 12% de chance (+SORTE) de Moeda da Sorte (ADR-0032).
+
+**No protótipo do cenário 1 (ADR-0032):** a chance base de um nó comum mutar em cada camada da camada 3 em diante é **18%**, ajustada por `-2 × SORTE` e `+25%` durante a Maré de azar (limitada entre 0% e 65%). Cada inimigo comum tem sua mutação assinatura em `enemies.json`:
+- **Inchado (`bloated`, Cidadão Infectado):** +50% de HP máximo e VEL -2.
+- **Voraz (`voracious`, Rato Grande):** cura 25% do dano físico causado ao acertar.
+- **Fantasma (`phantom`, Corvo Carniceiro):** ESQ +15 pontos.
+- **Espinhoso (`thorny`, Cão de Peste):** reflete 15% do dano físico recebido.
+
+Para a campanha completa de 5 cenários, a progressão base proposta por cenário é:
 
 | Cenário | Chance de mutação na escolha de nó |
 | --- | --- |
-| 1 | 0% |
+| 1 | 18% no protótipo de 1 cenário (0% quando houver 5 cenários) |
 | 2 | 4% |
 | 3 | 8% |
 | 4 | 12% |
 | 5 | 15% |
 
-- Exemplos: Inchado (+50% de HP, é lento), Espinhoso (reflete 15% do dano físico), Voraz (cura ao causar dano), Fantasma (50% de ESQ contra ataques físicos), Duplicado (age duas vezes a cada 4 turnos).
-- Nunca mais de um inimigo mutado por camada do mapa e nunca nos primeiros dois nós de um cenário.
-- **Metamorfose** (surpresa): em cenário 3 ou acima, um inimigo comum tem 2% a 3% de chance de mutar em combate abaixo de 50% de vida. Ele treme por um turno antes, para o jogador reagir, e isso nunca acontece com chefes.
+- Nunca mais de um inimigo mutado por camada do mapa, nunca nas duas primeiras camadas de um cenário e nunca fechando todas as saídas de um nó anterior em apenas elites ou mutados (`MapRules` e `RunState`, ADR-0032).
+- **Metamorfose** (surpresa, futura): em cenário 3 ou acima, um inimigo comum tem 2% a 3% de chance de mutar em combate abaixo de 50% de vida. Ele treme por um turno antes, para o jogador reagir, e isso nunca acontece com chefes.
 
 ## 12. Fogueira e skills de acampamento
 
@@ -535,7 +544,7 @@ A fogueira é o respiro do jogo: um nó seguro onde a Bibiana gasta Brasas limit
 ### Regras
 
 - Cada fogueira dá 6 Brasas (valor inicial). Ao entrar, o jogador escolhe ações até gastar as Brasas ou sair.
-- **Armar a fogueira gasta Galhos Secos (ADR-0028).** O nó de fogueira abre apagado: sem armá-la não há Brasas, e as Brasas seguem sendo o recurso das ações do acampamento. Cada mapa garante os Galhos Secos de **uma** fogueira. Para armar mais, o jogador precisa de Galhos extras, que são raros: inimigos comuns 5%, elites 20%, baús 15% (mais SORTE), o chefe sempre 1 (e o mini boss, quando existir), ou a loja a 120 moedas. Entrar no nó e sair sem armar não gasta nada, então o jogador pode guardar os Galhos para a fogueira de antes do chefe: é a escolha de estratégia, sacrificar ouro e coleta por mais uma fogueira, ou usar o recurso em outra coisa.
+- **Armar a fogueira gasta Galhos Secos (ADR-0028).** O nó de fogueira abre apagado: sem armá-la não há Brasas, e as Brasas seguem sendo o recurso das ações do acampamento. Cada mapa garante os Galhos Secos de **uma** fogueira. Para armar mais, o jogador precisa de Galhos extras, que são raros: inimigos comuns 5%, elites 20%, baús 15% (mais SORTE), o mini boss sempre 1 e o chefe sempre 1, ou a loja a 120 moedas. Entrar no nó e sair sem armar não gasta nada, então o jogador pode guardar os Galhos para a fogueira de antes do chefe: é a escolha de estratégia, sacrificar ouro e coleta por mais uma fogueira, ou usar o recurso em outra coisa.
 - O número de fogueiras acompanha a profundidade do mapa (ADR-0028): 1 até 5 camadas; de 6 em diante, uma a cada 3 camadas, com ao menos 2 (6 e 7 camadas: 2; 8 a 10: 3; 11 e 12: 4). A penúltima camada sempre oferece uma, e as outras ficam a pelo menos 2 camadas de qualquer fogueira, para nunca ficarem ligadas. Sempre há, portanto, mais de um lugar para armar.
 - Roaming bosses não entram em fogueiras, mas o tempo continua passando (seção 13).
 
@@ -579,8 +588,8 @@ Há três níveis de ameaça: o chefe do cenário, o mini boss anunciado e o roa
 
 ### Mini bosses
 
-- Entram no mapa com anúncio: o sino toca ao gerar o cenário e um aviso marca a rota. São opcionais.
-- São desafios grandes com uma regra própria. Recompensa: equipamento raro garantido, Poder ×2,5 e fragmento de Alma.
+- Entram no mapa com anúncio: o sino toca ao gerar o cenário e um aviso marca a rota na segunda metade do mapa (0 ou 1 por cenário; chance `35% + 10% × max(camadas - 5, 0)` até 75%, ADR-0033). São opcionais (sempre há ao menos uma saída calma de cada nó anterior).
+- No cenário 1 (Cidade Abandonada), o mini boss é o **Carcereiro do Sino (`bell_warden`)**, anunciado pelo sino rachado. Recompensa: **equipamento raro garantido**, **1 Galho Seco**, **1 Moeda da Sorte**, Poder ×2,5, ouro ×2,5 e fragmento de Alma.
 - Não permitem fuga, para o risco ser uma decisão tomada antes de entrar.
 
 ### Roaming bosses (Nemesis)
@@ -1109,7 +1118,7 @@ O mercado aponta na mesma direção. Em uma pesquisa com jogadores citada pela M
 
 | Mecânica | Como funciona | Fase |
 | --- | --- | --- |
-| Morte que ensina | Uma tela pós-morte mostra o que causou o dano, o que faltou (por exemplo, “o chefe ficou com 12% de vida”), uma dica e o botão “Outra Descida”. Os Ecos são sempre creditados pela profundidade, então nenhuma Descida é perdida | Alpha |
+| Morte que ensina | Uma tela pós-morte mostra o que causou o dano, o que faltou (por exemplo, “o chefe ficou com 12% de vida”), o que foi conquistado na Descida, uma dica tática contextual e o botão “Outra Descida”. Os Ecos são sempre creditados pela profundidade (em dobro na primeira Descida, ADR-0031), então nenhuma Descida é perdida | Protótipo / Alpha (ADR-0031) |
 | Votos da Descida | Antes de entrar, o jogador aceita até 3 votos opcionais (vencer o cenário 1 sem usar itens, evitar todos os elites). Cada voto cumprido dá Ecos extras | Alpha |
 | Desbloqueio gotejante | Nas 5 primeiras Descidas há sempre algo novo (skill, item ou classe); depois, a cada 3 Descidas. O Santuário mostra o próximo desbloqueio e quanto falta | Alpha |
 | Códice e maestria | Bestiário, itens e conquistas completos por etapas. Cada classe tem nível de maestria que libera cosméticos (variações da mecha, como uma mecha de brasa) e passivas alternativas sem poder extra. Isso empurra o jogador a tentar as 4 classes | Alpha e Beta |

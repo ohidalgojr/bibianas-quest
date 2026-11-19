@@ -56,4 +56,7 @@ Passam a existir arquivos JSON em `game/data/` com o Guerreiro, as skills dele, 
 
 ## Revisão cruzada
 
-Pendente (etapa 4).
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §8, §11, §12, §13, §14, §20 e `ADR-0009`**: `DataValidator` e `GameData` vivem puros em `game/core/data/`, acumulando todos os erros estruturais e de referência cruzada sem parar no primeiro; `DataLoader` em `game/services/` isola `FileAccess` e `JSON`.
+- **Testes**: `tests/unit/test_data_validator.gd` e `tests/unit/test_scenario_combat.gd` exercitam os JSONs reais e casos inválidos para cada regra.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

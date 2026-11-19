@@ -69,6 +69,9 @@ func test_full_run_through_the_screens() -> void:
 				_press(_game, "Acender")
 				_press(_game, "Descansar")
 				assert_true(_press(_game, "Seguir"))
+			RunState.Phase.EVENT:
+				_press_any_event_choice(_game)
+				assert_true(_press(_game, "Seguir"))
 			_:
 				break
 	assert_eq(ended.size(), 1, "a Descida terminou pelas telas")
@@ -145,6 +148,20 @@ func _play_step(run: RunState) -> void:
 			_press(_game, "Acender")
 			_press(_game, "Descansar")
 			_press(_game, "Seguir")
+		RunState.Phase.EVENT:
+			_press_any_event_choice(_game)
+			_press(_game, "Seguir")
+
+
+func _press_any_event_choice(root: GameScreen) -> void:
+	if root._panel == null:
+		return
+	var buttons: Array[Node] = root._panel.find_children("*", "Button", true, false)
+	for i: int in range(buttons.size() - 1, -1, -1):
+		var btn: Button = buttons[i]
+		if btn.visible and not btn.disabled:
+			btn.pressed.emit()
+			return
 
 
 ## TASK-013: os atalhos de depuração só agem quando ligados.

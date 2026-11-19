@@ -11,7 +11,7 @@ const FORMAT: int = 1
 static func to_dict(run: RunState) -> Dictionary:
 	var nodes: Array[Array] = []
 	for node: MapNode in run.map.nodes:
-		nodes.append([node.id, node.layer, node.column, int(node.kind), Array(node.next_ids), node.enemy_id, node.level])
+		nodes.append([node.id, node.layer, node.column, int(node.kind), Array(node.next_ids), node.enemy_id, node.level, node.mutation])
 	return {
 		"format": FORMAT,
 		"rules_version": CoreVersion.RULES_VERSION,
@@ -31,8 +31,15 @@ static func to_dict(run: RunState) -> Dictionary:
 		"embers": run.embers,
 		"nodes_cleared": run.nodes_cleared,
 		"enemies_defeated": run.enemies_defeated,
+		"first_run": run.first_run,
+		"first_chest_opened": run.first_chest_opened,
 		"learned_skills": run.learned_skills,
 		"diseases": run.diseases,
+		"seen_events": run.seen_events,
+		"event_crit_bonus": run.event_crit_bonus,
+		"event_crit_combats": run.event_crit_combats,
+		"meta_unlocks": run.meta_unlocks,
+		"defeated_enemy_ids": run.defeated_enemy_ids,
 		"streams": run.streams.snapshot(),
 		"coin": {"losses_in_row": run.coin.losses_in_row, "flips": run.coin.flips, "heads": run.coin.heads},
 	}
@@ -56,7 +63,8 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	var scenarios: Array[String] = []
 	for scenario_id: Variant in saved["scenario_ids"]:
 		scenarios.append(str(scenario_id))
-	var run: RunState = RunState.new(data, streams.run_seed, str(saved["class_id"]), scenarios, 0, map)
+	var unlocks: Array = saved.get("meta_unlocks", []) if saved.get("meta_unlocks", []) is Array else []
+	var run: RunState = RunState.new(data, streams.run_seed, str(saved["class_id"]), scenarios, 0, map, bool(saved.get("first_run", false)), unlocks)
 	run.streams = streams
 	run.scenario_index = int(saved["scenario_index"])
 	run.current_node_id = int(saved["current_node_id"])
@@ -67,6 +75,15 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	run.embers = int(saved["embers"])
 	run.nodes_cleared = int(saved["nodes_cleared"])
 	run.enemies_defeated = int(saved.get("enemies_defeated", 0))
+	run.first_chest_opened = bool(saved.get("first_chest_opened", false))
+	run.event_crit_bonus = int(saved.get("event_crit_bonus", 0))
+	run.event_crit_combats = int(saved.get("event_crit_combats", 0))
+	if saved.has("defeated_enemy_ids"):
+		for enemy_id: Variant in saved["defeated_enemy_ids"]:
+			run.defeated_enemy_ids.append(str(enemy_id))
+	if saved.has("seen_events"):
+		for event_id: Variant in saved["seen_events"]:
+			run.seen_events.append(str(event_id))
 	if saved.has("diseases"):
 		for disease_id: Variant in saved["diseases"]:
 			run.diseases.append(str(disease_id))
@@ -96,7 +113,7 @@ static func _map_from(raw: Variant) -> MapGraph:
 	graph.start_id = int(entry["start_id"])
 	graph.boss_id = int(entry["boss_id"])
 	for row: Variant in entry["nodes"]:
-		if not row is Array or (row as Array).size() != 7:
+		if not row is Array or (row as Array).size() < 7 or (row as Array).size() > 8:
 			return null
 		var fields: Array = row
 		var node: MapNode = MapNode.new(int(fields[0]), int(fields[1]), int(fields[2]), int(fields[3]) as MapNode.Kind)
@@ -104,6 +121,7 @@ static func _map_from(raw: Variant) -> MapGraph:
 			node.next_ids.append(int(next_id))
 		node.enemy_id = str(fields[5])
 		node.level = int(fields[6])
+		node.mutation = str(fields[7]) if fields.size() >= 8 else ""
 		graph.nodes.append(node)
 	if graph.node_by_id(graph.start_id) == null or graph.node_by_id(graph.boss_id) == null:
 		return null

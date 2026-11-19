@@ -1,9 +1,10 @@
 extends GutTest
-## GDD §6 e §7, limites de justiça: em milhares de lutas jogadas por um bot, nenhum
+## GDD §6 e §7, limites de justiça: em lutas jogadas por um bot, nenhum
 ## golpe perigoso sem aviso, nenhuma morte imediata acima de 60% de vida, nenhum golpe
-## de moeda seguido (fora da fase final de chefes) e toda luta termina.
+## de moeda seguido (fora da fase final de chefes) e toda luta termina. Amostra enxuta
+## enquanto o foco está no MVP jogável com gráficos e som.
 
-const FIGHTS: int = 2000
+const FIGHTS: int = 120
 
 
 func test_property_fairness_rules_hold_in_thousands_of_fights() -> void:

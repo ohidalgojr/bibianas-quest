@@ -37,4 +37,6 @@ Um build Web para o link de playtest, um preset Android de um clique e a primeir
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §2, §22 e `ADR-0019`**: `export_presets.cfg` versionado sem segredos nem caminhos locais de keystore, com orientação retrato (`screen/orientation=0`) e `tools/export.ps1` documentando os comandos e variáveis de ambiente.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

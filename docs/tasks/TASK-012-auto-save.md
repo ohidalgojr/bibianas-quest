@@ -35,4 +35,6 @@ A Descida grava a cada nó resolvido e pode ser retomada depois de fechar o jogo
 
 ## Revisão cruzada
 
-Pendente.
+Revisado por Gemini (modelo distinto do autor original, Claude Opus 4.6), seguindo `docs/REVIEW-CHECKLIST.md`:
+- **GDD §4, §20 e `ADR-0017`**: `RunSave` no núcleo puro serializa/reconstrói `RunState` com validação de `format` e `CoreVersion.RULES_VERSION`, inclusive os estados internos dos 4 fluxos de RNG; `SaveStore` grava de forma atômica via `.tmp` + `rename_absolute` em `run.json` e `meta.json` separados.
+- **Achados**: nenhum achado crítico ou importante. Aprovada.

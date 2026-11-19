@@ -3,6 +3,7 @@
 	"enemies": [
 		{
 			"id": "infected_citizen", "name": "Cidadão Infectado", "type": "common", "base_level": 1,
+			"mutation": "bloated",
 			"stats": {"hp": 48, "strength": 10, "defense": 4, "resistance": 2, "speed": 6, "evasion": 3},
 			"element_mults": {}, "tags": ["diseased"],
 			"phases": [{"below_hp_percent": 100, "moves": [
@@ -15,6 +16,7 @@
 		},
 		{
 			"id": "giant_rat", "name": "Rato Grande", "type": "common", "base_level": 1,
+			"mutation": "voracious",
 			"stats": {"hp": 36, "strength": 9, "defense": 3, "resistance": 2, "speed": 9, "evasion": 8},
 			"element_mults": {"fire": 1.5}, "tags": ["diseased"],
 			"phases": [{"below_hp_percent": 100, "moves": [
@@ -27,6 +29,7 @@
 		},
 		{
 			"id": "carrion_crow", "name": "Corvo Carniceiro", "type": "common", "base_level": 1,
+			"mutation": "phantom",
 			"stats": {"hp": 30, "strength": 8, "defense": 2, "resistance": 4, "speed": 11, "evasion": 14},
 			"element_mults": {"lightning": 1.5}, "tags": [],
 			"phases": [{"below_hp_percent": 100, "moves": [
@@ -39,6 +42,7 @@
 		},
 		{
 			"id": "plague_hound", "name": "Cão de Peste", "type": "common", "base_level": 1,
+			"mutation": "thorny",
 			"stats": {"hp": 42, "strength": 9, "defense": 3, "resistance": 3, "speed": 12, "evasion": 8},
 			"element_mults": {"fire": 1.5}, "tags": ["diseased"],
 			"phases": [{"below_hp_percent": 100, "moves": [
@@ -61,6 +65,22 @@
 				{"id": "mend", "kind": "heal", "heal_percent": 15}
 			]}],
 			"reactions": [{"when": "self_hp_below", "value": 40, "move": "beheading"}]
+		},
+		{
+			"id": "bell_warden", "name": "Carcereiro do Sino", "type": "mini_boss", "base_level": 4,
+			"stats": {"hp": 125, "strength": 16, "defense": 10, "resistance": 6, "speed": 6, "evasion": 3},
+			"element_mults": {"lightning": 1.5, "holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "attack", "kind": "attack"},
+				{"id": "deafening_toll", "kind": "cruel", "fail_effect": "blinded"},
+				{"id": "toll_curse", "kind": "debuff", "power": 0.9, "effect": "weakened", "effect_chance": 65},
+				{"id": "cage_slam", "kind": "strong", "power": 1.45},
+				{"id": "attack", "kind": "attack"}
+			]}],
+			"reactions": [
+				{"when": "player_defended_twice", "move": "cage_slam"},
+				{"when": "self_hp_below", "value": 40, "move": "toll_curse"}
+			]
 		},
 		{
 			"id": "gravedigger", "name": "O Coveiro", "type": "boss", "base_level": 6,

@@ -27,9 +27,10 @@ var phase_index: int = 0
 var cycle_index: int = 0
 var intent: EnemyMove = null
 var last_move: EnemyMove = null
-## Doenças da Bibiana (ADR-0030) e reações do inimigo: {when, value, move} (GDD §6, ADR-0030).
+## Doenças da Bibiana (ADR-0030), reações (GDD §6, ADR-0030) e mutação do inimigo (GDD §11, ADR-0032).
 var diseases: Array[String] = []
 var reactions: Array[Dictionary] = []
+var mutation: String = ""
 
 
 static func player(unit_name: String, unit_stats: Stats, has_veteran: bool = false) -> Combatant:
@@ -123,8 +124,3 @@ func effective_speed() -> int:
 
 func element_multiplier(element: CombatFormulas.Element) -> float:
 	return float(element_mults.get(element, 1.0))
-
-
-## Fase de chefe com mais de uma fase, na última: libera golpes de moeda seguidos.
-func in_final_phase() -> bool:
-	return is_boss and phases.size() > 1 and phase_index == phases.size() - 1

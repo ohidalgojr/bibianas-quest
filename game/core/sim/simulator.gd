@@ -8,6 +8,7 @@ extends RefCounted
 var data: GameData
 var profile: RunBot.Profile = RunBot.Profile.MEDIAN
 var winnability_runs: int = 0
+var first_run: bool = false
 
 var runs: int = 0
 var wins: int = 0
@@ -26,10 +27,11 @@ var gold_total: int = 0
 var nodes_total: int = 0
 
 
-func _init(game_data: GameData, bot_profile: RunBot.Profile = RunBot.Profile.MEDIAN, map_check_runs: int = 0) -> void:
+func _init(game_data: GameData, bot_profile: RunBot.Profile = RunBot.Profile.MEDIAN, map_check_runs: int = 0, is_first_run: bool = false) -> void:
 	data = game_data
 	profile = bot_profile
 	winnability_runs = map_check_runs
+	first_run = is_first_run
 
 
 func run_many(first_seed: int, count: int) -> void:
@@ -38,7 +40,7 @@ func run_many(first_seed: int, count: int) -> void:
 
 
 func run_one(run_seed: int) -> RunState:
-	var run: RunState = RunState.new(data, run_seed, "warrior", [], winnability_runs)
+	var run: RunState = RunState.new(data, run_seed, "warrior", [], winnability_runs, null, first_run)
 	var bot: Pcg32 = Pcg32.new(run_seed, 7)
 	var steps: int = 0
 	while not run.is_over() and steps < RunBot.MAX_STEPS:
@@ -55,6 +57,8 @@ func run_one(run_seed: int) -> RunState:
 				RunBot.shop(run, profile)
 			RunState.Phase.CAMPFIRE:
 				RunBot.campfire(run, profile)
+			RunState.Phase.EVENT:
+				RunBot.event(run, bot, profile)
 	runs += 1
 	power_total += run.power
 	gold_total += run.gold
@@ -80,7 +84,7 @@ func _before_fight(run: RunState) -> void:
 
 func _after_fight(run: RunState) -> void:
 	var combat: Combat = run.combat
-	var enemy_type: String = RunRules.enemy_type_for(run.current_node().kind)
+	var enemy_type: String = RunRules.enemy_type_for(run.current_node().kind, run.current_node().is_mutated())
 	var row: Array = fight_stats.get(enemy_type, [0, 0, 0])
 	row[0] = int(row[0]) + 1
 	row[1] = int(row[1]) + player_turns(combat)
@@ -136,9 +140,10 @@ func report(title: String) -> String:
 	lines.append("Bot %s, %d Descidas, regras v%d, dados format %d, checagem de mapa com %d simulações." % [
 		RunBot.PROFILE_NAMES[profile], runs, CoreVersion.RULES_VERSION, DataValidator.FORMAT, winnability_runs])
 	lines.append("")
+	var win_target: String = "35% a 55% (1ª Descida, ADR-0031)" if first_run else "55% a 65% (jogador mediano)"
 	lines.append("| Métrica | Valor | Meta (GDD §23) |")
 	lines.append("| --- | --- | --- |")
-	lines.append("| Vitória do cenário 1 | %.1f%% | 55%% a 65%% (jogador mediano) |" % win_rate())
+	lines.append("| Vitória do cenário 1 | %.1f%% | %s |" % [win_rate(), win_target])
 	lines.append("| Turnos por combate comum | %.1f | 6 a 10 |" % turns_per_fight("common"))
 	lines.append("| Mortes causadas por moeda | %.1f%% (%d de %d) | 25%% ou menos |" % [coin_death_share(), coin_deaths, deaths])
 	lines.append("| Chegou ao chefe | %.1f%% | |" % (100.0 * boss_reached / maxi(runs, 1)))
@@ -150,7 +155,7 @@ func report(title: String) -> String:
 	lines.append("")
 	lines.append("| Inimigo | Lutas | Turnos por luta | Vitórias |")
 	lines.append("| --- | --- | --- | --- |")
-	for enemy_type: String in ["common", "elite", "boss"]:
+	for enemy_type: String in ["common", "mutated", "elite", "mini_boss", "boss"]:
 		if fight_stats.has(enemy_type):
 			lines.append("| %s | %d | %.1f | %.1f%% |" % [enemy_type, int(fight_stats[enemy_type][0]),
 				turns_per_fight(enemy_type), fight_win_rate(enemy_type)])

@@ -45,8 +45,7 @@ func test_run_starts_on_the_map() -> void:
 	for node: MapNode in run.map.nodes:
 		if node.is_fight():
 			assert_ne(node.enemy_id, "", "nó %d com inimigo" % node.id)
-			assert_between(node.level, 1, 6)
-		assert_ne(node.kind, MapNode.Kind.EVENT, "eventos fora do protótipo (ADR-0011)")
+			assert_between(node.level, 1, 7)
 
 
 func test_invalid_actions_are_rejected_without_change() -> void:

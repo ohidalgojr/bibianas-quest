@@ -17,9 +17,11 @@ var use_thread: bool = true
 ## Repassado à tela de combate: 0 deixa a animação instantânea.
 var time_scale: float = 1.0
 var run: RunState
-## Ecos acumulados e Descidas jogadas desde que o jogo abriu. O save é da TASK-012.
+## Ecos acumulados, Descidas jogadas, desbloqueios do Santuário e Bestiário (TASK-012, TASK-030).
 var echoes: int = 0
 var runs_played: int = 0
+var meta_unlocks: Array[String] = []
+var bestiary: Dictionary = {}
 ## Save em disco (TASK-012, ADR-0017). Os testes desligam ou apontam para uma pasta de teste.
 var save_enabled: bool = true
 var save_dir: String = "user://"
@@ -34,6 +36,7 @@ var _content: Control
 var _map: MapScreen
 var _combat: CombatScreen
 var _panel: Control
+var _sanctuary: SanctuaryScreen
 var _reward_pending: bool = false
 var _seed_counter: int = 0
 var _seed_edit: LineEdit
@@ -54,6 +57,10 @@ func _ready() -> void:
 		var meta: Dictionary = _store().load_meta()
 		echoes = int(meta["echoes"])
 		runs_played = int(meta["runs_played"])
+		meta_unlocks.clear()
+		for id: Variant in meta.get("unlocks", []):
+			meta_unlocks.append(str(id))
+		bestiary = (meta.get("bestiary", {}) as Dictionary).duplicate(true)
 	_telemetry = Telemetry.new(telemetry_dir)
 	_telemetry.enabled = telemetry_enabled
 	if debug_enabled:
@@ -82,11 +89,18 @@ func _process(_delta: float) -> void:
 # --- Telas -------------------------------------------------------------------------
 
 func show_home() -> void:
-	var box: VBoxContainer = _page("Bibiana's Quest", "Protótipo cinza, regras v%d" % CoreVersion.RULES_VERSION)
+	var box: VBoxContainer = _page("Bibiana's Quest", "Cidade Abandonada — MVP Dark Fantasy (regras v%d)" % CoreVersion.RULES_VERSION)
 	if not data.is_valid():
 		box.add_child(_label("Dados inválidos. Veja o console."))
 		return
-	box.add_child(_label("Ecos: %d    Descidas: %d" % [echoes, runs_played]))
+	var portrait_center: CenterContainer = CenterContainer.new()
+	var portrait: VisualTheme.PortraitCanvas = VisualTheme.PortraitCanvas.new()
+	portrait.custom_minimum_size = Vector2(96, 96)
+	portrait.configure_player(1.0)
+	portrait_center.add_child(portrait)
+	box.add_child(portrait_center)
+	box.add_child(_label("Ecos: %d    Descidas: %d    Santuário: %d/%d" % [
+		echoes, runs_played, meta_unlocks.size(), SanctuaryRules.UPGRADES.size()]))
 	box.add_child(_label(_class_text()))
 	if save_enabled and _store().has_run():
 		box.add_child(_button("Continuar Descida", resume_run))
@@ -95,7 +109,26 @@ func show_home() -> void:
 		_seed_edit.placeholder_text = "Semente (depuração; vazio = aleatória)"
 		box.add_child(_seed_edit)
 	box.add_child(_button("Nova Descida", _new_run_from_menu))
+	box.add_child(_button("Santuário (Ecos: %d)" % echoes, func() -> void: show_sanctuary()))
 	box.add_child(_button("Luta de teste (depuração)", _show_test_fight))
+
+
+func show_sanctuary(tab_id: String = "library") -> SanctuaryScreen:
+	_clear()
+	_sanctuary = SanctuaryScreen.new()
+	_sanctuary.data = data
+	_sanctuary.echoes = echoes
+	_sanctuary.unlocks = meta_unlocks.duplicate()
+	_sanctuary.bestiary = bestiary.duplicate(true)
+	_sanctuary.active_tab = tab_id
+	_sanctuary.upgrade_purchased.connect(func(_uid: String) -> void:
+		echoes = _sanctuary.echoes
+		meta_unlocks = _sanctuary.unlocks.duplicate()
+		if save_enabled:
+			_store().save_meta(echoes, runs_played, meta_unlocks, bestiary))
+	_sanctuary.closed.connect(show_home)
+	_set_content(_sanctuary)
+	return _sanctuary
 
 
 ## Escolha de classe do MVP: só o Guerreiro (roteiro da TASK-011).
@@ -145,7 +178,7 @@ func new_run(run_seed: int = -1) -> void:
 
 
 func _create_run(run_seed: int) -> RunState:
-	return RunState.new(data, run_seed, CLASS_ID, [], map_check_runs)
+	return RunState.new(data, run_seed, CLASS_ID, [], map_check_runs, null, runs_played == 0, meta_unlocks)
 
 
 ## Mostra a tela certa para a fase atual da Descida.
@@ -159,6 +192,8 @@ func _after_action() -> void:
 			_show_map()
 			if not run.last_chest.is_empty():
 				_show_chest()
+			elif not run.last_event_result.is_empty():
+				_show_event()
 		RunState.Phase.FIGHT:
 			_show_fight()
 		RunState.Phase.SHOP:
@@ -170,6 +205,9 @@ func _after_action() -> void:
 		RunState.Phase.CAMPFIRE:
 			_show_map()
 			_show_campfire()
+		RunState.Phase.EVENT:
+			_show_map()
+			_show_event()
 		RunState.Phase.VICTORY, RunState.Phase.DEFEAT:
 			_show_result()
 
@@ -208,7 +246,7 @@ func _on_fight_done() -> void:
 	_after_action()
 
 
-## Recompensa, loja e fogueira (TASK-010, ADR-0015): painéis por cima do mapa.
+## Recompensa, loja, fogueira e evento (TASK-010, TASK-028): painéis por cima do mapa.
 func _show_reward() -> void:
 	var screen: RunPanelScreen = _open_panel()
 	screen.show_reward()
@@ -241,33 +279,47 @@ func _show_campfire() -> void:
 		_after_action())
 
 
+func _show_event() -> void:
+	var screen: RunPanelScreen = _open_panel()
+	screen.forced_coin = _forced_coin
+	screen.show_event()
+	screen.closed.connect(func() -> void:
+		screen.panels.close_event()
+		_after_action())
+
+
 func _open_panel() -> RunPanelScreen:
 	var screen: RunPanelScreen = RunPanelScreen.new()
 	screen.panels = RunPanels.new(run)
+	screen.forced_coin = _forced_coin
 	_panel = screen
 	_content.add_child(screen)
 	return screen
 
 
-## Tela de fim (GDD §26, "morte que ensina"): o que aconteceu, quem derrotou a Bibiana,
-## os Ecos creditados e "Outra Descida".
+## Tela de fim (GDD §26, "morte que ensina", ADR-0031): o que aconteceu, quem derrotou a
+## Bibiana (e com quanto de HP ficou), dica tática, o que foi conquistado, os Ecos
+## creditados (em dobro na 1ª Descida) e "Outra Descida".
 func _show_result() -> void:
 	var victory: bool = run.phase == RunState.Phase.VICTORY
 	var earned: int = run.echoes_earned()
 	echoes += earned
 	runs_played += 1
+	bestiary = SanctuaryRules.record_run_in_bestiary(
+		bestiary, run.defeated_enemy_ids, "" if victory else run.defeated_by_id)
 	if save_enabled:
 		_store().clear_run()
-		_store().save_meta(echoes, runs_played)
+		_store().save_meta(echoes, runs_played, meta_unlocks, bestiary)
+	var summary: Dictionary = run.end_summary(echoes)
 	var title: String = "Vitória! O chefe caiu." if victory else "A Bibiana caiu."
 	var box: VBoxContainer = _page(title, "Semente %d." % run.streams.run_seed)
 	if not victory:
-		var killer: String = str(data.enemies[run.defeated_by_id]["name"]) if data.enemies.has(run.defeated_by_id) else "?"
-		box.add_child(_label("Derrotada por %s, nível %d." % [killer, run.defeated_by_level]))
-	box.add_child(_label("Poder %.2f, ouro %d, %d nós, %d inimigos derrotados, %d chefe(s)." % [
-		run.power, run.gold, run.nodes_cleared, run.enemies_defeated, run.bosses_defeated()]))
-	box.add_child(_label("Ecos ganhos: +%d (total %d). Nenhuma Descida se perde." % [earned, echoes]))
+		box.add_child(_label(str(summary["killer_line"])))
+	box.add_child(_label(str(summary["tip_line"])))
+	box.add_child(_label(str(summary["accomplished_line"])))
+	box.add_child(_label(str(summary["next_line"])))
 	box.add_child(_button("Outra Descida", func() -> void: new_run()))
+	box.add_child(_button("Santuário (Ecos: %d)" % echoes, func() -> void: show_sanctuary()))
 	box.add_child(_button("Início", show_home))
 	run_ended.emit(victory)
 

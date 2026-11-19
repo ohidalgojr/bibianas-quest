@@ -10,7 +10,7 @@ extends RefCounted
 ## - MISS: side = atacante; label = ação.
 ## - DAMAGE: side = quem recebe; label = ação; value = dano; flag = crítico; extra = vida depois.
 ## - HEAL: side = quem cura; value = HP recuperado; extra = MP recuperado.
-## - COIN: label = motivo; value = chance (%); flag = Cara; extra = bônus da Maré de azar.
+## - COIN: label = motivo; value = chance (%); flag = acertou o lado; extra = 1 se a Moeda da Sorte re-jogou.
 ## - EFFECT_ON, EFFECT_OFF: side = quem tem; label = efeito; value = turnos.
 ## - STUN_SKIP: side = quem perdeu o turno; label = golpe cancelado.
 ## - PHASE: side = inimigo; value = nova fase.

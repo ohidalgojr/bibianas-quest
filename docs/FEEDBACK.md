@@ -199,18 +199,19 @@ Tudo abaixo está **implementado e testado, mas ainda não jogado pelo Orlando**
 | F-016 fraco no chefe, caminho curto | TASK-022 | mapa de 6 camadas, mais lutas e baús |
 | F-015 baú e loops viciantes | TASK-022 | baú multiplicável ×1,25 a ×2 por Moeda da Sorte ou anúncio simulado |
 | F-009, F-010 fogueira | TASK-023 | Galhos Secos (1 garantido por mapa, extras raros ou caros), fogueiras proporcionais à profundidade |
-| F-014 moeda 50/50, reroll raro | TASK-021 | moeda sem número, Moeda da Sorte como drop raro, SORTE e Maré nos drops |
+| F-014 moeda 50/50, reroll raro | TASK-021 e 027 | moeda sem número, Moeda da Sorte como drop raro (baú, mutado, elite, chefe), SORTE e Maré nos drops, mutados e emboscadas |
 | F-007, F-008, F-011 combate legível, crítico | TASK-024 | previsão de dano, acerto e crítico; descrição das skills; atacar devolve MP; Éter em combate; crítico por item e skill |
 | F-006, F-012, F-013, F-018 inimigos únicos, moeda temática, IA | TASK-025 | fichas por inimigo, consequência da coroa, Leptospirose, reações |
 | F-017 moeda frequente | TASK-016 e 025 | intervalo de 2 golpes; o Corvo agora usa moeda (mais lances contra ele) |
+| Eventos de mapa, D6 (CRIT) e mini boss | TASK-028 | 6 eventos na Cidade Abandonada (com moeda e modificador de CRIT), mini boss Carcereiro do Sino anunciado com raro + Galhos Secos + Moeda da Sorte |
 
-**Ainda aberto:** emboscadas e inimigos mais difíceis por sorte (precisam de variantes mutadas), evento de mapa que mexa no crítico, mini boss e roaming boss, anúncio de verdade, e calibrar tudo com o `telemetry.log` do Orlando.
+**Ainda aberto:** roaming boss, anúncio de verdade, e calibrar tudo com o `telemetry.log` do Orlando.
 
 ## 2026-11-18, pedido de design
 
 ### F-019: a primeira Descida tem que ser chamativa
 
-- **Status:** aberto (anotado; vira a TASK-026, que ainda não começou).
+- **Status:** atendido na TASK-026 (ADR-0031), falta o Orlando confirmar jogando: primeira Descida (`runs_played == 0`) com Cidadão Infectado garantido na camada 1, baú na camada 2 com item incomum e Moeda da Sorte, elite no meio com drop raro e Moeda da Sorte, chefe visível de longe no mapa ("O Coveiro te espera"), Ecos em dobro e tela final "Morte que ensina" (inimigo e % de vida restante, conquistas, dica tática e o que ficou para a próxima). Simulador: 52,7% de vitória e 98,0% de chegada ao chefe na primeira Descida.
 - **Fala do Orlando:** "a primeira descida tem que ser chamativa, dar um gostinho da dificuldade e recompensa pra fazer a pessoa ter vontade de continuar jogando".
 - **O que isso pede:** a primeira Descida de quem nunca jogou (`runs_played == 0`) precisa entregar, em poucos minutos: (1) um **gostinho da dificuldade** (um encontro tenso e justo, com a moeda e um golpe temático avisado, sem ser injusto), (2) uma **recompensa que se vê** (um item raro ou uma skill forte que mude o jogo, um nível subindo) e (3) um **motivo para a próxima** (Ecos, desbloqueio ou mistério que ficou, "o Coveiro me espera").
 - **Hoje:** a primeira Descida é igual às outras: mapa sorteado, recompensa aleatória, nenhum momento garantido. Quem tem azar de drops vê pouco.

@@ -18,11 +18,15 @@ const MAX_STEPS: int = 10000
 ## GDD §7 (ADR-0020): golpes de moeda do inimigo precisam de ao menos este número de
 ## golpes de outro tipo entre eles. Vale para todos, chefes inclusive.
 const COIN_GAP: int = 2
+## Emboscada (GDD §5, ADR-0032): o inimigo começa com carga cheia (age primeiro, sem golpe
+## perigoso sem aviso) e a Bibiana sofre o bote inicial com Guarda aberta (DEF -20%).
+const AMBUSH_ARMOR_DOWN_TURNS: int = 1
 
 var player: Combatant
 var enemy: Combatant
 var outcome: Outcome = Outcome.ONGOING
 var history: Array[CombatEvent] = []
+var ambushed: bool = false
 
 ## Depuração (TASK-013): -1 sorteia normal, 1 força sucesso, 0 força falha na moeda. O
 ## sorteio continua acontecendo (os fluxos andam igual); só o resultado muda.
@@ -58,8 +62,10 @@ func start() -> Array[CombatEvent]:
 		return _since(first)
 	_started = true
 	player.charge = 0
-	enemy.charge = 0
-	_emit(CombatEvent.Type.STARTED, Combatant.PLAYER)
+	enemy.charge = CHARGE_TO_ACT if ambushed else 0
+	_emit(CombatEvent.Type.STARTED, Combatant.PLAYER, "ambush" if ambushed else "")
+	if ambushed:
+		_apply_effect(player, CombatEffect.Kind.ARMOR_DOWN, AMBUSH_ARMOR_DOWN_TURNS)
 	_choose_intent()
 	_advance()
 	return _since(first)
@@ -460,6 +466,17 @@ func _strike(attacker: Combatant, defender: Combatant, power: float, element: Co
 		if reflected > 0:
 			attacker.hp -= reflected
 			_emit(CombatEvent.Type.DAMAGE, attacker.side, "reflect", reflected, false, attacker.hp)
+	if physical and damage > 0 and defender.mutation == Mutations.THORNY and attacker.is_alive():
+		var thorny: int = maxi(1, roundi(damage * Mutations.THORNY_REFLECT_PERCENT / 100.0))
+		if attacker.side == Combatant.PLAYER:
+			thorny = CombatFormulas.cap_lethal(thorny, attacker.hp, attacker.stats.max_hp)
+		thorny = mini(thorny, attacker.hp)
+		if thorny > 0:
+			attacker.hp -= thorny
+			_emit(CombatEvent.Type.DAMAGE, attacker.side, "thorny", thorny, false, attacker.hp)
+	if damage > 0 and attacker.mutation == Mutations.VORACIOUS and attacker.is_alive():
+		var leech: int = maxi(1, roundi(damage * Mutations.VORACIOUS_HEAL_PERCENT / 100.0))
+		_restore(attacker, leech, 0, Mutations.VORACIOUS)
 	return damage
 
 
@@ -487,12 +504,12 @@ func _apply_effect(unit: Combatant, kind: CombatEffect.Kind, turns: int) -> void
 	_emit(CombatEvent.Type.EFFECT_ON, unit.side, CombatEffect.LABELS[kind], turns)
 
 
-func _restore(unit: Combatant, hp_amount: int, mp_amount: int) -> void:
+func _restore(unit: Combatant, hp_amount: int, mp_amount: int, label: String = "") -> void:
 	var hp_gain: int = clampi(hp_amount, 0, unit.stats.max_hp - unit.hp)
 	var mp_gain: int = clampi(mp_amount, 0, unit.stats.max_mp - unit.mp)
 	unit.hp += hp_gain
 	unit.mp += mp_gain
-	_emit(CombatEvent.Type.HEAL, unit.side, "", hp_gain, false, mp_gain)
+	_emit(CombatEvent.Type.HEAL, unit.side, label, hp_gain, false, mp_gain)
 
 
 ## Se os dois caírem no mesmo golpe (reflexo da Muralha), vale a derrota.

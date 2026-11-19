@@ -10,9 +10,10 @@ const STARTING_POWER: float = 1.0
 const GOLD_PER_LEVEL: float = 10.0
 const GOLD_VARIANCE_LOW: float = 0.8
 const GOLD_VARIANCE_HIGH: float = 1.2
-## GDD §9 e §15: m_tipo por tipo de inimigo.
+## GDD §9, §11 e §15: m_tipo por tipo de inimigo (mutado dá ×1,5 de Poder e ouro; ADR-0032).
 const TYPE_MULTIPLIERS: Dictionary = {
 	"common": 1.0,
+	"mutated": 1.5,
 	"elite": 1.5,
 	"mini_boss": 2.5,
 	"roaming_boss": 3.0,
@@ -43,7 +44,7 @@ const CHEST_BOOST_WEIGHTS: Array[int] = [50, 35, 15]
 ## fogueira, garantidos; os outros são raros (drops, chefe, loja). Chance em % de cair, mais SORTE.
 const FIREWOOD_PER_MAP: int = 1
 const FIREWOOD_ID: String = "firewood"
-const FIREWOOD_DROP_PERCENT: Dictionary = {"common": 5, "elite": 20}
+const FIREWOOD_DROP_PERCENT: Dictionary = {"common": 5, "mutated": 15, "elite": 20, "mini_boss": 100}
 const FIREWOOD_CHEST_PERCENT: int = 15
 ## Tratar uma doença na fogueira custa 1 Brasa (GDD §11 e §12, ADR-0030).
 const TREAT_COST: int = 1
@@ -59,14 +60,16 @@ const STARTING_ITEMS: Dictionary = {"murky_potion": 2}
 const ECHOES_PER_NODE: int = 1
 const ECHOES_PER_BOSS: int = 5
 
-## GDD §10: chance de equipamento por inimigo, valores iniciais (ADR-0022).
-const DROP_EQUIPMENT_PERCENT: Dictionary = {"common": 12, "elite": 35}
+## GDD §10, §11 e §13: chance de equipamento por inimigo (mutados têm drop melhor, ADR-0032; mini boss 100% raro, ADR-0033).
+const DROP_EQUIPMENT_PERCENT: Dictionary = {"common": 12, "mutated": 30, "elite": 35, "mini_boss": 100}
 ## Consumível que cura HP: não está no GDD, proposta do ADR-0022.
-const DROP_CONSUMABLE_PERCENT: Dictionary = {"common": 30, "elite": 50}
-## GDD §10: o raro vem de elites; pesos por raridade (ADR-0022).
+const DROP_CONSUMABLE_PERCENT: Dictionary = {"common": 30, "mutated": 45, "elite": 50, "mini_boss": 65}
+## GDD §10, §11 e §13: o raro vem de elites, mutados e mini boss (100% raro no mini boss; ADR-0022, ADR-0032, ADR-0033).
 const DROP_RARITY_WEIGHTS: Dictionary = {
 	"common": {"worn": 30, "common": 55, "uncommon": 15},
+	"mutated": {"common": 35, "uncommon": 45, "rare": 20},
 	"elite": {"common": 30, "uncommon": 45, "rare": 25},
+	"mini_boss": {"rare": 100},
 }
 ## SORTE e Maré de azar nos drops (ADR-0026): +1 ponto na chance de equipamento por ponto
 ## de SORTE (teto +15); por ponto, 2 pontos de peso saem da raridade mais baixa para a mais
@@ -75,23 +78,53 @@ const LUCK_DROP_PERCENT_PER_POINT: int = 1
 const LUCK_DROP_CAP: int = 15
 const LUCK_RARITY_SHIFT_PER_POINT: int = 2
 const BAD_LUCK_RARITY_SHIFT: int = 10
-## Moeda da Sorte: chance em % de cair de baú e de elite, mais SORTE (ADR-0026); o chefe sempre solta.
+## Moeda da Sorte: chance em % de cair de baú, mutado e elite, mais SORTE (ADR-0026, ADR-0032); o mini boss e o chefe sempre soltam (ADR-0033).
 const LUCKY_COIN_ID: String = "lucky_coin"
 const LUCKY_COIN_CHEST_PERCENT: int = 6
 const LUCKY_COIN_ELITE_PERCENT: int = 8
+const LUCKY_COIN_MUTATED_PERCENT: int = 12
+const LUCKY_COIN_MINI_BOSS_PERCENT: int = 100
 ## SORTE no ouro de baú: +3% por ponto.
 const LUCK_CHEST_GOLD_PERCENT: int = 3
 ## GDD §15: venda de itens paga 40% do valor.
 const SELL_PERCENT: int = 40
 
-## ADR-0011: elite um nível acima da camada; eventos fora do protótipo.
+## ADR-0011 e ADR-0033: elite e mini boss um nível acima da camada; eventos ligados com peso 9 (GDD §5).
 const ELITE_LEVEL_BONUS: int = 1
-const PROTOTYPE_EVENT_WEIGHT: int = 0
+const PROTOTYPE_EVENT_WEIGHT: int = 9
+## Mini boss (GDD §5 e §13, ADR-0033): 0 ou 1 por mapa, chance cresce com a profundidade (45% em 6 camadas).
+const MINI_BOSS_BASE_PERCENT: int = 35
+const MINI_BOSS_PER_LAYER_PERCENT: int = 10
+const MINI_BOSS_MIN_LAYER: int = 4
+const MINI_BOSS_LEVEL_BONUS: int = 1
+## Inimigos mutados e emboscadas influenciados por SORTE e Maré de azar (D1, GDD §5 e §11, ADR-0032):
+## nunca nas duas primeiras camadas, no máximo 1 mutado por camada, nível +1. SORTE baixa ou
+## Maré de azar aumenta a chance de mutados e emboscadas; SORTE alta ajuda a avistar e evitar emboscadas.
+const MUTATION_MIN_LAYER: int = 3
+const MAX_MUTATIONS_PER_LAYER: int = 1
+const MUTATION_LEVEL_BONUS: int = 1
+const MUTATION_BASE_PERCENT: int = 10
+const MUTATION_LUCK_PER_POINT: int = -1
+const MUTATION_BAD_LUCK_BONUS: int = 15
+const AMBUSH_LUCK_PER_POINT: int = -2
+const AMBUSH_BAD_LUCK_BONUS: int = 20
+## Primeira Descida (F-019, ADR-0031): Ecos em dobro (mínimo 2), Cidadão Infectado na
+## camada 1, baú garantido na camada 2 com equipamento incomum e Moeda da Sorte, elite
+## garantido no meio do mapa com drop raro e Moeda da Sorte, lutas comuns suavizadas até
+## o chefe e Coveiro com +1 nível para manter a tensão (meta de 35% a 55% no mediano).
+const FIRST_RUN_ECHO_MULT: int = 2
+const FIRST_RUN_FIRST_ENEMY: String = "infected_citizen"
+const FIRST_RUN_BOSS_LEVEL_BONUS: int = 1
+const FIRST_RUN_WINNABLE_TARGET: float = 42.0
 
 
-## Ecos de uma Descida terminada: sempre creditados, mesmo na morte (GDD §26).
-static func echoes(nodes_cleared: int, bosses_defeated: int) -> int:
-	return ECHOES_PER_NODE * nodes_cleared + ECHOES_PER_BOSS * bosses_defeated
+## Ecos de uma Descida terminada: sempre creditados, mesmo na morte (GDD §26); em dobro
+## na primeira Descida (ADR-0031).
+static func echoes(nodes_cleared: int, bosses_defeated: int, first_run: bool = false) -> int:
+	var base: int = ECHOES_PER_NODE * nodes_cleared + ECHOES_PER_BOSS * bosses_defeated
+	if first_run:
+		return maxi(1, base) * FIRST_RUN_ECHO_MULT
+	return base
 
 
 ## Equipamento cai? Só inimigos comuns e elites (chefes dão Alma, fora do protótipo).
@@ -183,7 +216,7 @@ static func reroll_cost(rerolls_done: int) -> int:
 
 
 ## Tipo de inimigo de um nó de luta, para m_tipo e para o grupo de inimigos.
-static func enemy_type_for(kind: MapNode.Kind) -> String:
+static func enemy_type_for(kind: MapNode.Kind, mutated: bool = false) -> String:
 	match kind:
 		MapNode.Kind.ELITE:
 			return "elite"
@@ -191,4 +224,31 @@ static func enemy_type_for(kind: MapNode.Kind) -> String:
 			return "mini_boss"
 		MapNode.Kind.BOSS:
 			return "boss"
-	return "common"
+	return "mutated" if mutated else "common"
+
+
+## Chance (%) de um inimigo comum Elegível (camada >= 3) virar mutado (ADR-0032):
+## SORTE baixa e Maré de azar aumentam a chance; SORTE alta reduz.
+static func mutation_chance(base_percent: int, luck: int = 0, bad_luck: bool = false) -> int:
+	var raw: int = base_percent + luck * MUTATION_LUCK_PER_POINT + (MUTATION_BAD_LUCK_BONUS if bad_luck else 0)
+	return clampi(raw, 0, 85)
+
+
+## Chance (%) de uma luta comum na próxima camada virar Emboscada quando há Maré de azar ou SORTE negativa.
+static func ambush_shift_chance(luck: int = 0, bad_luck: bool = false) -> int:
+	var from_luck: int = maxi(-luck, 0) * (-AMBUSH_LUCK_PER_POINT)
+	var from_bad_luck: int = AMBUSH_BAD_LUCK_BONUS if bad_luck else 0
+	return clampi(from_luck + from_bad_luck, 0, 85)
+
+
+## Chance (%) de uma Emboscada na próxima camada ser avistada a tempo e virar Luta comum quando a SORTE é alta.
+static func ambush_avoid_chance(luck: int = 0, bad_luck: bool = false) -> int:
+	if bad_luck or luck <= 0:
+		return 0
+	return clampi(luck * (-AMBUSH_LUCK_PER_POINT), 0, 75)
+
+
+## Chance (%) de aparecer 1 mini boss no cenário, crescendo com a profundidade (GDD §5, ADR-0033).
+static func mini_boss_chance(layers: int) -> int:
+	return clampi(MINI_BOSS_BASE_PERCENT + maxi(layers - 5, 0) * MINI_BOSS_PER_LAYER_PERCENT, 0, 90)
+

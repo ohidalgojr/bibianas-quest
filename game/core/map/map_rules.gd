@@ -16,6 +16,9 @@ const CHEST_CHAIN: String = "CHEST_CHAIN"
 const BONFIRE_CHAIN: String = "BONFIRE_CHAIN"
 const BONFIRE_NOT_OFFERED: String = "BONFIRE_NOT_OFFERED"
 const BONFIRE_COUNT: String = "BONFIRE_COUNT"
+const MUTATION_EARLY: String = "MUTATION_EARLY"
+const MUTATION_CROWD: String = "MUTATION_CROWD"
+const MINI_BOSS_CROWD: String = "MINI_BOSS_CROWD"
 
 
 static func find_violations(graph: MapGraph, config: MapConfig) -> PackedStringArray:
@@ -30,6 +33,7 @@ static func find_violations(graph: MapGraph, config: MapConfig) -> PackedStringA
 	if not graph.reachable_ids().has(graph.boss_id):
 		found.append("%s: o chefe não é alcançável" % BOSS_UNREACHABLE)
 	_check_elites(graph, config, found)
+	_check_mutations(graph, found)
 	_check_chains(graph, found)
 	_check_bonfires(graph, config, found)
 	return found
@@ -37,13 +41,15 @@ static func find_violations(graph: MapGraph, config: MapConfig) -> PackedStringA
 
 static func _check_links_and_kinds(graph: MapGraph, found: PackedStringArray) -> void:
 	var layers: int = graph.layer_count
+	@warning_ignore("integer_division")
+	var mini_boss_min_layer: int = (layers + 1) / 2 + 1
 	for node: MapNode in graph.nodes:
 		var is_start: bool = node.layer == 0
 		var is_boss: bool = node.layer == layers + 1
 		if (node.kind == MapNode.Kind.START) != is_start or (node.kind == MapNode.Kind.BOSS) != is_boss:
 			found.append("%s: nó %d tem tipo %s fora do lugar" % [KINDS, node.id, node.letter()])
-		if node.kind == MapNode.Kind.MINI_BOSS:
-			found.append("%s: nó %d é mini boss, que o gerador ainda não coloca" % [KINDS, node.id])
+		if node.kind == MapNode.Kind.MINI_BOSS and (node.layer < mini_boss_min_layer or node.layer > layers):
+			found.append("%s: nó %d é mini boss fora da segunda metade do mapa" % [KINDS, node.id])
 		if is_boss:
 			if not node.next_ids.is_empty():
 				found.append("%s: o chefe não pode ter saída" % LINKS)
@@ -69,24 +75,42 @@ static func _check_window(graph: MapGraph, node: MapNode, found: PackedStringArr
 
 
 static func _check_elites(graph: MapGraph, config: MapConfig, found: PackedStringArray) -> void:
+	var mini_bosses: int = 0
 	for layer: int in range(1, graph.layer_count + 1):
 		var elites: int = 0
 		for node: MapNode in graph.layer_nodes(layer):
 			if node.kind == MapNode.Kind.ELITE:
 				elites += 1
+			elif node.kind == MapNode.Kind.MINI_BOSS:
+				mini_bosses += 1
 		if elites > 0 and layer <= config.elite_free_layers():
 			found.append("%s: elite na camada %d" % [ELITE_EARLY, layer])
 		if elites > config.max_elites_per_layer:
 			found.append("%s: %d elites na camada %d" % [ELITE_CROWD, elites, layer])
+	if mini_bosses > 1:
+		found.append("%s: %d mini bosses no mapa (máximo 1)" % [MINI_BOSS_CROWD, mini_bosses])
 	for node: MapNode in graph.nodes:
 		if node.layer >= graph.layer_count:
 			continue
 		var calm: int = 0
 		for option: MapNode in graph.options_from(node.id):
-			if option.kind != MapNode.Kind.ELITE:
+			if option.kind != MapNode.Kind.ELITE and option.kind != MapNode.Kind.MINI_BOSS:
 				calm += 1
 		if calm == 0:
-			found.append("%s: as 3 opções do nó %d são elites" % [NO_SAFE_OPTION, node.id])
+			found.append("%s: as 3 opções do nó %d são elites ou mini boss" % [NO_SAFE_OPTION, node.id])
+
+
+## GDD §11 (ADR-0032): nunca nos primeiros dois nós/camadas e nunca mais de 1 mutado por camada.
+static func _check_mutations(graph: MapGraph, found: PackedStringArray) -> void:
+	for layer: int in range(1, graph.layer_count + 1):
+		var mutated: int = 0
+		for node: MapNode in graph.layer_nodes(layer):
+			if node.is_mutated():
+				mutated += 1
+		if mutated > 0 and layer <= 2:
+			found.append("%s: mutado na camada %d" % [MUTATION_EARLY, layer])
+		if mutated > 1:
+			found.append("%s: %d mutados na camada %d" % [MUTATION_CROWD, mutated, layer])
 
 
 static func _check_chains(graph: MapGraph, found: PackedStringArray) -> void:
