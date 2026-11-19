@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aceito (decisão técnica dentro da tarefa) |
+| Status | Aceito; a parte visual (grade 2D) foi substituída pelo ADR-0036; `MapView` continua |
 | Data | 2026-11-16 |
 | Tarefa | TASK-009 |
 | GDD | 5, 17, 19, 20 |

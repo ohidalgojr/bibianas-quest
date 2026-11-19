@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aberta (não iniciada; fecha o MVP depois das TASK-014 e 032) |
+| Status | Aberta (não iniciada; fecha o MVP depois das TASK-014, 032 e 040) |
 | Aberta em | 2026-11-18 |
 | Fase | 1, portão de saída (GDD §22, §23) |
 | GDD | 21, 22, 23 |
@@ -18,6 +18,7 @@ Registrar formalmente que o protótipo cinza passou (ou não) no portão da Fase
 
 ## Critérios de aceite
 
+- [ ] TASK-040 concluída (MVP jogável com apresentação 3D aprovado pelo Orlando).
 - [ ] TASK-014 concluída: Web exportado e aberto, APK no celular, sessão de 20 minutos feita e ficha preenchida (`docs/PLAYTEST.md`).
 - [ ] TASK-029 concluída (feita; conferir achados abertos).
 - [ ] TASK-032 concluída (números calibrados com dados humanos).

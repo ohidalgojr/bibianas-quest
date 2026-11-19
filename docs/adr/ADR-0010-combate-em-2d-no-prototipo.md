@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aceito (decisão técnica dentro da tarefa; uma **pergunta** para o Orlando) |
+| Status | Aceito; a parte visual (2D) foi substituída pelo ADR-0036; o controlador sem nós continua |
 | Data | 2026-11-16 |
 | Tarefa | TASK-006 |
 | GDD | 6, 7, 19, 22 |

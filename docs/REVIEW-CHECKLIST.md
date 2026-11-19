@@ -38,3 +38,13 @@ Use esta lista na revisão de qualquer tarefa. O revisor é **outro modelo** que
 - [ ] ADR com contexto, decisão, alternativas, consequências e a verificação no simulador.
 - [ ] GDD, ADRs, fichas de inimigos e `FEEDBACK.md` refletem o que foi feito.
 - [ ] A tarefa tem "Verificação" preenchida com comando, resultado e data.
+
+## Fidelidade visual (ADR-0036)
+
+Para tarefa que mexe em tela, o revisor abre o print anexado (e, se puder, o jogo) e responde:
+
+- [ ] A tela tem cenário com profundidade (altura, camadas, luz dirigida), e não retângulos nem desenho vetorial chapado?
+- [ ] A composição segue a referência citada em `docs/ART-DIRECTION.md` (mapa: Hero Wars e Final Fantasy Tactics; combate: Fear & Hunger e FFT; fogueira: Darkest Dungeon)?
+- [ ] No mapa, os três caminhos aparecem e o que vem depois está ofuscado, com a câmera acompanhando a Bibiana?
+- [ ] Os modelos vêm de kit CC0 (ou do Blender), com licença em `assets/LICENSES.md`?
+- [ ] O que o ADR da tarefa diz bate com o GDD §17 e §18? Divergência do GDD sem ADR que a declare e sem GDD atualizado é achado crítico.

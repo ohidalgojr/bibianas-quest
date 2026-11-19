@@ -123,6 +123,7 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 - Os três nós alcançáveis mostram tudo: inimigo, nível, mutação e dica de recompensa (ouro, equipamento, baú).
 - As camadas seguintes aparecem como silhuetas escuras, com as ligações esmaecidas e sem revelar o tipo do nó.
 - O chefe no topo do mapa é mostrado de longe com nome e nível ("O Coveiro te espera", ADR-0031).
+- **O tabuleiro é maior que a tela (ADR-0036).** O jogador vê o caminho que pode seguir agora e o que o espera, mas **ofuscado**: terreno escurecido e coberto de névoa, sem tipo de nó. A câmera acompanha a Bibiana de nó em nó, e a névoa recua em volta do novo destino, liberando o resto do cenário. Cada destino mostra bolhas de número sobre o mundo (nível do inimigo em vermelho, recompensa em dourado). Detalhes e referências em `docs/ART-DIRECTION.md`.
 - Mini bosses são anunciados: o sino toca e um aviso vermelho marca a rota que leva a ele.
 - A Lanterna (item) amplia a visão em 1 camada por um cenário.
 
@@ -177,6 +178,7 @@ O combate é 1 contra 1, em janela própria, com ordem de turnos por Ritmo e tod
 
 - No tabuleiro, a Bibiana caminha até o inimigo (1 a 2 s, pulável) e a câmera muda para a janela de combate.
 - Layout proposto em retrato: cena 3D na metade de cima, linha do tempo de turnos no topo, menu na zona do polegar embaixo. Orientação retrato ou paisagem é pergunta aberta (seção 25).
+- **Referências visuais (ADR-0036):** composição levemente inspirada em Fear & Hunger (inimigo grande e central, luz no chão, vinheta, menu em painéis de borda fina) com **fundo derivado do nó do tabuleiro**; linha do tempo em coluna e painel de previsão de dano no estilo de Final Fantasy Tactics; número de dano grande sobre o alvo. Ver `docs/ART-DIRECTION.md` §4.
 - A linha do tempo mostra os próximos 6 turnos. Cada inimigo exibe um ícone de **intenção** sobre a cabeça: ataque, ataque forte, debuff, cura, ou moeda (golpe com cara ou coroa no próximo turno).
 
 ### Ações do jogador
@@ -548,6 +550,8 @@ A fogueira é o respiro do jogo: um nó seguro onde a Bibiana gasta Brasas limit
 - O número de fogueiras acompanha a profundidade do mapa (ADR-0028): 1 até 5 camadas; de 6 em diante, uma a cada 3 camadas, com ao menos 2 (6 e 7 camadas: 2; 8 a 10: 3; 11 e 12: 4). A penúltima camada sempre oferece uma, e as outras ficam a pelo menos 2 camadas de qualquer fogueira, para nunca ficarem ligadas. Sempre há, portanto, mais de um lugar para armar.
 - Roaming bosses não entram em fogueiras, mas o tempo continua passando (seção 13).
 
+**Cena (ADR-0036):** a fogueira é uma cena própria, como o acampamento de Darkest Dungeon: a Bibiana sentada junto ao fogo, luz quente oscilando, brasas, ruína ao fundo, e as ações em cartões na parte de baixo (`docs/ART-DIRECTION.md` §5).
+
 ### Ações
 
 | Ação | Custo | Efeito |
@@ -742,7 +746,11 @@ Cada cenário é um tabuleiro isométrico gerado a partir do grafo do mapa, semp
 | 4 | Catedral dos Sinos | 8 | 14 a 22 | Fanáticos, gárgulas, coro de vozes | Eclipse, Vento de Cinzas | O Bispo Cego |
 | 5 | Cidadela | 9 | 20 a 30 | Cavaleiros doentes, quimeras, gente da corte | Nevasca, Lua de Sangue, Vento de Cinzas | O Rei Febril |
 
-O protótipo faz apenas o cenário 1; o MVP (Alpha) tem os cenários 1 a 3, e a versão completa chega a 5 no Beta (seção 22).
+O protótipo faz apenas o cenário 1; a Alpha (Fase 3) tem os cenários 1 a 3, e a versão completa chega a 5 no Beta (seção 22).
+
+### Visão do tabuleiro (ADR-0036)
+
+A referência de composição é o anúncio de Hero Wars (masmorra isométrica em níveis ligados por escadas e portas, números em bolha sobre cada destino) combinada com o terreno em blocos com altura de Final Fantasy Tactics. Regras: câmera ortográfica isométrica em ângulo fixo e posição móvel; **terreno com altura** (a Descida sobe ou desce pelo cenário); os três destinos iluminados com estrada e bolhas de número; o que vem depois ofuscado; **a câmera acompanha a Bibiana e libera o cenário** conforme ela avança. Detalhes, as sete referências e o teste do print estão em `docs/ART-DIRECTION.md`.
 
 ### Geração do tabuleiro
 
@@ -779,6 +787,8 @@ Recomendação: modelos 3D de poucos polígonos renderizados em baixa resoluçã
 A rota B fica como evolução futura se o jogo ganhar um artista.
 
 ### MVP com assets abertos (CC0)
+
+**O MVP jogável usa estes kits desde a Fase 1 (ADR-0036):** "protótipo cinza" valeu só para testar a mecânica; o MVP que o Orlando joga tem cenário 3D e modelos dos kits. Direção visual e referências em `docs/ART-DIRECTION.md`.
 
 Decisão: o MVP usa modelos prontos e livres, sem gerar arte com IA. O look decidido continua sendo a rota A (3D pixelizado) e o pipeline técnico é o mesmo; o que muda é que a arte vem de kits CC0 já modelados, rigados e animados. Assim a mecânica é validada primeiro e a arte só é refeita, com orçamento adicional, se o jogo passar do portão da Fase 2. Premissa: "sprites, personagens e tiles open source" foi lido como kits abertos de personagens, monstros e cenário; os kits 3D abaixo têm animação pronta e licença CC0, por isso entram no lugar de sprites 2D.
 
@@ -1008,7 +1018,9 @@ O caminho vai do protótipo sem arte até o soft launch, com um portão de decis
 | 2. Vertical slice | 8 a 10 semanas | Cenário 1 completo com os kits CC0 unificados pelo shader, 2 classes, chefe, loja, fogueira, doenças básicas, mecha de cabelo, tabuleiro gerado | Playtest com cerca de 10 pessoas; mecânica validada e decisão sobre a troca de arte; 30 fps no aparelho-alvo |
 | 3. Alpha | 10 a 12 semanas | 4 classes, cenários 2 e 3, mutações, roaming boss, Forja de Almas, anúncios premiados, Santuário | Ciclo completo jogável de ponta a ponta; meta de vitória por cenário atingida em simulação |
 | 4. Beta e soft launch | 8 semanas | Cenários 4 e 5, compras diretas, telemetria, balanceamento por dados, Descida diária | Retenção e mortes por moeda dentro das metas (seção 23) |
-| 5. Lançamento | A definir | Lançamento global, Abismo | Estabilidade, avaliação nas lojas |
+*[diagrama disponível só no artefato: roadmap · 6 fases e portões]*
+
+**Definição de "MVP jogável" (ADR-0036):** é a **Fase 1** com a **apresentação 3D de kits CC0** (TASK-035 a 040): mecânica validada **e** com cara de jogo, jogável no PC. "Protótipo cinza" foi só o meio de testar a mecânica (TASK-001 a 034). O que antes se chamava "MVP (Alpha)" é a **Fase 3**.
 
 *[diagrama disponível só no artefato: roadmap · 6 fases e portões]*
 

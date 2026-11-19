@@ -9,6 +9,7 @@ Leia nesta ordem antes de qualquer trabalho:
 2. A tarefa que vai executar em `docs/tasks/` (e `docs/FEEDBACK.md`, o feedback de playtest do Orlando).
 3. As seções do GDD que a tarefa cita (`docs/GDD.md`) e os ADRs ligados em `docs/adr/`.
 4. Para inimigos, a ficha em `docs/enemies/`; para revisar, `docs/REVIEW-CHECKLIST.md`.
+5. **Para qualquer tela ou gráfico: `docs/ART-DIRECTION.md` e o ADR-0036.** O visual não é "provisório": o GDD §17 e §18 mandam tabuleiro isométrico 3D com kits CC0. Sem print do jogo rodando, a tarefa de tela não está pronta.
 
 ## Regras que não podem ser quebradas
 
@@ -20,7 +21,7 @@ Leia nesta ordem antes de qualquer trabalho:
 6. **O núcleo fala com a apresentação por eventos**, nunca chamando cenas. A dependência só vai de `presentation` e `services` para `core`.
 7. **Testes verdes antes do commit.** Regra nova no núcleo vem com teste; fórmula do GDD vem com teste de fórmula que cita a seção.
 8. **Ao terminar a tarefa, atualize `docs/HANDOFF.md`** (feito, onde está, falta, decisões) e pare para o resumo.
-9. **Foco no MVP jogável (gráficos e som): não gastar recursos com simulador de balanceamento nem testes complexos.** Enquanto o MVP jogável de verdade (com gráficos dark fantasy, tabuleiro visual e som) não estiver concluído, **ignore testes de balanceamento (`tools/simulate.gd`) e não crie testes de propriedade/simulação pesados**. Mantenha apenas testes unitários diretos e rápidos para validar que as mecânicas funcionam sem erros; o balanceamento fino será feito depois que o jogo estiver jogável de verdade.
+9. **Foco no MVP jogável (gráficos e som): não gastar recursos com simulador de balanceamento nem testes complexos.** Enquanto o MVP jogável de verdade (apresentação 3D isométrica com kits CC0, ADR-0036; fecha na TASK-040) não estiver concluído, **ignore testes de balanceamento (`tools/simulate.gd`) e não crie testes de propriedade/simulação pesados**. Mantenha apenas testes unitários diretos e rápidos para validar que as mecânicas funcionam sem erros; o balanceamento fino será feito depois que o jogo estiver jogável de verdade.
 10. **Cada inimigo tem uma ficha** em `docs/enemies/` (modelo em `_modelo.md`) antes ou junto do código dele, e a regra de justiça vale para todos: golpe perigoso avisado um turno antes, ao menos 2 golpes entre golpes de moeda, Golpe Mortal só em chefe.
 11. **Não envie ao GitHub sem o Orlando pedir** e nunca reescreva histórico publicado. Branch `main`, histórico linear.
 12. **Uma revisão por outro modelo** (etapa 4, GDD §21): quem escreveu não revisa o próprio trabalho. `docs/REVIEW-CHECKLIST.md` lista o que conferir.
@@ -125,6 +126,7 @@ Atributos: HP `hp`, MP `mp`, FOR `strength`, MEN `mind`, DEF `defense`, RES `res
 - Tarefa aberta com critérios de aceite, e todos atendidos.
 - ADR criado ou ligado para cada decisão.
 - Testes e simulações verdes em headless.
+- **Tarefa de tela (ADR-0036): print do jogo rodando com janela, anexado em `docs/tasks/prints/`, e o "teste do print" de `docs/ART-DIRECTION.md` §8 respondido.** Suíte verde não prova que a tela está certa.
 - Revisão cruzada por outro modelo (etapa 4) feita ou registrada como pendente no HANDOFF.
 - GDD, ADRs e HANDOFF atualizados.
 - Um commit com o ID da tarefa.

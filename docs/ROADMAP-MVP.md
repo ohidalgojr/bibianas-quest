@@ -129,15 +129,16 @@ A ordem do pedido original era: 002 RNG, 003 mapa com bot, 004 combate, 005 simu
 
 ## Situação em 2026-11-18 e caminho até o portão
 
-O roteiro acima (TASK-001 a 014) foi cumprido, com ajustes: o cenário 1 tem 6 camadas (ADR-0027) e entraram TASK-015 a 031 pelo feedback do primeiro playtest (ADR-0025) e pela diretriz do Orlando de ter o MVP jogável com gráficos e som. Estado: TASK-001 a 013 e 015 a 031 concluídas no código (suíte 315 testes, `RULES_VERSION` = 17, ADR-0001 a 0035); TASK-014 em verificação. O estado detalhado fica no `docs/HANDOFF.md`.
+O roteiro acima (TASK-001 a 014) foi cumprido, com ajustes: o cenário 1 tem 6 camadas (ADR-0027) e entraram TASK-015 a 031 pelo feedback do primeiro playtest (ADR-0025) e pela diretriz do Orlando de ter o MVP jogável com gráficos e som. Estado: TASK-001 a 013 e 015 a 031 concluídas no código (suíte 315 testes, `RULES_VERSION` = 17, ADR-0001 a 0036); TASK-014 em verificação. O estado detalhado fica no `docs/HANDOFF.md`.
 
 | Ordem | Tarefa | O que é | Quem | Estado |
 | --- | --- | --- | --- | --- |
-| feitas | TASK-026 a 031 | Primeira Descida chamativa, sorte e mutados, eventos e mini boss, revisão cruzada (029), Santuário (030), apresentação dark fantasy e áudio (031) | Argon | concluídas, em `origin/main` |
-| 1 | TASK-014 | Exportar Web e Android; sessão de 20 minutos no celular | Orlando | em verificação (portão) |
-| 2 | TASK-032 | Calibrar números com o `telemetry.log` do Orlando | agente, depois do playtest | aberta; simulador só depois do MVP validado (diretriz de 2026-11-18) |
-| 3 | TASK-033 | Fechar o portão da Fase 1 e abrir o roteiro da Fase 2 | Orlando e agente | aberta |
+| feitas | TASK-026 a 031 | Primeira Descida chamativa, sorte e mutados, eventos e mini boss, revisão cruzada (029), Santuário (030), apresentação 2D e áudio procedural (031, visual reprovado em 2026-11-19, ver ADR-0036) | Argon | concluídas, em `origin/main` |
+| 1 | TASK-035 a 040 | **Apresentação 3D isométrica com kits CC0** (ADR-0036, `docs/ART-DIRECTION.md`): assets, tabuleiro 3D com névoa e câmera que acompanha, combate 3D, fogueira e loja, estilo e som, fechamento | agente; Orlando aprova olhando o jogo | **aberta; é o caminho do "MVP jogável"** |
+| 2 | TASK-014 | Exportar Web e Android; sessão de 20 minutos no celular | Orlando | em verificação (portão) |
+| 3 | TASK-032 | Calibrar números com o `telemetry.log` do Orlando | agente, depois do playtest | aberta; simulador só depois do MVP validado (diretriz de 2026-11-18) |
+| 4 | TASK-033 | Fechar o portão da Fase 1 e abrir o roteiro da Fase 2 | Orlando e agente | aberta |
 
 ## Próximo passo único
 
-O Orlando joga uma Descida inteira (F5 na pasta raiz) e envia o `telemetry.log` e o feedback. A falha de `load_meta` com `meta.json` antigo foi corrigida na TASK-034.
+Abrir a TASK-035 (precisa da autorização de download dos kits CC0 pelo Orlando). O que existe hoje é visual 2D de depuração, reprovado em 2026-11-19; a análise de onde as instruções falharam está no ADR-0036.

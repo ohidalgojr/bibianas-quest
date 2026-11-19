@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aberta (não iniciada; bloqueada até o Orlando enviar o `telemetry.log` e o feedback da jogada) |
+| Status | Aberta (não iniciada; bloqueada até a TASK-040 e até o Orlando enviar o `telemetry.log` e o feedback da jogada) |
 | Aberta em | 2026-11-18 |
 | Fase | 1, caminho até o portão (GDD §22, §23) |
 | GDD | 15, 23 |

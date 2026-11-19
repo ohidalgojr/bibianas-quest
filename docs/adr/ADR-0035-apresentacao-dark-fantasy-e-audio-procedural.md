@@ -1,6 +1,6 @@
 # ADR-0035: Apresentação Dark Fantasy, Tabuleiro Visual e Áudio Procedural
 
-- **Status:** Aceito
+- **Status:** Substituído em parte pelo ADR-0036 (tabuleiro 2D e silhuetas vetoriais deixam de ser "o visual do MVP"; `SoundFx` e `VisualTheme` continuam)
 - **Data:** 2026-11-18
 - **Tarefa:** TASK-031
 

@@ -8,8 +8,9 @@ Resumo do que não pode ser quebrado:
 - Um commit por tarefa, com o ID da tarefa e o ADR: `TASK-NNN: resumo (ADR-XXXX)`.
 - Fórmulas e regras do GDD (`docs/GDD.md`) não mudam sem ADR, GDD atualizado no mesmo commit e `CoreVersion.RULES_VERSION` incrementado.
 - `game/core/` não usa nós do Godot nem aleatoriedade global; todo sorteio passa pelos quatro fluxos de RNG.
-- Testes unitários rápidos verdes em headless antes do commit. **Enquanto não alcançar o MVP jogável (com gráficos e som), não utilize recursos para simulador de balanceamento (`tools/simulate.gd`) nem testes muito complexos.**
+- Testes unitários rápidos verdes em headless antes do commit. **Enquanto não alcançar o MVP jogável (apresentação 3D, ADR-0036, TASK-040), não utilize recursos para simulador de balanceamento (`tools/simulate.gd`) nem testes muito complexos.**
 - Cada inimigo tem uma ficha em `docs/enemies/`; a regra de justiça (aviso, intervalo entre golpes de moeda) vale para todos.
+- **Tela ou gráfico: leia `docs/ART-DIRECTION.md` e o ADR-0036 antes.** O visual não é "provisório": GDD §17 e §18 mandam tabuleiro isométrico 3D com kits CC0. Tarefa de tela só fecha com print do jogo rodando com janela, anexado em `docs/tasks/prints/`.
 - `docs/HANDOFF.md` atualizado ao fim da tarefa; pare e entregue o resumo.
 - Não envie ao GitHub sem o Orlando pedir.
 

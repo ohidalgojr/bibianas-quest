@@ -1,6 +1,6 @@
 # HANDOFF
 
-Atualizado em 2026-11-19. Estado: TASK-001 a 013, 015 a 031 e 034 no código; TASK-014 em verificação (Orlando); TASK-032 e 033 abertas e bloqueadas até o Orlando jogar o MVP com gráficos e som; suíte 316/316; `RULES_VERSION` = 17.
+Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2D vetorial, sem assets, visão de cima): o GDD manda tabuleiro isométrico 3D com kits CC0. Leia o ADR-0036 (análise de onde as instruções falharam) e `docs/ART-DIRECTION.md`. Estado: núcleo e regras prontos (TASK-001 a 034, suíte 316/316, `RULES_VERSION` = 17); **próxima tarefa: TASK-035**, seguida da 036 a 040; TASK-014, 032 e 033 esperam.
 - **`TASK-029` (`b08098f`), `TASK-026` (`09b6a04`), `TASK-027` (`35d06b4`), `TASK-028` (`5ccfeb6`), `TASK-030` (`9fa4254`) e `TASK-031`**: **100% concluídas, validadas (315/315 testes em 40 scripts) e enviadas para `origin/main`**.
 - **Numeração:** as tarefas de calibração e do portão da Fase 1 (propostas pelo Claude) são a TASK-032 e a TASK-033; as TASK-030 e 031 são as do Argon.
 
@@ -8,10 +8,10 @@ Atualizado em 2026-11-19. Estado: TASK-001 a 013, 015 a 031 e 034 no código; TA
 
 | Item | Valor |
 | --- | --- |
-| Jogo | RPG tático de turnos roguelite, Godot 4.7, MVP Dark Fantasy 2D em retrato com gráficos vetoriais e áudio procedural (`SoundFx`): menu com Santuário (Biblioteca, Arsenal e Códice/Bestiário), tabuleiro visual com estradas curvas, brasões e peão da Bibiana com os 9 estágios da mecha (GDD §9), combate com silhuetas de personagem/inimigos, medalhão giratório de Cara/Coroa, emboscadas e inimigos mutados, eventos de mapa, mini boss anunciado, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
+| Jogo | RPG tático de turnos roguelite, Godot 4.7. **Visual atual = telas 2D de depuração (reprovadas, ADR-0036); o visual 3D vem nas TASK-035 a 040.** Hoje: gráficos vetoriais e áudio procedural (`SoundFx`): menu com Santuário (Biblioteca, Arsenal e Códice/Bestiário), tabuleiro visual com estradas curvas, brasões e peão da Bibiana com os 9 estágios da mecha (GDD §9), combate com silhuetas de personagem/inimigos, medalhão giratório de Cara/Coroa, emboscadas e inimigos mutados, eventos de mapa, mini boss anunciado, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
 | Classe | só o Guerreiro (Bibiana); 3 skills iniciais, 3 à venda, 5 espaços |
 | Cenário | só a Cidade Abandonada: 4 inimigos comuns (com mutações temáticas Inchado, Voraz, Fantasma e Espinhoso), 1 elite (Carrasco Apodrecido), 1 mini boss anunciado (Carcereiro do Sino), chefe O Coveiro (2 fases), 6 eventos temáticos; cada inimigo com ficha em `docs/enemies/` |
-| Regras | `RULES_VERSION` = 17 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0035 |
+| Regras | `RULES_VERSION` = 17 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0036 |
 | Equilíbrio (simulador, regras v15) | bot mediano vence 66,0% (meta 55% a 65%), cuidadoso 72,0%, 1ª Descida 49,3% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 13,7% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,28 s para criar a Descida |
 | Testes | 315 em 40 scripts, cerca de 11 s |
 | Git | `main` sincronizado com `origin/main` até `TASK-031` |
@@ -98,7 +98,7 @@ Abra a **pasta raiz do repositório** no Godot 4.7 (Importar, `project.godot`) e
 ## Backlog ordenado (próximos passos, para qualquer agente)
 
 Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes de começar um, leia o arquivo da tarefa e `docs/FEEDBACK.md`.
-**DIRETRIZ DO ORLANDO (2026-11-18):** Enquanto não alcançar o **MVP jogável de verdade (com gráficos e som)**, **não utilize recursos para simulador de balanceamento (`tools/simulate.gd`) nem testes muito complexos**. O foco agora é 100% em entregar o Santuário (`TASK-030`) e a Apresentação Visual Dark Fantasy + Áudio Procedural (`TASK-031`).
+**DIRETRIZ DO ORLANDO (2026-11-18, atualizada em 2026-11-19):** o "MVP jogável com gráficos e som" **não é** a TASK-031 (2D vetorial): é a **apresentação 3D isométrica com kits CC0** do ADR-0036 (TASK-035 a 040, leia `docs/ART-DIRECTION.md`). Até a TASK-040 fechar, **não use recursos com simulador de balanceamento (`tools/simulate.gd`) nem testes muito complexos**.
 
 | # | Tarefa | O que é | Quem | Por quê |
 | --- | --- | --- | --- | --- |
@@ -107,11 +107,17 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 3 | TASK-027 | Sorte, emboscadas e inimigos mutados | concluída | concluída em 2026-11-18 (ADR-0032) |
 | 4 | TASK-028 | Eventos de mapa e mini boss | concluída | concluída em 2026-11-18 (ADR-0033) |
 | 5 | TASK-030 | Santuário e meta-progresso (Biblioteca, Arsenal, Códice/Bestiário) | concluída | concluída em 2026-11-18 (ADR-0034) |
-| 6 | TASK-031 | Apresentação Dark Fantasy, Tabuleiro Visual e Áudio Procedural | concluída | concluída em 2026-11-18 (ADR-0035) |
-| 7 | TASK-014 | Exportação Web e Android e sessão de 20 minutos no celular | **Orlando** | templates, JDK e SDK só na máquina dele |
-| 8 | TASK-032 | Calibrar números com o `telemetry.log` do Orlando (ouro, Coveiro, moeda por luta, mortes) | agente, depois do playtest do MVP | os bots não jogam como uma pessoa; só depois de o Orlando jogar o MVP com gráficos e som |
-| 9 | TASK-033 | Portão da Fase 1: fechar o MVP e abrir o roteiro da Fase 2 | Orlando e agente | depois das TASK-014 e 032 |
-| 10 | monetização | Anúncio de verdade, o que o anúncio faz com a moeda, vender Moeda da Sorte? | Orlando decide | GDD §16; hoje o anúncio do baú é simulado |
+| 6 | TASK-031 | Apresentação 2D vetorial e áudio procedural | concluída, **reprovada pelo Orlando como visual do MVP** (ADR-0036) | vira modo de depuração; `SoundFx` e `VisualTheme` continuam |
+| 7 | TASK-035 | Kits CC0, licenças, cena de prova isométrica, ferramenta de print | agente (download autorizado pelo Orlando) | **próxima tarefa**; sem ela nada de 3D começa |
+| 8 | TASK-036 | Tabuleiro 3D com altura, visão parcial, névoa e câmera que acompanha | agente | a tela mais importante (ART-DIRECTION §3) |
+| 9 | TASK-037 | Combate 3D com fundo derivado do nó | agente | ART-DIRECTION §4 |
+| 10 | TASK-038 | Fogueira, loja, baú, recompensa, menu e Santuário em 3D | agente | ART-DIRECTION §5 |
+| 11 | TASK-039 | Estilo unificado, clima, luz e música | agente | os kits parecerem um jogo só |
+| 12 | TASK-040 | Fechamento visual: o Orlando joga e aprova | Orlando | fecha o "MVP jogável" |
+| 13 | TASK-014 | Exportação Web e Android e sessão de 20 minutos no celular | **Orlando** | templates, JDK e SDK só na máquina dele |
+| 14 | TASK-032 | Calibrar números com o `telemetry.log` do Orlando (ouro, Coveiro, moeda por luta, mortes) | agente, depois da TASK-040 e do playtest | os bots não jogam como uma pessoa; só depois de o Orlando jogar o MVP com gráficos e som |
+| 15 | TASK-033 | Portão da Fase 1: fechar o MVP e abrir o roteiro da Fase 2 | Orlando e agente | depois das TASK-014, 032 e 040 |
+| 16 | monetização | Anúncio de verdade, o que o anúncio faz com a moeda, vender Moeda da Sorte? | Orlando decide | GDD §16; hoje o anúncio do baú é simulado |
 
 Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
@@ -119,7 +125,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
 - **Guerreiro único:** o Veterano que Defende anula a penalidade da coroa, inclusive a consequência temática (ADR-0030). Outras classes precisarão de regra própria.
 - **Foco no MVP jogável (gráficos e som):** por determinação do Orlando (2026-11-18), testes de balanceamento (`tools/simulate.gd`) e testes de propriedade pesados ficam suspensos enquanto o MVP jogável de verdade (com gráficos e som) não estiver concluído.
-- **Anúncio simulado** no baú e Éter/lenha ainda sem arte própria; a `TASK-031` substituirá o protótipo cinza por apresentação dark fantasy com gráficos e som.
+- **Visual reprovado (2026-11-19):** as telas atuais (2D, desenhadas em código) são só depuração; o visual de verdade é a camada 3D das TASK-035 a 040. Anúncio simulado no baú e Éter/lenha ainda sem arte própria.
 - **A TASK-014** só foi configurada (presets, script, guia); nada foi exportado.
 - **Corrigida na TASK-034 (2026-11-19):** `SaveStore.load_meta` (`game/services/save_store.gd:63`) lê `saved["unlocks"]` sem a chave existir quando o `meta.json` é do formato anterior ao Santuário (só `echoes`, `format` e `runs_played`). O jogo quebrava ao abrir com o `meta.json` antigo; agora há teste de save antigo. Suíte 316/316.
 
@@ -146,6 +152,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 | 0033 | Eventos de mapa em dados (6 na Cidade Abandonada, com moeda e modificador de CRIT) e mini boss anunciado Carcereiro do Sino com raro + Galhos Secos + Moeda da Sorte | Aceito (TASK-028) |
 | 0032 | Mutações temáticas (Inchado, Voraz, Fantasma, Espinhoso), emboscada com bote inicial e Guarda aberta, SORTE e Maré de azar nas mutações, emboscadas e drops raros | Aceito (TASK-027) |
 | 0031 | Primeira Descida chamativa (`runs_played == 0`): Cidadão Infectado na camada 1, baú na camada 2, elite no meio, chefe de longe no mapa, Ecos em dobro e tela "Morte que ensina" | Aceito (TASK-026) |
+| 0036 | Apresentação 3D isométrica com kits CC0 (mapa com visão parcial e câmera que acompanha, combate com fundo do nó, fogueira estilo Darkest Dungeon), print obrigatório nas tarefas de tela; substitui o visual 2D | Aceito (Orlando, 2026-11-19) |
 | 0030 | Fichas de inimigos, golpes de moeda temáticos, Leptospirose persistente, reações em dados, Coveiro 175/16 | Aceito (TASK-025) |
 | 0029 | Previsão de dano e acerto, descrição das skills, atacar devolve MP, Éter em combate, crítico por item e skill de fogueira, Coveiro 195/16 | Aceito (TASK-024) |
 | 0028 | Fogueira com Galhos Secos: 1 garantido por mapa, extras raros ou caros, fogueiras proporcionais à profundidade, Coveiro 205/16 | Aceito (TASK-023) |
