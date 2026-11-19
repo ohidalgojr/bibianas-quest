@@ -10,7 +10,7 @@ extends RefCounted
 const LAYER_STEP: int = 5
 ## Células entre colunas vizinhas.
 const COLUMN_STEP: int = 4
-const MARGIN: int = 3
+const MARGIN: int = 9
 ## Altura de um bloco, igual à do `dirt.glb` do Mini Dungeon.
 const BLOCK_H: float = 0.9
 ## A cada quantas camadas o terreno sobe um bloco.

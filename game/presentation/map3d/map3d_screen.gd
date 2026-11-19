@@ -18,10 +18,10 @@ const FOG_SHEET_LIFT: float = 1.7
 const FOG_SPEED: float = 1.6
 const STEP_SECONDS: float = 0.2
 ## Neblina por situação da camada da célula (ART-DIRECTION §3, item 3).
-const FOG_BEHIND: float = 0.5
-const FOG_AHEAD_BASE: float = 0.72
-const FOG_AHEAD_MAX: float = 0.94
-const FOG_BOSS: float = 0.55
+const FOG_BEHIND: float = 0.42
+const FOG_AHEAD_BASE: float = 0.38
+const FOG_AHEAD_MAX: float = 0.78
+const FOG_BOSS: float = 0.4
 const DECOR_PROPS: Array[String] = [
 	"gravestone-cross.glb", "gravestone-round.glb", "gravestone-broken.glb", "pine-crooked.glb",
 	"iron-fence-damaged.glb", "stone-wall-damaged.glb", "candle-multiple.glb",
@@ -210,7 +210,7 @@ func _build_fog() -> void:
 	var sheet: PlaneMesh = PlaneMesh.new()
 	sheet.size = Vector2(1.0, 1.0)
 	var shader: Shader = Shader.new()
-	shader.code = "shader_type spatial;\nrender_mode unshaded, blend_mix, depth_draw_never, cull_disabled;\nvoid fragment() {\n\tALBEDO = vec3(0.02, 0.028, 0.06);\n\tALPHA = COLOR.a;\n}\n"
+	shader.code = "shader_type spatial;\nrender_mode unshaded, blend_mix, depth_draw_never, cull_disabled;\nvoid fragment() {\n\tALBEDO = vec3(0.07, 0.09, 0.15);\n\tALPHA = COLOR.a;\n}\n"
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = shader
 	sheet.material = material
@@ -245,7 +245,7 @@ func _fog_alphas(current_layer: int, visible_layer: int) -> PackedFloat32Array:
 		var layer: int = layout.layer_at_row(z)
 		var alpha: float = 0.0
 		if layer > visible_layer:
-			alpha = minf(FOG_AHEAD_BASE + 0.05 * float(layer - visible_layer - 1), FOG_AHEAD_MAX)
+			alpha = minf(FOG_AHEAD_BASE + 0.14 * float(layer - visible_layer - 1), FOG_AHEAD_MAX)
 			if layer == last_layer:
 				alpha = FOG_BOSS
 		elif layer < current_layer - 1:
@@ -332,7 +332,7 @@ func _build_node(info: Dictionary) -> void:
 		glow.omni_range = 4.2
 		glow.position = at + Vector3(0, 1.6, 0)
 		_node_root.add_child(glow)
-		_place(K_GRAVE + "lightpost-single.glb", at + Vector3(1.4, 0.0, 1.4), 0.0, 2.2, _node_root)
+		_place(K_GRAVE + "lightpost-single.glb", at + Vector3(-1.5, 0.0, -1.2), 0.0, 2.2, _node_root)
 	if state == MapView.State.CURRENT or kind == MapNode.Kind.START:
 		return
 	if node.is_fight() and not node.enemy_id.is_empty() and ModelRegistry.has_model(node.enemy_id):

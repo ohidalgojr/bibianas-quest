@@ -119,7 +119,8 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 13 | TASK-014 | Exportação Web e Android e sessão de 20 minutos no celular | **Orlando** | templates, JDK e SDK só na máquina dele |
 | 14 | TASK-032 | Calibrar números com o `telemetry.log` do Orlando (ouro, Coveiro, moeda por luta, mortes) | agente, depois da TASK-040 e do playtest | os bots não jogam como uma pessoa; só depois de o Orlando jogar o MVP com gráficos e som |
 | 15 | TASK-033 | Portão da Fase 1: fechar o MVP e abrir o roteiro da Fase 2 | Orlando e agente | depois das TASK-014, 032 e 040 |
-| 16 | monetização | Anúncio de verdade, o que o anúncio faz com a moeda, vender Moeda da Sorte? | Orlando decide | GDD §16; hoje o anúncio do baú é simulado |
+| 16 | TASK-041 | Nó misterioso "?" no lugar da Emboscada visível (estudo em `docs/design/ESTUDO-nos-misteriosos.md`) | Orlando decide, agente implementa | a emboscada avisada não é escolha de ninguém; depois da TASK-040, ou antes se o Orlando pedir |
+| 17 | monetização | Anúncio de verdade, o que o anúncio faz com a moeda, vender Moeda da Sorte? | Orlando decide | GDD §16; hoje o anúncio do baú é simulado |
 
 Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 

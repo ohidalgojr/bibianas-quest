@@ -138,7 +138,7 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 | Fogueira | Garantida (seção 12) | Nunca duas fogueiras ligadas entre si |
 | Mini boss | 0 ou 1 por cenário (chance cresce com a profundidade; ADR-0033) | Anunciado pelo sino rachado na segunda metade do mapa. Recompensa rara, Galhos Secos e Moeda da Sorte garantidos |
 | Chefe | 1 por cenário | Nó final |
-| Inimigo emboscado | 18% (restante) | Avisado no mapa ("Emboscada (age 1º)"): o inimigo começa com Carga cheia (age primeiro, sem golpe de moeda sem aviso) e a Bibiana inicia com Guarda aberta (DEF -20%) por 1 turno (ADR-0032) |
+| Inimigo emboscado | 18% (restante) | **Em revisão (TASK-041, `docs/design/ESTUDO-nos-misteriosos.md`): a emboscada avisada não é escolha; a proposta é o nó "?".** Hoje: avisado no mapa ("Emboscada (age 1º)"): o inimigo começa com Carga cheia (age primeiro, sem golpe de moeda sem aviso) e a Bibiana inicia com Guarda aberta (DEF -20%) por 1 turno (ADR-0032) |
 
 Os valores são ponto de partida para o protótipo; a seção 23 explica como calibrar.
 

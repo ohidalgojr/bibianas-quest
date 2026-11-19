@@ -61,7 +61,7 @@ func test_fog_hides_what_comes_after_the_destinations() -> void:
 	var alphas: PackedFloat32Array = screen._fog_alphas(run.current_node().layer, screen.view.visible_layer())
 	assert_eq(alphas[option_cell.y * layout.cols + option_cell.x], 0.0, "o destino aparece limpo")
 	var far_z: int = option_cell.y - Map3DLayout.LAYER_STEP * 2
-	assert_gt(alphas[far_z * layout.cols + option_cell.x], 0.6, "duas camadas adiante estão sob névoa")
+	assert_gt(alphas[far_z * layout.cols + option_cell.x], 0.45, "duas camadas adiante estão sob névoa")
 
 
 func test_tapping_a_destination_emits_the_choice() -> void:
