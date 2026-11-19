@@ -11,6 +11,11 @@ const ITEMS: Dictionary = {
 	"sword_and_shield": "W_Sword001", "old_chainmail": "A_Armour01", "worn_longsword": "W_Sword005",
 	"dented_plate": "A_Armour03", "bone_dagger": "W_Dagger003", "rusty_axe": "W_Axe001", "spiked_mace": "W_Mace003",
 	"leather_vest": "A_Clothing01", "reinforced_mail": "A_Armor05", "warden_plate": "A_Armour02",
+	"rotting_bread": "I_C_Bread", "rancid_elixir": "P_Red03", "sage_smoke": "P_Yellow03", "reaper_sickle": "W_Dagger010",
+	"bellringer_blade": "W_Sword012", "executioner_axe": "W_Axe008", "blood_stiletto": "W_Dagger015", "soaked_cloak": "A_Clothing02",
+	"bone_cuirass": "A_Armor04", "penitent_armor": "A_Armour02", "plague_hood": "C_Hat01", "bellringer_helm": "C_Elm01",
+	"thorn_crown": "C_Hat02", "rotten_shield": "E_Metal03", "traveler_lantern": "I_Bottle03", "torn_prayer_book": "W_Book03",
+	"giant_rat_tooth": "I_ScorpionClaw", "glass_eye": "I_Eye", "hanged_rope": "Ac_Necklace03", "penitent_medal": "Ac_Medal02",
 	"worn_charm": "Ac_Necklace01", "iron_ring": "Ac_Ring01", "sharp_claw": "I_Fang", "grave_bell": "Ac_Medal01",
 }
 const SKILLS: Dictionary = {

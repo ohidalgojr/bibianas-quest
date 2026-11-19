@@ -129,7 +129,7 @@ A ordem do pedido original era: 002 RNG, 003 mapa com bot, 004 combate, 005 simu
 
 ## Situação em 2026-11-18 e caminho até o portão
 
-O roteiro acima (TASK-001 a 014) foi cumprido, com ajustes: o cenário 1 tem 6 camadas (ADR-0027) e entraram TASK-015 a 031 pelo feedback do primeiro playtest (ADR-0025) e pela diretriz do Orlando de ter o MVP jogável com gráficos e som. Estado: TASK-001 a 013 e 015 a 031 concluídas no código (suíte 315 testes, `RULES_VERSION` = 19, ADR-0001 a 0036); TASK-014 em verificação. O estado detalhado fica no `docs/HANDOFF.md`.
+O roteiro acima (TASK-001 a 014) foi cumprido, com ajustes: o cenário 1 tem 6 camadas (ADR-0027) e entraram TASK-015 a 031 pelo feedback do primeiro playtest (ADR-0025) e pela diretriz do Orlando de ter o MVP jogável com gráficos e som. Estado: TASK-001 a 013 e 015 a 031 concluídas no código (suíte 315 testes, `RULES_VERSION` = 20, ADR-0001 a 0036); TASK-014 em verificação. O estado detalhado fica no `docs/HANDOFF.md`.
 
 | Ordem | Tarefa | O que é | Quem | Estado |
 | --- | --- | --- | --- | --- |

@@ -18,6 +18,26 @@
 		{"id": "worn_charm", "name": "Amuleto Gasto", "slot": "relic", "rarity": "common", "price": 90, "stats": {"luck": 4}},
 		{"id": "iron_ring", "name": "Anel de Ferro", "slot": "relic", "rarity": "uncommon", "price": 150, "stats": {"defense": 3, "resistance": 3}},
 		{"id": "sharp_claw", "name": "Garra Afiada", "slot": "relic", "rarity": "uncommon", "price": 140, "stats": {"crit": 8}},
-		{"id": "grave_bell", "name": "Sino do Coveiro", "slot": "relic", "rarity": "rare", "price": 350, "stats": {"luck": 8, "hp": 15}}
+		{"id": "grave_bell", "name": "Sino do Coveiro", "slot": "relic", "rarity": "rare", "price": 350, "stats": {"luck": 8, "hp": 15}},
+		{"id": "rotting_bread", "name": "Pão Mofado", "slot": "consumable", "rarity": "common", "price": 20, "heal_hp_percent": 15, "heal_mp_percent": 0},
+		{"id": "rancid_elixir", "name": "Elixir Rançoso", "slot": "consumable", "rarity": "uncommon", "price": 55, "heal_hp_percent": 55, "heal_mp_percent": 0},
+		{"id": "sage_smoke", "name": "Fumaça de Sálvia", "slot": "consumable", "rarity": "rare", "price": 60, "heal_hp_percent": 0, "heal_mp_percent": 80},
+		{"id": "reaper_sickle", "name": "Foice de Camponês", "slot": "weapon", "rarity": "common", "price": 95, "stats": {"strength": 3, "crit": 6}},
+		{"id": "bellringer_blade", "name": "Lâmina de Sineiro", "slot": "weapon", "rarity": "uncommon", "price": 150, "stats": {"strength": 5, "precision": 4}},
+		{"id": "executioner_axe", "name": "Machado de Carrasco", "slot": "weapon", "rarity": "rare", "price": 340, "stats": {"strength": 9, "crit": 4, "speed": -2}},
+		{"id": "blood_stiletto", "name": "Estilete de Sangue", "slot": "weapon", "rarity": "rare", "price": 330, "stats": {"strength": 4, "crit": 12, "speed": 2}},
+		{"id": "soaked_cloak", "name": "Manto Encharcado", "slot": "armor", "rarity": "common", "price": 85, "stats": {"defense": 2, "resistance": 3, "evasion": 2}},
+		{"id": "bone_cuirass", "name": "Couraça de Ossos", "slot": "armor", "rarity": "uncommon", "price": 185, "stats": {"defense": 6, "resistance": 2, "hp": 8}},
+		{"id": "penitent_armor", "name": "Armadura do Penitente", "slot": "armor", "rarity": "rare", "price": 370, "stats": {"defense": 9, "hp": 20, "speed": -3}},
+		{"id": "plague_hood", "name": "Capuz de Peste", "slot": "head", "rarity": "common", "price": 80, "stats": {"resistance": 3, "evasion": 2}},
+		{"id": "bellringer_helm", "name": "Elmo de Sineiro", "slot": "head", "rarity": "uncommon", "price": 150, "stats": {"defense": 3, "hp": 8}},
+		{"id": "thorn_crown", "name": "Coroa de Espinhos", "slot": "head", "rarity": "rare", "price": 320, "stats": {"strength": 3, "crit": 5, "defense": -1}},
+		{"id": "rotten_shield", "name": "Escudo de Madeira Podre", "slot": "offhand", "rarity": "common", "price": 85, "stats": {"defense": 3}},
+		{"id": "traveler_lantern", "name": "Lanterna do Viajante", "slot": "offhand", "rarity": "uncommon", "price": 145, "stats": {"luck": 3, "precision": 3}},
+		{"id": "torn_prayer_book", "name": "Livro de Orações Rasgado", "slot": "offhand", "rarity": "rare", "price": 330, "stats": {"resistance": 5, "luck": 3}},
+		{"id": "giant_rat_tooth", "name": "Dente de Rato Gigante", "slot": "relic", "rarity": "common", "price": 85, "stats": {"crit": 4}},
+		{"id": "glass_eye", "name": "Olho de Vidro", "slot": "relic", "rarity": "uncommon", "price": 145, "stats": {"precision": 6, "luck": 2}},
+		{"id": "hanged_rope", "name": "Corda de Enforcado", "slot": "relic", "rarity": "uncommon", "price": 140, "stats": {"evasion": 5, "crit": 3}},
+		{"id": "penitent_medal", "name": "Medalhão do Penitente", "slot": "relic", "rarity": "rare", "price": 340, "stats": {"hp": 25, "resistance": 3}}
 	]
 }
