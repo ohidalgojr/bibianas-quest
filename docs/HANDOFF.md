@@ -1,6 +1,6 @@
 # HANDOFF
 
-Atualizado em 2026-11-18 (`TASK-031` enviada para `origin/main`; Claude conferiu os commits e renumerou as suas tarefas).
+Atualizado em 2026-11-19. Estado: TASK-001 a 013, 015 a 031 e 034 no código; TASK-014 em verificação (Orlando); TASK-032 e 033 abertas e bloqueadas até o Orlando jogar o MVP com gráficos e som; suíte 316/316; `RULES_VERSION` = 17.
 - **`TASK-029` (`b08098f`), `TASK-026` (`09b6a04`), `TASK-027` (`35d06b4`), `TASK-028` (`5ccfeb6`), `TASK-030` (`9fa4254`) e `TASK-031`**: **100% concluídas, validadas (315/315 testes em 40 scripts) e enviadas para `origin/main`**.
 - **Numeração:** as tarefas de calibração e do portão da Fase 1 (propostas pelo Claude) são a TASK-032 e a TASK-033; as TASK-030 e 031 são as do Argon.
 
@@ -121,7 +121,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 - **Foco no MVP jogável (gráficos e som):** por determinação do Orlando (2026-11-18), testes de balanceamento (`tools/simulate.gd`) e testes de propriedade pesados ficam suspensos enquanto o MVP jogável de verdade (com gráficos e som) não estiver concluído.
 - **Anúncio simulado** no baú e Éter/lenha ainda sem arte própria; a `TASK-031` substituirá o protótipo cinza por apresentação dark fantasy com gráficos e som.
 - **A TASK-014** só foi configurada (presets, script, guia); nada foi exportado.
-- **Corrigida na TASK-034 (2026-11-19):** `SaveStore.load_meta` (`game/services/save_store.gd:63`) lê `saved["unlocks"]` sem a chave existir quando o `meta.json` é do formato anterior ao Santuário (só `echoes`, `format` e `runs_played`). Com o `meta.json` real do PC do Orlando, `test_main_scene.gd` falha (314/315) e o jogo pode quebrar ao abrir. Pede tarefa própria com teste de save antigo.
+- **Corrigida na TASK-034 (2026-11-19):** `SaveStore.load_meta` (`game/services/save_store.gd:63`) lê `saved["unlocks"]` sem a chave existir quando o `meta.json` é do formato anterior ao Santuário (só `echoes`, `format` e `runs_played`). O jogo quebrava ao abrir com o `meta.json` antigo; agora há teste de save antigo. Suíte 316/316.
 
 ## Pendências do Orlando
 
