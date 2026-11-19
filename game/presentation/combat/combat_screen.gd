@@ -46,6 +46,11 @@ var _level: int = 1
 var _power: float = 1.0
 var _seed_counter: int = 0
 
+## Palco 3D da luta (ADR-0036). Em headless (testes) a tela 2D de depuração continua valendo.
+var use_stage: bool = DisplayServer.get_name() != "headless"
+var _stage: Combat3DStage
+## Tipo de nó do palco quando a luta não vem de uma Descida (teste e depuração); -1 é a praça comum.
+var stage_kind: int = -1
 var _timeline: HBoxContainer
 var _enemy_shape: VisualTheme.PortraitCanvas
 var _player_shape: VisualTheme.PortraitCanvas
@@ -134,6 +139,9 @@ func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 	_enemy_shape.configure_enemy(session.enemy_id, mut)
 	_enemy_shape.modulate = Color.WHITE
 	_enemy_shape.custom_minimum_size = Vector2(150, 150) if session.is_boss() else Vector2(110, 110)
+	if _stage != null:
+		_stage.time_scale = time_scale
+		_stage.setup(session.enemy_id, session.run.current_node().kind if session.run != null and session.run.current_node() != null else stage_kind)
 	var current_power: float = session.run.power if session.run != null else _power
 	_player_shape.configure_player(current_power)
 	if session.enemy_id == "bell_warden" and time_scale > 0.0:
@@ -215,6 +223,9 @@ func _apply(event: CombatEvent) -> void:
 				_intent_panel.self_modulate = COLOR_CALM
 		CombatEvent.Type.DAMAGE:
 			var on_enemy: bool = event.side != Combatant.PLAYER
+			if _stage != null:
+				_stage.play(not on_enemy, "attack")
+				_stage.play(on_enemy, "hit")
 			if on_enemy:
 				_enemy_hp = event.extra
 			else:
@@ -260,6 +271,8 @@ func _pop_text(text: String, color: Color, on_enemy: bool, size: int = 30) -> vo
 	label.z_index = 50
 	add_child(label)
 	label.position = target.global_position - global_position + Vector2(target.size.x * 0.3, -10)
+	if _stage != null:
+		label.position = _stage.global_position - global_position + _stage.screen_pos(on_enemy) - Vector2(40, 30)
 	var tween: Tween = create_tween().set_parallel(true)
 	tween.tween_property(label, "position:y", label.position.y - 70.0, 0.9 * time_scale)
 	tween.tween_property(label, "modulate:a", 0.0, 0.9 * time_scale).set_delay(0.3 * time_scale)
@@ -268,6 +281,8 @@ func _pop_text(text: String, color: Color, on_enemy: bool, size: int = 30) -> vo
 
 ## Abate do inimigo (ADR-0021): clareia, some e mostra "Derrotado!". Sem tempo, só some.
 func _play_defeat() -> void:
+	if _stage != null:
+		_stage.play(true, "death")
 	if time_scale <= 0.0 or not is_inside_tree():
 		_enemy_shape.modulate = Color(1, 1, 1, 0.25)
 		return
@@ -503,6 +518,13 @@ func _build() -> void:
 	_enemy_hp_label.add_theme_font_size_override("font_size", 16)
 	enemy_info.add_child(_enemy_hp_label)
 
+	if use_stage:
+		_stage = Combat3DStage.new()
+		_stage.custom_minimum_size = Vector2(0, 330)
+		_stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_stage.size_flags_stretch_ratio = 1.0
+		column.add_child(_stage)
+		_enemy_shape.visible = false
 	_intent_panel = PanelContainer.new()
 	_intent_panel.add_theme_stylebox_override("panel", _box(Color.WHITE))
 	_intent_panel.self_modulate = COLOR_CALM
@@ -540,6 +562,7 @@ func _build() -> void:
 	_player_shape.color = COLOR_PLAYER
 	_player_shape.custom_minimum_size = Vector2(80, 80)
 	_player_shape.configure_player(1.0)
+	_player_shape.visible = not use_stage
 	player_row.add_child(_player_shape)
 	var player_info: VBoxContainer = VBoxContainer.new()
 	player_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -575,7 +598,7 @@ func _build() -> void:
 		button.text = str(entry[1])
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(0, 76 if main_action else 48)
+		button.custom_minimum_size = Vector2(0, (62 if use_stage else 76) if main_action else (44 if use_stage else 48))
 		button.add_theme_font_size_override("font_size", 16)
 		if action == "speed":
 			button.pressed.connect(_toggle_speed)
@@ -655,6 +678,8 @@ func _build() -> void:
 	_continue.visible = false
 	_continue.pressed.connect(func() -> void: run_fight_done.emit())
 	menu_box.add_child(_continue)
+	if _stage != null:
+		_move_hud_into_stage(log_panel)
 	_refresh_buttons()
 
 
@@ -709,3 +734,27 @@ func _box(color: Color) -> StyleBoxFlat:
 	box.set_corner_radius_all(6)
 	box.set_content_margin_all(10)
 	return box
+
+
+## No palco 3D, a intenção do inimigo fica numa faixa no topo da cena e o registro da luta numa
+## faixa embaixo (como o painel de Fear & Hunger), liberando altura para os personagens.
+func _move_hud_into_stage(log_panel: PanelContainer) -> void:
+	var top: VBoxContainer = VBoxContainer.new()
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	_stage.add_child(top)
+	var bottom: VBoxContainer = VBoxContainer.new()
+	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	bottom.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_stage.add_child(bottom)
+	_intent_panel.get_parent().remove_child(_intent_panel)
+	top.add_child(_intent_panel)
+	log_panel.get_parent().remove_child(log_panel)
+	bottom.add_child(log_panel)
+	for panel: Control in [_intent_panel, log_panel]:
+		panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		panel.modulate = Color(1, 1, 1, 0.88)
+	log_panel.custom_minimum_size = Vector2(0, 44)
+	_intent_icon.add_theme_font_size_override("font_size", 18)
+	_intent_detail.add_theme_font_size_override("font_size", 13)

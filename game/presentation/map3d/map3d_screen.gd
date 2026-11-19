@@ -172,37 +172,11 @@ func _build_terrain() -> void:
 
 
 func _multimesh_from(path: String, transforms: Array[Transform3D], tint: Color = Color.WHITE) -> void:
-	if transforms.is_empty():
-		return
-	var source: Node = (load(path) as PackedScene).instantiate()
-	var mesh_node: MeshInstance3D = source.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
-	var multi: MultiMesh = MultiMesh.new()
-	multi.transform_format = MultiMesh.TRANSFORM_3D
-	var mesh: Mesh = mesh_node.mesh
-	if tint != Color.WHITE:
-		mesh = mesh.duplicate() as Mesh
-		var base: Material = mesh.surface_get_material(0)
-		if base is StandardMaterial3D:
-			var dark: StandardMaterial3D = (base as StandardMaterial3D).duplicate() as StandardMaterial3D
-			dark.albedo_color = tint
-			mesh.surface_set_material(0, dark)
-	multi.mesh = mesh
-	multi.instance_count = transforms.size()
-	for i: int in transforms.size():
-		multi.set_instance_transform(i, transforms[i] * mesh_node.transform)
-	var holder: MultiMeshInstance3D = MultiMeshInstance3D.new()
-	holder.multimesh = multi
-	_world.add_child(holder)
-	source.free()
+	StageKit.multimesh_from(_world, path, transforms, tint)
 
 
 func _place(path: String, pos: Vector3, yaw: float = 0.0, factor: float = 1.0, parent: Node3D = null) -> Node3D:
-	var node: Node3D = (load(path) as PackedScene).instantiate() as Node3D
-	node.position = pos
-	node.rotation_degrees.y = yaw
-	node.scale = Vector3.ONE * factor
-	(parent if parent != null else _world).add_child(node)
-	return node
+	return StageKit.place(parent if parent != null else _world, path, pos, yaw, factor)
 
 
 ## Lençol de névoa por célula: uma `MultiMesh` de quadrados escuros com alfa por instância.

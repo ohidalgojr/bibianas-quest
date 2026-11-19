@@ -11,5 +11,5 @@ if (-not $godot) { Write-Error "Defina GODOT_BIN (o executável *_console.exe)."
 $root = Split-Path -Parent $PSScriptRoot
 $outAbs = Join-Path $root $Out
 New-Item -ItemType Directory -Force (Split-Path -Parent $outAbs) | Out-Null
-& $godot --path $root -s tools/screenshot.gd -- "cena=$Scene" "saida=$outAbs" "quadros=$Frames" @Extra
+& $godot --path $root -s tools/screenshot.gd -- "cena=$Scene" "saida=$outAbs" "quadros=$Frames" @($Extra | ForEach-Object { $_ -split "," })
 exit $LASTEXITCODE
