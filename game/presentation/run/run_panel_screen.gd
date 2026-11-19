@@ -8,6 +8,9 @@ signal closed
 
 var panels: RunPanels
 var forced_coin: int = -1
+## Cenário 3D de fundo (ADR-0036); vazio mantém o painel de depuração sobre o mapa.
+var backdrop_kind: String = ""
+var time_scale: float = 1.0
 
 var _box: VBoxContainer
 var _mode: String = ""
@@ -15,13 +18,18 @@ var _mode: String = ""
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if not backdrop_kind.is_empty():
+		var backdrop: Scene3DBackdrop = Scene3DBackdrop.new()
+		backdrop.kind = backdrop_kind
+		backdrop.time_scale = time_scale
+		add_child(backdrop)
 	var dim: ColorRect = ColorRect.new()
-	dim.color = Color(0.0, 0.0, 0.0, 0.55)
+	dim.color = Color(0.0, 0.0, 0.0, 0.0 if not backdrop_kind.is_empty() else 0.55)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	var panel: PanelContainer = PanelContainer.new()
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.065, 0.09, 0.98)
+	style.bg_color = Color(0.06, 0.065, 0.09, 0.98 if backdrop_kind.is_empty() else 0.9)
 	style.border_color = VisualTheme.COLOR_BORDER_BRONZE
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(8)
@@ -29,12 +37,19 @@ func _ready() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	panel.anchor_left = 0.04
 	panel.anchor_right = 0.96
-	panel.anchor_top = 0.1
-	panel.anchor_bottom = 0.9
+	panel.anchor_top = 0.1 if backdrop_kind.is_empty() else 0.5
+	panel.anchor_bottom = 0.9 if backdrop_kind.is_empty() else 0.98
 	add_child(panel)
 	_box = VBoxContainer.new()
 	_box.add_theme_constant_override("separation", 10)
-	panel.add_child(_box)
+	if backdrop_kind.is_empty():
+		panel.add_child(_box)
+	else:
+		var scroll: ScrollContainer = ScrollContainer.new()
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.add_child(_box)
+		panel.add_child(scroll)
 	_render()
 
 

@@ -92,11 +92,12 @@ func _process(_delta: float) -> void:
 # --- Telas -------------------------------------------------------------------------
 
 func show_home() -> void:
-	var box: VBoxContainer = _page("Bibiana's Quest", "Cidade Abandonada — MVP Dark Fantasy (regras v%d)" % CoreVersion.RULES_VERSION)
+	var box: VBoxContainer = _page("Bibiana's Quest", "Cidade Abandonada (regras v%d)" % CoreVersion.RULES_VERSION, "home")
 	if not data.is_valid():
 		box.add_child(_label("Dados inválidos. Veja o console."))
 		return
 	var portrait_center: CenterContainer = CenterContainer.new()
+	portrait_center.visible = not use_3d_map
 	var portrait: VisualTheme.PortraitCanvas = VisualTheme.PortraitCanvas.new()
 	portrait.custom_minimum_size = Vector2(96, 96)
 	portrait.configure_player(1.0)
@@ -192,7 +193,10 @@ func _after_action() -> void:
 			# Auto-save a cada nó resolvido, com a Bibiana no mapa (ADR-0017).
 			if save_enabled:
 				_store().save_run(run)
-			_show_map()
+			if not run.last_chest.is_empty() or not run.last_event_result.is_empty():
+				_show_map_under_panel()
+			else:
+				_show_map()
 			if not run.last_chest.is_empty():
 				_show_chest()
 			elif not run.last_event_result.is_empty():
@@ -200,16 +204,16 @@ func _after_action() -> void:
 		RunState.Phase.FIGHT:
 			_show_fight()
 		RunState.Phase.SHOP:
-			_show_map()
+			_show_map_under_panel()
 			if _reward_pending:
 				_show_reward()
 			else:
 				_show_shop()
 		RunState.Phase.CAMPFIRE:
-			_show_map()
+			_show_map_under_panel()
 			_show_campfire()
 		RunState.Phase.EVENT:
-			_show_map()
+			_show_map_under_panel()
 			_show_event()
 		RunState.Phase.VICTORY, RunState.Phase.DEFEAT:
 			_show_result()
@@ -258,7 +262,7 @@ func _on_fight_done() -> void:
 
 ## Recompensa, loja, fogueira e evento (TASK-010, TASK-028): painéis por cima do mapa.
 func _show_reward() -> void:
-	var screen: RunPanelScreen = _open_panel()
+	var screen: RunPanelScreen = _open_panel("reward")
 	screen.show_reward()
 	screen.closed.connect(func() -> void:
 		_reward_pending = false
@@ -266,7 +270,7 @@ func _show_reward() -> void:
 
 
 func _show_chest() -> void:
-	var screen: RunPanelScreen = _open_panel()
+	var screen: RunPanelScreen = _open_panel("chest")
 	screen.show_chest()
 	screen.closed.connect(func() -> void:
 		screen.panels.close_chest()
@@ -274,7 +278,7 @@ func _show_chest() -> void:
 
 
 func _show_shop() -> void:
-	var screen: RunPanelScreen = _open_panel()
+	var screen: RunPanelScreen = _open_panel("shop")
 	screen.show_shop()
 	screen.closed.connect(func() -> void:
 		run.leave_shop()
@@ -282,7 +286,7 @@ func _show_shop() -> void:
 
 
 func _show_campfire() -> void:
-	var screen: RunPanelScreen = _open_panel()
+	var screen: RunPanelScreen = _open_panel("campfire")
 	screen.show_campfire()
 	screen.closed.connect(func() -> void:
 		run.leave_campfire()
@@ -290,7 +294,7 @@ func _show_campfire() -> void:
 
 
 func _show_event() -> void:
-	var screen: RunPanelScreen = _open_panel()
+	var screen: RunPanelScreen = _open_panel("event")
 	screen.forced_coin = _forced_coin
 	screen.show_event()
 	screen.closed.connect(func() -> void:
@@ -298,10 +302,13 @@ func _show_event() -> void:
 		_after_action())
 
 
-func _open_panel() -> RunPanelScreen:
+func _open_panel(scene_kind: String = "") -> RunPanelScreen:
 	var screen: RunPanelScreen = RunPanelScreen.new()
 	screen.panels = RunPanels.new(run)
 	screen.forced_coin = _forced_coin
+	screen.time_scale = time_scale
+	if use_3d_map:
+		screen.backdrop_kind = scene_kind
 	_panel = screen
 	_content.add_child(screen)
 	return screen
@@ -322,7 +329,7 @@ func _show_result() -> void:
 		_store().save_meta(echoes, runs_played, meta_unlocks, bestiary)
 	var summary: Dictionary = run.end_summary(echoes)
 	var title: String = "Vitória! O chefe caiu." if victory else "A Bibiana caiu."
-	var box: VBoxContainer = _page(title, "Semente %d." % run.streams.run_seed)
+	var box: VBoxContainer = _page(title, "Semente %d." % run.streams.run_seed, "victory" if victory else "defeat")
 	if not victory:
 		box.add_child(_label(str(summary["killer_line"])))
 	box.add_child(_label(str(summary["tip_line"])))
@@ -421,7 +428,7 @@ func _set_content(control: Control) -> void:
 
 
 ## Página simples centralizada com título e texto; devolve a caixa para os botões.
-func _page(title: String, text: String) -> VBoxContainer:
+func _page(title: String, text: String, scene_kind: String = "") -> VBoxContainer:
 	_clear()
 	var page: Control = Control.new()
 	page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -429,11 +436,30 @@ func _page(title: String, text: String) -> VBoxContainer:
 	background.color = COLOR_BG
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	page.add_child(background)
+	var scene_on: bool = use_3d_map and not scene_kind.is_empty()
+	if scene_on:
+		var backdrop: Scene3DBackdrop = Scene3DBackdrop.new()
+		backdrop.kind = scene_kind
+		backdrop.time_scale = time_scale
+		page.add_child(backdrop)
 	var center: CenterContainer = CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	page.add_child(center)
 	var box: VBoxContainer = _titled_box(title, text)
-	center.add_child(box)
+	if scene_on:
+		center.anchor_top = 0.44
+		var frame: PanelContainer = PanelContainer.new()
+		var frame_style: StyleBoxFlat = StyleBoxFlat.new()
+		frame_style.bg_color = Color(0.05, 0.055, 0.08, 0.9)
+		frame_style.border_color = VisualTheme.COLOR_BORDER_BRONZE
+		frame_style.set_border_width_all(2)
+		frame_style.set_corner_radius_all(8)
+		frame_style.set_content_margin_all(14)
+		frame.add_theme_stylebox_override("panel", frame_style)
+		frame.add_child(box)
+		center.add_child(frame)
+	else:
+		center.add_child(box)
 	_set_content(page)
 	return box
 
@@ -463,3 +489,15 @@ func _button(text: String, action: Callable) -> Button:
 	button.custom_minimum_size = Vector2(0, 64)
 	button.pressed.connect(action)
 	return button
+
+
+## Painéis de loja, fogueira, evento e recompensa trazem o próprio cenário 3D; sem ele, ficam
+## por cima do mapa.
+func _show_map_under_panel() -> void:
+	if use_3d_map:
+		_clear()
+		var host: Control = Control.new()
+		host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_set_content(host)
+	else:
+		_show_map()

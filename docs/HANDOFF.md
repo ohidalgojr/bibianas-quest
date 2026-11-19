@@ -1,6 +1,6 @@
 # HANDOFF
 
-Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2D vetorial, sem assets, visão de cima): o GDD manda tabuleiro isométrico 3D com kits CC0. Leia o ADR-0036 (análise de onde as instruções falharam) e `docs/ART-DIRECTION.md`. Estado: núcleo e regras prontos (TASK-001 a 034, suíte 329/329, `RULES_VERSION` = 17); **TASK-035 feita (kits CC0, prova isométrica, ferramenta de print; aguarda o seu OK ao print)**, seguem 036 a 040; TASK-014, 032 e 033 esperam.
+Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2D vetorial, sem assets, visão de cima): o GDD manda tabuleiro isométrico 3D com kits CC0. Leia o ADR-0036 (análise de onde as instruções falharam) e `docs/ART-DIRECTION.md`. Estado: núcleo e regras prontos (TASK-001 a 034, suíte 332/332, `RULES_VERSION` = 17); **TASK-035 feita (kits CC0, prova isométrica, ferramenta de print; aguarda o seu OK ao print)**, seguem 036 a 040; TASK-014, 032 e 033 esperam.
 - **`TASK-029` (`b08098f`), `TASK-026` (`09b6a04`), `TASK-027` (`35d06b4`), `TASK-028` (`5ccfeb6`), `TASK-030` (`9fa4254`) e `TASK-031`**: **100% concluídas, validadas (315/315 testes em 40 scripts) e enviadas para `origin/main`**.
 - **Numeração:** as tarefas de calibração e do portão da Fase 1 (propostas pelo Claude) são a TASK-032 e a TASK-033; as TASK-030 e 031 são as do Argon.
 
@@ -113,7 +113,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 7 | TASK-035 | Kits CC0, licenças, cena de prova isométrica, ferramenta de print | agente (download autorizado pelo Orlando) | **próxima tarefa**; sem ela nada de 3D começa |
 | 8 | TASK-036 | Tabuleiro 3D com altura, visão parcial, névoa e câmera que acompanha | em verificação | prints `docs/tasks/prints/TASK-036-*.png` esperando o OK do Orlando |
 | 9 | TASK-037 | Combate 3D com fundo derivado do nó | em verificação | prints `docs/tasks/prints/TASK-037-*.png` esperando o OK do Orlando |
-| 10 | TASK-038 | Fogueira, loja, baú, recompensa, menu e Santuário em 3D | agente | ART-DIRECTION §5 |
+| 10 | TASK-038 | Fogueira, loja, baú, recompensa, menu e Santuário em 3D | em verificação | cenários 3D prontos; cartões, `xN` do baú e Santuário 3D pendentes |
 | 11 | TASK-039 | Estilo unificado, clima, luz e música | agente | os kits parecerem um jogo só |
 | 12 | TASK-040 | Fechamento visual: o Orlando joga e aprova | Orlando | fecha o "MVP jogável" |
 | 13 | TASK-014 | Exportação Web e Android e sessão de 20 minutos no celular | **Orlando** | templates, JDK e SDK só na máquina dele |
