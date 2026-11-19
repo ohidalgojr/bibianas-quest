@@ -90,7 +90,7 @@ func _ready() -> void:
 	_header.add_theme_color_override("font_color", VisualTheme.COLOR_PARCHMENT)
 	_header.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	_header.position = Vector2(10, 6)
-	_header.size = Vector2(500, 90)
+	_header.size = Vector2(450, 90)
 	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_header)

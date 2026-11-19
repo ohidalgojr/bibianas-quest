@@ -52,6 +52,7 @@ var music: MusicBox
 var ambience: Ambience
 var _flash: LightningFlash
 var _fade: ColorRect
+var _mute: MuteButton
 
 
 func _ready() -> void:
@@ -77,6 +78,10 @@ func _ready() -> void:
 	_fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ambience.lightning.connect(_flash.strike)
+	if save_enabled:
+		AudioSettings.load_and_apply(save_dir)
+	_mute = MuteButton.new()
+	_mute.settings_dir = save_dir if save_enabled else "user://test_settings_"
 	_telemetry = Telemetry.new(telemetry_dir)
 	_telemetry.enabled = telemetry_enabled
 	if debug_enabled:
@@ -451,7 +456,7 @@ func _set_content(control: Control) -> void:
 	_content = control
 	add_child(control)
 	# Relâmpago e fade ficam por cima da tela atual; a entrada é um fade a partir do preto.
-	for overlay: Control in [_flash, _fade]:
+	for overlay: Control in [_flash, _fade, _mute]:
 		if overlay != null:
 			if overlay.get_parent() == self:
 				move_child(overlay, get_child_count() - 1)
