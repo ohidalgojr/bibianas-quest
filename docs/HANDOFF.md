@@ -120,6 +120,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-046 e 047 | Mapa com relevo variado, canais, ruínas; criaturas de horror e 3 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-050 | Botão de som mudo (canto da tela, lembrado entre sessões) | agente | em verificação |
 | 12 | TASK-051 | Estudo de UI mobile, 8 inimigos dark fantasy (Nano Banana + spec Blender) e estética de mundo morrendo (`docs/design/ESTUDO-ui-mobile-inimigos-estetica.md`) | Orlando decide | em verificação (aguardando decisões da Parte 6 antes do código) |
+| 12 | TASK-052 | Primeiro mapa curto como tutorial-gancho (sem facilitar) e dificuldade gradual nos demais (`docs/FEEDBACK.md` F-020) | agente (após MVP visual / decisão do Orlando) | aberta; diretriz registrada em `CLAUDE.md` e `AGENTS.md` |
 | 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
 | 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
@@ -207,6 +208,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 ## Pontos de atenção para as próximas tarefas
 
 - **DIRETRIZ DE RECURSOS (Orlando, 2026-11-18):** Enquanto o MVP jogável de verdade (com gráficos e som) não for alcançado, **não gaste recursos com o simulador de balanceamento (`tools/simulate.gd`) nem com testes de propriedade/balanceamento complexos**. Mantenha os testes unitários enxutos e rápidos.
+- **DIRETRIZ DE PROGRESSÃO DE MAPAS (Orlando, 2026-11-19; F-020, `TASK-052`):** o primeiro mapa deve ser **curto** (ritmo ágil de tutorial-gancho para prender o jogador logo no início), **sem deixá-lo mais fácil**; os mapas seguintes crescem gradativamente em extensão e dificuldade.
 - Sorteio no núcleo só por `RngStreams` (`map()`, `combat()`, `loot()`, `coin()`); métodos do `Pcg32`: `draw_int`, `draw_float`, `draw_percent`, `draw_index`, `shuffled_copy`. Não usar `randi`, `shuffle` nem `pick_random`. O save usa `snapshot()` como está (texto, não número de 64 bits em JSON). A semente do próximo mapa vem de `RngStreams.derive_seed`.
 - **Godot 4.7 e enums:** um enum usado dentro da própria classe e por outras com dependência cíclica dá erro de tipo ("Cannot assign Combatant.Side as Side"). Nesses casos, usar constantes inteiras.
 - **Observador:** tem limite de tempo por rodada desde 2026-11-16 (status `timeout`, exit 124). Saída parcial fica em `reports/last_run.out.tmp` enquanto roda.

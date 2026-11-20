@@ -114,6 +114,7 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 ### Estrutura
 
 - O cenário tem N camadas de nós mais o chefe: 6 camadas no cenário 1, crescendo até 10 no cenário 5 (ADR-0027).
+- **Diretriz em revisão (TASK-052, F-020):** o primeiro mapa será mais curto (ritmo de gancho/tutorial, sem ficar mais fácil) e os demais mapas crescerão gradativamente em extensão e dificuldade; a mudança nos números entra com ADR próprio e incremento de `RULES_VERSION`.
 - Cada camada tem largura W (4 para 5 a 6 camadas, 5 para 7 a 9). Cada nó liga a 3 nós consecutivos da camada seguinte, em uma janela deslizante limitada às bordas. Assim há sempre 3 opções, e a rota escolhida muda quais 3 opções aparecem depois.
 - As duas últimas camadas convergem para o portal do chefe. A penúltima sempre oferece uma fogueira em pelo menos uma das três opções.
 - Caminhos ligam os nós no tabuleiro isométrico (seção 17); a Bibiana caminha por eles até o inimigo.
@@ -747,6 +748,8 @@ Cada cenário é um tabuleiro isométrico gerado a partir do grafo do mapa, semp
 | 5 | Cidadela | 9 | 20 a 30 | Cavaleiros doentes, quimeras, gente da corte | Nevasca, Lua de Sangue, Vento de Cinzas | O Rei Febril |
 
 O protótipo faz apenas o cenário 1; a Alpha (Fase 3) tem os cenários 1 a 3, e a versão completa chega a 5 no Beta (seção 22).
+
+**Diretriz em revisão (TASK-052, F-020):** o primeiro mapa será mais curto (ritmo de gancho/tutorial, sem ficar mais fácil) e os demais mapas crescerão gradativamente em extensão e dificuldade; a mudança nos números entra com ADR próprio e incremento de `RULES_VERSION`.
 
 ### Visão do tabuleiro (ADR-0036)
 

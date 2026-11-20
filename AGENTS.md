@@ -9,6 +9,7 @@ Resumo do que não pode ser quebrado:
 - Fórmulas e regras do GDD (`docs/GDD.md`) não mudam sem ADR, GDD atualizado no mesmo commit e `CoreVersion.RULES_VERSION` incrementado.
 - `game/core/` não usa nós do Godot nem aleatoriedade global; todo sorteio passa pelos quatro fluxos de RNG.
 - Testes unitários rápidos verdes em headless antes do commit. **Enquanto não alcançar o MVP jogável (apresentação 3D, ADR-0036, TASK-040), não utilize recursos para simulador de balanceamento (`tools/simulate.gd`) nem testes muito complexos.**
+- **Primeiro mapa curto (sem facilitar) e curva crescente:** o primeiro mapa deve ser curto (ritmo ágil de tutorial-gancho para prender o jogador), **sem deixá-lo mais fácil** — os demais mapas ficam gradativamente mais difíceis (`CLAUDE.md`, `TASK-052`, `docs/FEEDBACK.md` F-020).
 - Cada inimigo tem uma ficha em `docs/enemies/`; a regra de justiça (aviso, intervalo entre golpes de moeda) vale para todos.
 - **Tela ou gráfico: leia `docs/ART-DIRECTION.md` e o ADR-0036 antes.** O visual não é "provisório": GDD §17 e §18 mandam tabuleiro isométrico 3D com kits CC0. Tarefa de tela só fecha com print do jogo rodando com janela, anexado em `docs/tasks/prints/`.
 - **Executável de teste:** ao fim de cada tarefa que muda o jogo, rode `tools\build_windows.ps1` e informe o caminho do `.exe` (`build\windows\BibianasQuest.exe` na pasta principal do repositório).

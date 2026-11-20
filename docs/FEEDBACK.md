@@ -217,3 +217,12 @@ Tudo abaixo está **implementado e testado, mas ainda não jogado pelo Orlando**
 - **Hoje:** a primeira Descida é igual às outras: mapa sorteado, recompensa aleatória, nenhum momento garantido. Quem tem azar de drops vê pouco.
 - **Direções a avaliar (propostas, não decididas):** elementos garantidos na primeira Descida (um baú nas primeiras camadas com item bom, um elite no meio com drop raro e a Moeda da Sorte, um primeiro encontro que demonstra a moeda e o aviso); o chefe mostrado de longe no mapa (aviso "O Coveiro te espera"); Ecos em dobro na primeira Descida, mesmo ao morrer; uma tela final que diga o que a pessoa conquistou e o que ficou para a próxima. A regra de ouro: a primeira Descida pode ser mais generosa, mas não pode ser fácil ao ponto de não ter tensão, nem tão difícil que ninguém chegue ao chefe.
 - **Restrições:** nada pode quebrar a vencibilidade do mapa (GDD §5) nem as regras de justiça da moeda; vale um ADR, porque muda regra para um caso (primeira Descida), e uma rodada do simulador com o perfil "primeira Descida".
+
+## 2026-11-19, diretriz de progressão de mapas
+
+### F-020: primeiro mapa curto como gancho (sem deixar fácil) e dificuldade crescente nos demais
+
+- **Status:** em `TASK-052` (instrução registrada; aguarda implementação com ADR próprio e incremento de `RULES_VERSION`).
+- **Fala do Orlando:** "Adicione uma instrução para que o primeiro mapa seja curto, como se fosse um tutorial para chamar a atenção dos jogadores. Não deixe o mapa fácil, só mais curto. Os demais mapas começam a ficar gradativamente mais dificeis."
+- **Hoje:** o cenário 1 (`abandoned_city`) possui 6 camadas mais o chefe (`game/data/scenarios.json`, `ADR-0027`, com `MapConfig.for_scenario` escalando 6..10 nos cenários 1..5), inclusive na primeira Descida (`ADR-0031`).
+- **Direção:** encurtar a extensão do primeiro mapa (proposta inicial: 3 a 4 camadas mais o chefe) para entregar combate, moeda, baú/loja, fogueira e encontro com o chefe em poucos minutos como tutorial-gancho, **sem reduzir a dificuldade dos inimigos nem suavizar o chefe**; os mapas/cenários seguintes (2 a 5) crescem gradativamente tanto em extensão quanto em dificuldade (nível, elites, mutações e pressão de recursos).

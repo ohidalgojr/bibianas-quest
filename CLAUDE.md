@@ -25,6 +25,7 @@ Leia nesta ordem antes de qualquer trabalho:
 10. **Cada inimigo tem uma ficha** em `docs/enemies/` (modelo em `_modelo.md`) antes ou junto do código dele, e a regra de justiça vale para todos: golpe perigoso avisado um turno antes, ao menos 2 golpes entre golpes de moeda, Golpe Mortal só em chefe.
 11. **Não envie ao GitHub sem o Orlando pedir** e nunca reescreva histórico publicado. Branch `main`, histórico linear.
 12. **Uma revisão por outro modelo** (etapa 4, GDD §21): quem escreveu não revisa o próprio trabalho. `docs/REVIEW-CHECKLIST.md` lista o que conferir.
+13. **Primeiro mapa curto (sem facilitar) e dificuldade gradual:** o primeiro mapa/cenário deve ser curto, funcionando como gancho/tutorial ágil para chamar a atenção dos jogadores logo no início — **não deixe o mapa fácil, apenas mais curto em extensão**. Os demais mapas passam a ficar gradativamente mais longos e difíceis (`docs/FEEDBACK.md` F-020, `TASK-052`).
 
 ### Como o repositório faz cumprir isto
 
