@@ -22,11 +22,6 @@ const FOG_BEHIND: float = 0.42
 const FOG_AHEAD_BASE: float = 0.38
 const FOG_AHEAD_MAX: float = 0.78
 const FOG_BOSS: float = 0.4
-const DECOR_PROPS: Array[String] = [
-	"gravestone-cross.glb", "gravestone-round.glb", "gravestone-broken.glb", "pine-crooked.glb",
-	"iron-fence-damaged.glb", "stone-wall-damaged.glb", "candle-multiple.glb",
-	"pine-fall.glb", "lightpost-single.glb", "grave.glb",
-]
 const REWARD_HINT: Dictionary = {
 	MapNode.Kind.BATTLE: "ouro", MapNode.Kind.AMBUSH: "emboscada", MapNode.Kind.ELITE: "equip. raro",
 	MapNode.Kind.CHEST: "baú", MapNode.Kind.EVENT: "evento", MapNode.Kind.BONFIRE: "fogueira",
@@ -106,13 +101,13 @@ func _ready() -> void:
 func _build_environment() -> void:
 	var env: Environment = Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.03, 0.035, 0.055)
+	env.background_color = Color(0.024, 0.028, 0.044)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.3, 0.35, 0.48)
-	env.ambient_light_energy = 1.1
+	env.ambient_light_color = Color(0.24, 0.28, 0.39)
+	env.ambient_light_energy = 0.85
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 0.55
-	env.adjustment_contrast = 1.15
+	env.adjustment_saturation = 0.56
+	env.adjustment_contrast = 1.18
 	env.adjustment_brightness = 0.92
 	env.glow_enabled = true
 	env.glow_intensity = 0.6
@@ -121,10 +116,12 @@ func _build_environment() -> void:
 	holder.environment = env
 	_world.add_child(holder)
 	var moon: DirectionalLight3D = DirectionalLight3D.new()
-	moon.light_color = Color(0.62, 0.7, 0.95)
-	moon.light_energy = 1.2
+	moon.light_color = Color(0.66, 0.74, 0.96)
+	moon.light_energy = 1.32
 	moon.rotation_degrees = Vector3(-55, 35, 0)
 	moon.shadow_enabled = true
+	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	moon.directional_shadow_max_distance = 45.0
 	_world.add_child(moon)
 
 
@@ -145,43 +142,10 @@ func _set_camera_target(target: Vector3) -> void:
 	camera.look_at(target)
 
 
-## Blocos de terreno e lajes de estrada e de praça, cada tipo numa única `MultiMesh`.
+## Constrói o cenário 3D coerente (terreno estratificado, estradas, canais, pontes, compostos,
+## muros contínuos, postes aterrados e props) a partir da [ScenarioBlueprint] do mapa.
 func _build_terrain() -> void:
-	var blocks: Array[Transform3D] = []
-	var plaza_tiles: Array[Transform3D] = []
-	var road_tiles: Array[Transform3D] = []
-	for z: int in layout.rows:
-		for x: int in layout.cols:
-			var cell: Vector2i = Vector2i(x, z)
-			var h: int = layout.height_at(cell)
-			var low: int = h
-			for offset: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-				low = mini(low, layout.height_at(cell + offset))
-			if x == 0 or z == 0 or x == layout.cols - 1 or z == layout.rows - 1:
-				low = 0
-			for level: int in range(low, h + 1):
-				blocks.append(Transform3D(Basis.IDENTITY, Vector3(x, level * Map3DLayout.BLOCK_H, z)))
-			var top: Vector3 = Vector3(x, (h + 1) * Map3DLayout.BLOCK_H + 0.03, z)
-			if layout.plaza_cells.has(cell):
-				plaza_tiles.append(Transform3D(Basis.IDENTITY, top))
-			elif layout.road_cells.has(cell) and not layout.stairs.has(cell):
-				road_tiles.append(Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * 1.25), top))
-	_multimesh_from(K_MINI + "dirt.glb", blocks)
-	_multimesh_from(K_MINI + "floor-detail.glb", plaza_tiles, Color(0.62, 0.6, 0.66))
-	_multimesh_from(K_GRAVE + "road.glb", road_tiles, Color(0.46, 0.42, 0.4))
-	for cell: Vector2i in layout.stairs.keys():
-		_place(K_MINI + "stairs.glb", layout.world_of(cell) + Vector3(0, 0.0, 0), float(layout.stairs[cell]))
-	_build_border_walls()
-	_build_world_details()
-	var keys: Array = layout.props.keys()
-	for cell: Vector2i in keys:
-		var pick: int = int(layout.props[cell]) % DECOR_PROPS.size()
-		var yaw: float = float((int(layout.props[cell]) * 37) % 4) * 90.0
-		_place(K_GRAVE + DECOR_PROPS[pick], layout.world_of(cell), yaw, 1.3)
-
-
-func _multimesh_from(path: String, transforms: Array[Transform3D], tint: Color = Color.WHITE) -> void:
-	StageKit.multimesh_from(_world, path, transforms, tint)
+	ScenarioRenderer.render(_world, layout.blueprint, true)
 
 
 func _place(path: String, pos: Vector3, yaw: float = 0.0, factor: float = 1.0, parent: Node3D = null) -> Node3D:
@@ -205,8 +169,11 @@ func _build_fog() -> void:
 	for z: int in layout.rows:
 		for x: int in layout.cols:
 			var cell: Vector2i = Vector2i(x, z)
-			var lift: float = (layout.height_at(cell) + 1) * Map3DLayout.BLOCK_H + FOG_SHEET_LIFT
-			multi.set_instance_transform(z * layout.cols + x, Transform3D(Basis.IDENTITY, Vector3(x, lift, z)))
+			if layout.blueprint.zone_at(cell) == ScenarioBlueprint.ZONE_VOID:
+				multi.set_instance_transform(z * layout.cols + x, Transform3D(Basis.IDENTITY.scaled(Vector3.ZERO), Vector3.ZERO))
+			else:
+				var lift: float = (layout.height_at(cell) + 1) * Map3DLayout.BLOCK_H + FOG_SHEET_LIFT
+				multi.set_instance_transform(z * layout.cols + x, Transform3D(Basis.IDENTITY, Vector3(x, lift, z)))
 	_fog = MultiMeshInstance3D.new()
 	_fog.multimesh = multi
 	_world.add_child(_fog)
@@ -310,13 +277,14 @@ func _build_node(info: Dictionary) -> void:
 	var at: Vector3 = layout.node_world(node.id)
 	var kind: int = int(info["kind"])
 	if state == MapView.State.OPTION:
+		var glow_color: Color = VisualTheme.COLOR_DANGER if bool(info.get("mini_boss", false)) else Color(1.0, 0.72, 0.3)
 		var glow: OmniLight3D = OmniLight3D.new()
-		glow.light_color = VisualTheme.COLOR_DANGER if bool(info.get("mini_boss", false)) else Color(1.0, 0.72, 0.3)
+		glow.light_color = glow_color
 		glow.light_energy = 2.6
 		glow.omni_range = 4.2
 		glow.position = at + Vector3(0, 1.6, 0)
 		_node_root.add_child(glow)
-		_place(K_GRAVE + "lightpost-single.glb", at + Vector3(-1.5, 0.0, -1.2), 0.0, 2.2, _node_root)
+		_add_option_beacon(at, glow_color)
 	if state == MapView.State.CURRENT or kind == MapNode.Kind.START:
 		return
 	if node.is_fight() and not node.enemy_id.is_empty() and ModelRegistry.has_model(node.enemy_id):
@@ -503,102 +471,23 @@ func _aim_point(from_node_id: int) -> Vector3:
 	return here.lerp(centroid, 0.75)
 
 
-## Muros baixos na borda da planta: dão a sensação de ruína fechada, como nas referências.
-func _build_border_walls() -> void:
-	for z: int in range(1, layout.rows - 1, 2):
-		for x: int in [1, layout.cols - 2]:
-			var cell: Vector2i = Vector2i(x, z)
-			if layout.plaza_cells.has(cell) or layout.road_cells.has(cell):
-				continue
-			_place(K_GRAVE + "stone-wall.glb", layout.world_of(cell), 90.0, 1.0)
-	for x: int in range(1, layout.cols - 1, 2):
-		for z: int in [1, layout.rows - 2]:
-			var cell: Vector2i = Vector2i(x, z)
-			if layout.plaza_cells.has(cell) or layout.road_cells.has(cell):
-				continue
-			_place(K_GRAVE + "stone-wall.glb", layout.world_of(cell), 0.0, 1.0)
-
-
-## Canais de água, postes ao longo das ruas e ruínas em clareiras (TASK-046).
-func _build_world_details() -> void:
-	_build_water()
-	var lit: int = 0
-	for index: int in layout.lamps.size():
-		var cell: Vector2i = layout.lamps[index]
-		var top: Vector3 = layout.world_of(cell)
-		_place(K_GRAVE + "lightpost-single.glb", top, float((index * 90) % 360), 1.5)
-		if index % 3 == 0 and lit < 14:
-			lit += 1
-			var lamp: OmniLight3D = OmniLight3D.new()
-			lamp.light_color = Color(1.0, 0.72, 0.38)
-			lamp.light_energy = 1.4
-			lamp.omni_range = 4.0
-			lamp.position = top + Vector3(0, 1.9, 0)
-			_world.add_child(lamp)
-	for ruin: Dictionary in layout.ruins:
-		_build_ruin(ruin["cell"] as Vector2i, int(ruin["kind"]))
-
-
-func _build_water() -> void:
-	if layout.water_cells.is_empty():
-		return
-	var plane: PlaneMesh = PlaneMesh.new()
-	plane.size = Vector2(1.0, 1.0)
-	var shader: Shader = Shader.new()
-	shader.code = "shader_type spatial;\nrender_mode blend_mix, cull_disabled, depth_draw_never;\nvoid fragment() {\n\tvec2 p = UV * 6.0;\n\tfloat ripple = sin(p.x * 3.0 + TIME * 1.4) * sin(p.y * 3.0 - TIME * 1.1);\n\tvec3 deep = vec3(0.03, 0.09, 0.14);\n\tvec3 light = vec3(0.12, 0.28, 0.36);\n\tALBEDO = mix(deep, light, 0.5 + 0.5 * ripple);\n\tALPHA = 0.88;\n\tROUGHNESS = 0.15;\n\tMETALLIC = 0.4;\n}\n"
-	var material: ShaderMaterial = ShaderMaterial.new()
-	material.shader = shader
-	plane.material = material
-	var multi: MultiMesh = MultiMesh.new()
-	multi.transform_format = MultiMesh.TRANSFORM_3D
-	multi.mesh = plane
-	multi.instance_count = layout.water_cells.size()
-	var index: int = 0
-	for cell: Vector2i in layout.water_cells.keys():
-		multi.set_instance_transform(index, Transform3D(Basis.IDENTITY, Vector3(cell.x, (layout.height_at(cell) + 1) * Map3DLayout.BLOCK_H - 0.08, cell.y)))
-		index += 1
-	var holder: MultiMeshInstance3D = MultiMeshInstance3D.new()
-	holder.multimesh = multi
-	holder.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_world.add_child(holder)
-
-
-## Três tipos de ruína: casa (anel de muros com porta e cripta), torre (pilares e fogo) e cemitério
-## (cerca, lápides e cruz).
-func _build_ruin(center: Vector2i, kind: int) -> void:
-	var base: Vector3 = layout.world_of(center)
-	var door_side: int = (center.x + center.y) % 4
-	match kind:
-		0:
-			for i: int in range(-2, 3):
-				if not (door_side == 0 and i == 0):
-					_place(K_GRAVE + "brick-wall.glb", base + Vector3(i, 0, -2), 0.0, 1.0)
-				if not (door_side == 1 and i == 0):
-					_place(K_GRAVE + "brick-wall.glb", base + Vector3(i, 0, 2), 0.0, 1.0)
-				if not (door_side == 2 and i == 0):
-					_place(K_GRAVE + "brick-wall.glb", base + Vector3(-2, 0, i), 90.0, 1.0)
-				if not (door_side == 3 and i == 0):
-					_place(K_GRAVE + "brick-wall.glb", base + Vector3(2, 0, i), 90.0, 1.0)
-			_place(K_GRAVE + "crypt-small.glb", base, float(door_side * 90), 1.3)
-		1:
-			for corner: Vector2 in [Vector2(-1.6, -1.6), Vector2(1.6, -1.6), Vector2(-1.6, 1.6), Vector2(1.6, 1.6)]:
-				_place(K_GRAVE + "pillar-large.glb", base + Vector3(corner.x, 0, corner.y), 0.0, 1.6)
-			_place(K_GRAVE + "column-large.glb", base, 0.0, 2.6)
-			_place(K_GRAVE + "fire-basket.glb", base + Vector3(0.0, 0.0, 1.0), 0.0, 1.6)
-			var glow: OmniLight3D = OmniLight3D.new()
-			glow.light_color = Color(1.0, 0.5, 0.18)
-			glow.light_energy = 2.4
-			glow.omni_range = 4.5
-			glow.position = base + Vector3(0.0, 1.4, 1.0)
-			_world.add_child(glow)
-		_:
-			for i: int in range(-2, 3):
-				_place(K_GRAVE + "iron-fence.glb", base + Vector3(i, 0, -2), 0.0, 1.0)
-				_place(K_GRAVE + "iron-fence.glb", base + Vector3(i, 0, 2), 0.0, 1.0)
-			var stones: Array[String] = ["gravestone-cross.glb", "gravestone-round.glb", "gravestone-broken.glb", "gravestone-wide.glb", "gravestone-bevel.glb", "gravestone-roof.glb"]
-			for k: int in stones.size():
-				_place(K_GRAVE + stones[k], base + Vector3(float(k % 3) - 1.0, 0, float(k / 3) - 0.5), 0.0, 1.2)
-			_place(K_GRAVE + "gravestone-cross-large.glb", base + Vector3(0, 0, 1.4), 0.0, 1.6)
+## Marcador discreto no piso da praça disponível, destacando o destino sem postes avulsos.
+func _add_option_beacon(at: Vector3, color: Color) -> void:
+	var disc: CylinderMesh = CylinderMesh.new()
+	disc.top_radius = 1.05
+	disc.bottom_radius = 1.1
+	disc.height = 0.02
+	disc.radial_segments = 16
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(color.r, color.g, color.b, 0.24)
+	disc.material = mat
+	var mi: MeshInstance3D = MeshInstance3D.new()
+	mi.mesh = disc
+	mi.position = at + Vector3(0.0, 0.04, 0.0)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_node_root.add_child(mi)
 
 
 ## Equipamento e mochila da Bibiana em ícones, sob o cabeçalho (TASK-043): arma, mão secundária,

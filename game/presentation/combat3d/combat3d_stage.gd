@@ -8,9 +8,9 @@ extends Control
 const K_MINI: String = "res://assets/kenney/mini_dungeon/"
 const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const SHRINK: int = 2
-const CAM_SIZE: float = 5.8
+const CAM_SIZE: float = 6.6
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.8, 1.0) * 16.0
-const CAM_TARGET: Vector3 = Vector3(0.2, 2.0, 0.2)
+const CAM_TARGET: Vector3 = Vector3(0.0, 1.9, 0.0)
 const ENEMY_POS: Vector3 = Vector3(-1.4, 0.9, -1.4)
 const PLAYER_POS: Vector3 = Vector3(0.2, 0.9, 2.9)
 const ENEMY_YAW: float = 45.0
@@ -74,25 +74,27 @@ func _aim_camera(shake: Vector3) -> void:
 func _build_environment() -> void:
 	var env: Environment = Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.02, 0.022, 0.035)
+	env.background_color = Color(0.02, 0.024, 0.038)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.26, 0.3, 0.42)
-	env.ambient_light_energy = 1.0
+	env.ambient_light_color = Color(0.24, 0.28, 0.40)
+	env.ambient_light_energy = 0.72
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 0.6
-	env.adjustment_contrast = 1.18
+	env.adjustment_saturation = 0.56
+	env.adjustment_contrast = 1.2
 	env.adjustment_brightness = 0.9
 	env.glow_enabled = true
-	env.glow_intensity = 0.6
+	env.glow_intensity = 0.58
 	env.glow_bloom = 0.08
 	var holder: WorldEnvironment = WorldEnvironment.new()
 	holder.environment = env
 	_world.add_child(holder)
 	var moon: DirectionalLight3D = DirectionalLight3D.new()
-	moon.light_color = Color(0.55, 0.64, 0.92)
-	moon.light_energy = 0.9
+	moon.light_color = Color(0.62, 0.70, 0.95)
+	moon.light_energy = 1.1
 	moon.rotation_degrees = Vector3(-50, 30, 0)
 	moon.shadow_enabled = true
+	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	moon.directional_shadow_max_distance = 35.0
 	_world.add_child(moon)
 
 
@@ -110,44 +112,16 @@ func setup(enemy_id: String, kind: int, mutation: String = "") -> void:
 
 
 func _build_arena(kind: int) -> void:
-	var blocks: Array[Transform3D] = []
-	var tiles: Array[Transform3D] = []
-	for z: int in range(-ARENA_HALF, ARENA_HALF + 1):
-		for x: int in range(-ARENA_HALF, ARENA_HALF + 1):
-			blocks.append(Transform3D(Basis.IDENTITY, Vector3(x, 0.0, z)))
-			if absi(x) <= 3 and absi(z) <= 3:
-				tiles.append(Transform3D(Basis.IDENTITY, Vector3(x, 0.93, z)))
-	StageKit.multimesh_from(_scene_root, K_MINI + "dirt.glb", blocks)
-	StageKit.multimesh_from(_scene_root, K_MINI + "floor-detail.glb", tiles, Color(0.58, 0.56, 0.62))
 	var boss: bool = kind == MapNode.Kind.BOSS or kind == MapNode.Kind.MINI_BOSS
-	var ring: Array[Dictionary] = []
-	# Muros ao fundo (lado oposto à câmera), mais altos e fechados na sala do chefe.
-	for i: int in range(-ARENA_HALF, ARENA_HALF + 1):
-		ring.append({"p": Vector3(i, 0.9, -ARENA_HALF), "yaw": 0.0})
-		ring.append({"p": Vector3(-ARENA_HALF, 0.9, i), "yaw": 90.0})
-	for entry: Dictionary in ring:
-		StageKit.place(_scene_root, K_GRAVE + "brick-wall.glb" if boss else K_GRAVE + "stone-wall.glb", entry["p"] as Vector3, float(entry["yaw"]), 1.6 if boss else 1.2)
+	var focal_kind: String = "combat_boss" if boss else ("combat_elite" if kind == MapNode.Kind.ELITE else "combat_common")
+	var bp: ScenarioBlueprint = ScenarioGenerator.generate_focal_diorama(focal_kind, 7)
+	ScenarioRenderer.render(_scene_root, bp, true)
 	var warm: OmniLight3D = OmniLight3D.new()
-	warm.light_color = Color(1.0, 0.52, 0.2)
-	warm.light_energy = 2.8
-	warm.omni_range = 7.0
-	warm.position = Vector3(0.2, 1.6, 0.2)
+	warm.light_color = Color(1.0, 0.36, 0.16) if boss else Color(1.0, 0.54, 0.22)
+	warm.light_energy = 2.6
+	warm.omni_range = 6.8
+	warm.position = Vector3(-0.3, 1.8, 0.5)
 	_scene_root.add_child(warm)
-	if boss:
-		StageKit.place(_scene_root, K_GRAVE + "fire-basket.glb", Vector3(-3.4, 0.93, 0.5), 0.0, 2.2)
-		StageKit.place(_scene_root, K_GRAVE + "fire-basket.glb", Vector3(0.5, 0.93, -3.4), 0.0, 2.2)
-		StageKit.place(_scene_root, K_GRAVE + "crypt-large.glb", Vector3(-3.6, 0.9, -3.6), 45.0, 1.4)
-		warm.light_color = Color(1.0, 0.32, 0.16)
-	elif kind == MapNode.Kind.ELITE:
-		StageKit.place(_scene_root, K_GRAVE + "lightpost-double.glb", Vector3(-3.0, 0.93, 1.0), 0.0, 2.0)
-		StageKit.place(_scene_root, K_GRAVE + "gravestone-cross-large.glb", Vector3(0.0, 0.93, -3.5), 0.0, 1.5)
-		StageKit.place(_scene_root, K_GRAVE + "iron-fence-damaged.glb", Vector3(3.5, 0.93, -1.0), 90.0, 1.3)
-	else:
-		StageKit.place(_scene_root, K_GRAVE + "lightpost-single.glb", Vector3(-3.2, 0.93, 0.8), 0.0, 2.0)
-		StageKit.place(_scene_root, K_GRAVE + "gravestone-round.glb", Vector3(-0.5, 0.93, -3.4), 0.0, 1.4)
-		StageKit.place(_scene_root, K_GRAVE + "gravestone-broken.glb", Vector3(2.5, 0.93, -3.2), 0.0, 1.4)
-		StageKit.place(_scene_root, K_GRAVE + "pine-crooked.glb", Vector3(-3.8, 0.93, -2.0), 0.0, 1.5)
-		StageKit.place(_scene_root, K_GRAVE + "iron-fence-damaged.glb", Vector3(3.6, 0.93, 0.5), 90.0, 1.2)
 
 
 func _spawn_actors(kind: int) -> void:

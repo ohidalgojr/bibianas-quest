@@ -59,30 +59,32 @@ func _build_environment() -> void:
 	var cold: bool = kind == "defeat"
 	var env: Environment = Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.02, 0.022, 0.035)
+	env.background_color = Color(0.02, 0.024, 0.038)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.24, 0.3, 0.45) if cold else Color(0.28, 0.32, 0.44)
-	env.ambient_light_energy = 1.0
+	env.ambient_light_color = Color(0.22, 0.28, 0.42) if cold else Color(0.25, 0.29, 0.40)
+	env.ambient_light_energy = 0.75
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 0.58
-	env.adjustment_contrast = 1.18
+	env.adjustment_saturation = 0.56
+	env.adjustment_contrast = 1.2
 	env.adjustment_brightness = 0.9
 	env.glow_enabled = true
-	env.glow_intensity = 0.65
-	env.glow_bloom = 0.1
+	env.glow_intensity = 0.62
+	env.glow_bloom = 0.09
 	var holder: WorldEnvironment = WorldEnvironment.new()
 	holder.environment = env
 	_world.add_child(holder)
 	var moon: DirectionalLight3D = DirectionalLight3D.new()
-	moon.light_color = Color(0.55, 0.64, 0.92)
-	moon.light_energy = 0.8
+	moon.light_color = Color(0.62, 0.70, 0.94)
+	moon.light_energy = 1.05
 	moon.rotation_degrees = Vector3(-50, 30, 0)
 	moon.shadow_enabled = true
+	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	moon.directional_shadow_max_distance = 35.0
 	_world.add_child(moon)
 
 
 func _aim(target: Vector3, size: float) -> void:
-	_camera.size = size * (2.1 if kind == "shop" else (1.9 if kind == "home" else 1.5))
+	_camera.size = size * (2.1 if kind == "shop" else (1.95 if kind == "home" else 1.55))
 	# O assunto fica na metade de cima da tela (o painel ocupa a de baixo): mira abaixo dele.
 	target += Vector3(1.0, 0.0, 1.0) * 2.4
 	_camera.position = target + Vector3(1.0, 0.8, 1.0) * 16.0
@@ -90,7 +92,8 @@ func _aim(target: Vector3, size: float) -> void:
 
 
 func _build_scene() -> void:
-	_floor(4)
+	var bp: ScenarioBlueprint = ScenarioGenerator.generate_focal_diorama(kind, 7)
+	ScenarioRenderer.render(_world, bp, false)
 	match kind:
 		"campfire":
 			_build_campfire()
@@ -108,24 +111,6 @@ func _build_scene() -> void:
 			_build_defeat()
 		_:
 			_build_home()
-
-
-func _floor(half: int) -> void:
-	var blocks: Array[Transform3D] = []
-	var tiles: Array[Transform3D] = []
-	for z: int in range(-half - 2, half + 3):
-		for x: int in range(-half - 2, half + 3):
-			blocks.append(Transform3D(Basis.IDENTITY, Vector3(x, 0.0, z)))
-			if absi(x) <= half and absi(z) <= half:
-				tiles.append(Transform3D(Basis.IDENTITY, Vector3(x, 0.93, z)))
-	StageKit.multimesh_from(_world, K_MINI + "dirt.glb", blocks)
-	StageKit.multimesh_from(_world, K_MINI + "floor-detail.glb", tiles, Color(0.55, 0.53, 0.6))
-
-
-func _walls(boundary: int, tall: bool = false) -> void:
-	for i: int in range(-boundary, boundary + 1):
-		StageKit.place(_world, K_GRAVE + ("brick-wall.glb" if tall else "stone-wall.glb"), Vector3(i, 0.9, -boundary), 0.0, 1.5 if tall else 1.2)
-		StageKit.place(_world, K_GRAVE + ("brick-wall.glb" if tall else "stone-wall.glb"), Vector3(-boundary, 0.9, i), 90.0, 1.5 if tall else 1.2)
 
 
 func _warm(pos: Vector3, energy: float = 4.0, color: Color = Color(1.0, 0.5, 0.18), range_: float = 6.0) -> OmniLight3D:
@@ -185,108 +170,85 @@ func _embers(pos: Vector3) -> void:
 	_world.add_child(particles)
 
 
-## Fogueira (referência Darkest Dungeon): a Bibiana sentada junto ao fogo, luz quente oscilando.
+## Fogueira (referência Darkest Dungeon): a Bibiana sentada junto ao fogo diante do abrigo em ruína.
 func _build_campfire() -> void:
-	_walls(5, true)
-	var center: Vector3 = Vector3(0, 0.93, 0)
+	var center: Vector3 = Vector3(0, 0.93, 0.2)
 	StageKit.place(_world, K_GRAVE + "fire-basket.glb", center, 0.0, 3.0)
-	_warm(Vector3(0, 1.5, 0), 6.5, Color(1.0, 0.45, 0.15), 8.0)
-	_embers(Vector3(0, 1.3, 0))
-	_flame(Vector3(0, 1.0, 0), 1.0)
+	_warm(Vector3(0, 1.5, 0.2), 6.2, Color(1.0, 0.45, 0.15), 8.0)
+	_embers(Vector3(0, 1.3, 0.2))
+	_flame(Vector3(0, 1.0, 0.2), 1.0)
 	_hero(Vector3(0.1, 0.93, 2.0), 180.0, "Sit_Floor_Idle", 2.0)
-	StageKit.place(_world, K_GRAVE + "gravestone-cross.glb", Vector3(-2.5, 0.93, -2.0), 0.0, 1.6)
-	StageKit.place(_world, K_GRAVE + "crypt-small.glb", Vector3(-3.4, 0.9, 0.5), 90.0, 1.4)
-	StageKit.place(_world, K_GRAVE + "pine-crooked.glb", Vector3(2.8, 0.93, -2.6), 0.0, 1.6)
-	StageKit.place(_world, K_GRAVE + "coffin-old.glb", Vector3(-1.2, 0.93, 2.8), 40.0, 1.4)
-	_aim(Vector3(0.3, 1.3, 0.3), 6.2)
+	_aim(Vector3(0.1, 1.3, 0.1), 6.2)
 
 
-## Loja: o comerciante atrás de uma mesa de mercadorias, sob um lampião.
+## Loja: vigia mercador (character-keeper) atrás do balcão de mercadorias sob o pórtico.
 func _build_shop() -> void:
-	_walls(5)
-	StageKit.place(_world, K_MINI + "table.glb", Vector3(-1.0, 0.93, -1.0), 45.0, 2.4)
-	var merchant: Node3D = ModelRegistry.spawn("gravedigger")
-	merchant.position = Vector3(-2.2, 0.93, -2.2)
-	merchant.rotation_degrees.y = 45.0
-	merchant.scale = Vector3.ONE * 2.0
-	_world.add_child(merchant)
-	ModelRegistry.play(merchant, "gravedigger", "idle")
-	StageKit.place(_world, K_MINI + "potion.glb", Vector3(-0.6, 1.5, -1.3), 0.0, 2.4)
-	StageKit.place(_world, K_MINI + "shield-round.glb", Vector3(-1.4, 1.5, -0.7), 30.0, 2.0)
-	StageKit.place(_world, K_MINI + "barrel.glb", Vector3(-3.2, 0.93, 0.2), 0.0, 2.2)
-	StageKit.place(_world, K_MINI + "chest.glb", Vector3(-3.0, 0.93, -2.8), 20.0, 2.2)
-	StageKit.place(_world, K_GRAVE + "lightpost-double.glb", Vector3(1.2, 0.93, -2.6), 0.0, 2.4)
-	_warm(Vector3(0.0, 2.2, -1.2), 3.8, Color(1.0, 0.7, 0.35), 7.0)
-	_hero(Vector3(1.4, 0.93, 1.4), 225.0)
-	_aim(Vector3(-0.2, 1.6, -0.2), 6.4)
+	var table_scale: float = 2.2
+	var table_pos: Vector3 = Vector3(-0.9, 0.93, -0.9)
+	StageKit.place(_world, K_MINI + "table.glb", table_pos, 45.0, table_scale, Color(0.84, 0.78, 0.72))
+	var merchant: Node3D = StageKit.place(_world, K_GRAVE + "character-keeper.glb", Vector3(-1.95, 0.93, -1.95), 45.0, 2.0, Color(0.86, 0.84, 0.82))
+	_play_named(merchant, "idle")
+	var top_y: float = 0.93 + 0.31 * table_scale - 0.01
+	StageKit.place(_world, K_MINI + "potion.glb", Vector3(-0.6, top_y, -1.15), 0.0, 2.2)
+	StageKit.place(_world, K_MINI + "pot.glb", Vector3(-1.2, top_y, -0.65), 25.0, 1.2)
+	StageKit.place(_world, K_MINI + "chest.glb", Vector3(-2.6, 0.93, -2.5), 20.0, 2.0, Color(0.85, 0.82, 0.78))
+	_warm(Vector3(0.0, 2.2, -1.1), 3.8, Color(1.0, 0.7, 0.35), 7.5)
+	_hero(Vector3(1.3, 0.93, 1.3), 225.0)
+	_aim(Vector3(-0.3, 1.5, -0.3), 6.4)
 
 
-## Baú: grande, no centro, abrindo, com luz dourada.
+## Baú: grande, no centro, abrindo, com moedas de ouro e cofre abobadado atrás.
 func _build_chest() -> void:
-	_walls(5)
-	var chest: Node3D = StageKit.place(_world, K_MINI + "chest.glb", Vector3(0, 0.93, 0), 45.0, 4.0)
+	var chest: Node3D = StageKit.place(_world, K_MINI + "chest.glb", Vector3(0, 0.93, 0), 45.0, 3.8)
 	_play_named(chest, "open", false)
 	_warm(Vector3(0, 1.8, 0), 5.0, Color(1.0, 0.8, 0.3), 6.5)
 	for i: int in 5:
 		var angle: float = float(i) * 1.26
 		StageKit.place(_world, K_MINI + "coin.glb", Vector3(cos(angle) * 1.3, 0.95, sin(angle) * 1.3), angle * 40.0, 1.6)
-	StageKit.place(_world, K_GRAVE + "candle-multiple.glb", Vector3(-2.2, 0.93, 1.6), 0.0, 2.0)
 	_hero(Vector3(1.8, 0.93, 1.8), 225.0, "Interact")
-	_aim(Vector3(0.3, 1.2, 0.3), 6.0)
+	_aim(Vector3(0.2, 1.2, 0.2), 6.0)
 
 
-## Evento: um altar de pedra à luz de velas.
+## Evento: altar de pedra à luz de velas diante de obeliscos no terraço superior.
 func _build_event() -> void:
-	_walls(5, true)
-	StageKit.place(_world, K_GRAVE + "altar-stone.glb", Vector3(-0.5, 0.93, -0.5), 45.0, 3.0)
-	StageKit.place(_world, K_GRAVE + "candle-multiple.glb", Vector3(-0.1, 2.0, -0.9), 0.0, 2.0)
-	StageKit.place(_world, K_GRAVE + "cross.glb", Vector3(-2.6, 0.93, -2.2), 0.0, 2.0)
-	StageKit.place(_world, K_GRAVE + "pillar-obelisk.glb", Vector3(2.4, 0.93, -2.6), 0.0, 1.8)
-	_warm(Vector3(-0.3, 2.2, -0.7), 3.6, Color(1.0, 0.6, 0.3), 6.0)
+	var altar_scale: float = 2.4
+	StageKit.place(_world, K_GRAVE + "altar-stone.glb", Vector3(-0.4, 0.93, -0.4), 45.0, altar_scale, Color(0.75, 0.74, 0.78))
+	var altar_top_y: float = 0.93 + 0.49 * altar_scale - 0.02
+	StageKit.place(_world, K_GRAVE + "candle-multiple.glb", Vector3(-0.35, altar_top_y, -0.45), 0.0, 1.8)
+	_warm(Vector3(-0.3, 2.3, -0.6), 3.8, Color(1.0, 0.6, 0.3), 6.5)
 	_hero(Vector3(1.7, 0.93, 1.7), 225.0)
-	_aim(Vector3(0.0, 1.3, 0.0), 6.2)
+	_aim(Vector3(-0.1, 1.3, -0.1), 6.2)
 
 
 ## Recompensa depois da luta: a Bibiana de pé, com o butim a seus pés.
 func _build_reward() -> void:
-	_walls(5)
 	_hero(Vector3(0.5, 0.93, 0.5), 225.0, "Cheer", 2.2)
 	StageKit.place(_world, K_MINI + "coin.glb", Vector3(-0.8, 0.95, 0.8), 20.0, 1.8)
 	StageKit.place(_world, K_MINI + "potion.glb", Vector3(1.4, 0.95, -0.4), 0.0, 2.0)
-	StageKit.place(_world, K_GRAVE + "lightpost-single.glb", Vector3(-2.8, 0.93, -2.0), 0.0, 2.4)
-	_warm(Vector3(0.0, 2.2, 0.2), 3.6, Color(1.0, 0.75, 0.35), 6.0)
-	_aim(Vector3(0.2, 1.3, 0.2), 6.0)
+	_warm(Vector3(0.0, 2.2, 0.2), 3.6, Color(1.0, 0.75, 0.35), 6.5)
+	_aim(Vector3(0.1, 1.3, 0.1), 6.0)
 
 
-## Menu inicial: panorama da Cidade Abandonada com a Bibiana em destaque.
+## Menu inicial: panorama da Cidade Abandonada com capela em terraço elevado e escadaria até a Bibiana.
 func _build_home() -> void:
-	_walls(6)
-	_hero(Vector3(0.0, 0.93, 0.6), 225.0, "idle", 2.4)
-	StageKit.place(_world, K_GRAVE + "lightpost-double.glb", Vector3(-2.4, 0.93, -0.8), 0.0, 2.6)
-	StageKit.place(_world, K_GRAVE + "crypt-large.glb", Vector3(-3.4, 0.9, -3.8), 45.0, 1.6)
-	StageKit.place(_world, K_GRAVE + "pine-crooked.glb", Vector3(3.2, 0.93, -2.4), 0.0, 1.8)
-	StageKit.place(_world, K_GRAVE + "gravestone-round.glb", Vector3(2.4, 0.93, 1.0), 0.0, 1.6)
-	StageKit.place(_world, K_GRAVE + "iron-fence-damaged.glb", Vector3(-3.2, 0.93, 2.0), 90.0, 1.4)
-	_warm(Vector3(-1.8, 2.4, -0.4), 3.4, Color(1.0, 0.68, 0.32), 7.0)
-	_aim(Vector3(0.0, 1.5, -0.2), 6.6)
+	_hero(Vector3(0.0, 0.93, 1.1), 225.0, "idle", 2.3)
+	_warm(Vector3(-1.4, 2.6, -1.6), 3.6, Color(1.0, 0.68, 0.32), 8.0)
+	_aim(Vector3(-0.2, 1.6, -0.6), 6.6)
 
 
 func _build_victory() -> void:
-	_walls(5)
-	StageKit.place(_world, K_GRAVE + "fire-basket.glb", Vector3(-1.6, 0.93, -1.2), 0.0, 2.4)
-	_warm(Vector3(-1.6, 1.4, -1.2), 5.0, Color(1.0, 0.7, 0.3), 7.0)
-	_embers(Vector3(-1.6, 1.3, -1.2))
+	StageKit.place(_world, K_GRAVE + "fire-basket.glb", Vector3(-1.4, 0.93, -1.0), 0.0, 2.4)
+	_warm(Vector3(-1.4, 1.4, -1.0), 5.0, Color(1.0, 0.7, 0.3), 7.0)
+	_embers(Vector3(-1.4, 1.3, -1.0))
 	_hero(Vector3(0.6, 0.93, 0.8), 225.0, "Cheer", 2.4)
 	_aim(Vector3(0.0, 1.5, 0.0), 6.2)
 
 
 func _build_defeat() -> void:
-	_walls(5, true)
-	_hero(Vector3(0.2, 0.93, 0.4), 225.0, "Death_A_Pose", 2.2)
-	StageKit.place(_world, K_GRAVE + "gravestone-cross-large.glb", Vector3(-1.4, 0.93, -1.4), 0.0, 2.0)
-	StageKit.place(_world, K_GRAVE + "candle.glb", Vector3(-0.4, 0.93, -0.9), 0.0, 2.0)
-	_warm(Vector3(-0.6, 1.4, -0.9), 1.6, Color(0.7, 0.8, 1.0), 5.0)
-	_aim(Vector3(0.0, 1.0, 0.0), 6.0)
+	_hero(Vector3(0.2, 0.93, 0.6), 225.0, "Death_A_Pose", 2.2)
+	StageKit.place(_world, K_GRAVE + "candle.glb", Vector3(-0.6, 0.93, -0.8), 0.0, 2.0)
+	_warm(Vector3(-0.6, 1.4, -0.8), 1.8, Color(0.7, 0.8, 1.0), 5.5)
+	_aim(Vector3(-0.2, 1.1, -0.2), 6.0)
 
 
 func _process(delta: float) -> void:

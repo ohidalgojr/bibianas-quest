@@ -11,7 +11,7 @@ Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2
 | Jogo | RPG tático de turnos roguelite, Godot 4.7. **Visual atual = telas 2D de depuração (reprovadas, ADR-0036); o visual 3D vem nas TASK-035 a 040.** Hoje: gráficos vetoriais e áudio procedural (`SoundFx`): menu com Santuário (Biblioteca, Arsenal e Códice/Bestiário), tabuleiro visual com estradas curvas, brasões e peão da Bibiana com os 9 estágios da mecha (GDD §9), combate com silhuetas de personagem/inimigos, medalhão giratório de Cara/Coroa, emboscadas e inimigos mutados, eventos de mapa, mini boss anunciado, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
 | Classe | só o Guerreiro (Bibiana); 3 skills iniciais, 3 à venda, 5 espaços |
 | Cenário | só a Cidade Abandonada: 4 inimigos comuns (com mutações temáticas Inchado, Voraz, Fantasma e Espinhoso), 1 elite (Carrasco Apodrecido), 1 mini boss anunciado (Carcereiro do Sino), chefe O Coveiro (2 fases), 6 eventos temáticos; cada inimigo com ficha em `docs/enemies/` |
-| Regras | `RULES_VERSION` = 20 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0040 |
+| Regras | `RULES_VERSION` = 20 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0041 |
 | Equilíbrio (simulador, regras v15) | bot mediano vence 66,0% (meta 55% a 65%), cuidadoso 72,0%, 1ª Descida 49,3% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 13,7% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,28 s para criar a Descida |
 | Testes | 315 em 40 scripts, cerca de 11 s |
 | Git | `main` sincronizado com `origin/main` até `TASK-031` |
@@ -121,6 +121,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-050 | Botão de som mudo (canto da tela, lembrado entre sessões) | agente | em verificação |
 | 12 | TASK-051 | Estudo de UI mobile, 8 inimigos dark fantasy (Nano Banana + spec Blender) e estética de mundo morrendo (`docs/design/ESTUDO-ui-mobile-inimigos-estetica.md`) | Orlando decide | em verificação (aguardando decisões da Parte 6 antes do código) |
 | 12 | TASK-052 | Primeiro mapa curto como tutorial-gancho (sem facilitar) e dificuldade gradual nos demais (`docs/FEEDBACK.md` F-020) | agente (após MVP visual / decisão do Orlando) | aberta; diretriz registrada em `CLAUDE.md` e `AGENTS.md` |
+| 12 | TASK-053 | Algoritmo próprio Terrace-Grammar-Constraint para cenários 3D coerentes (mapa + combate + backdrops, ADR-0041) | em verificação | 9 prints `docs/tasks/prints/TASK-053-*.png` e executável gerados (< 50k primitivas); aguarda OK do Orlando |
 | 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
 | 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
@@ -165,6 +166,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 | 0033 | Eventos de mapa em dados (6 na Cidade Abandonada, com moeda e modificador de CRIT) e mini boss anunciado Carcereiro do Sino com raro + Galhos Secos + Moeda da Sorte | Aceito (TASK-028) |
 | 0032 | Mutações temáticas (Inchado, Voraz, Fantasma, Espinhoso), emboscada com bote inicial e Guarda aberta, SORTE e Maré de azar nas mutações, emboscadas e drops raros | Aceito (TASK-027) |
 | 0031 | Primeira Descida chamativa (`runs_played == 0`): Cidadão Infectado na camada 1, baú na camada 2, elite no meio, chefe de longe no mapa, Ecos em dobro e tela "Morte que ensina" | Aceito (TASK-026) |
+| 0041 | Algoritmo próprio Terrace-Grammar-Constraint em 7 estágios para cenários coerentes (`ScenarioBlueprint`/`Generator`/`Validator`/`Renderer`), não-oclusão isométrica, batelada MultiMesh e `character-keeper` na loja | Aceito (TASK-053) |
 | 0036 | Apresentação 3D isométrica com kits CC0 (mapa com visão parcial e câmera que acompanha, combate com fundo do nó, fogueira estilo Darkest Dungeon), print obrigatório nas tarefas de tela; substitui o visual 2D | Aceito (Orlando, 2026-11-19) |
 | 0030 | Fichas de inimigos, golpes de moeda temáticos, Leptospirose persistente, reações em dados, Coveiro 175/16 | Aceito (TASK-025) |
 | 0029 | Previsão de dano e acerto, descrição das skills, atacar devolve MP, Éter em combate, crítico por item e skill de fogueira, Coveiro 195/16 | Aceito (TASK-024) |

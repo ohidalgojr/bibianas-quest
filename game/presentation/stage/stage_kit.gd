@@ -5,18 +5,41 @@ extends RefCounted
 ## do mapa e pelo palco do combate.
 
 
-## Instancia o modelo `path` em `parent`.
-static func place(parent: Node3D, path: String, pos: Vector3, yaw: float = 0.0, factor: float = 1.0) -> Node3D:
+## Instancia o modelo `path` em `parent`. Quando `tint != Color.WHITE`, tinge todas as
+## superfícies sem alterar o recurso original em disco.
+static func place(parent: Node3D, path: String, pos: Vector3, yaw: float = 0.0, factor: float = 1.0, tint: Color = Color.WHITE) -> Node3D:
 	var node: Node3D = (load(path) as PackedScene).instantiate() as Node3D
 	node.position = pos
 	node.rotation_degrees.y = yaw
 	node.scale = Vector3.ONE * factor
+	if tint != Color.WHITE:
+		apply_tint(node, tint)
 	parent.add_child(node)
 	return node
 
 
-## Junta todas as cópias de `path` (uma por transformação) numa `MultiMesh`. `tint` escurece o
-## material da peça (cor multiplicada), para lajes e estradas não brilharem.
+## Aplica multiplicação de cor em todos os [StandardMaterial3D] de `root` sem mutar o recurso base.
+static func apply_tint(root: Node, tint: Color) -> void:
+	if tint == Color.WHITE or root == null:
+		return
+	var targets: Array[Node] = []
+	if root is MeshInstance3D:
+		targets.append(root)
+	targets.append_array(root.find_children("*", "MeshInstance3D", true, false))
+	for item: Node in targets:
+		var mesh_inst: MeshInstance3D = item as MeshInstance3D
+		if mesh_inst == null or mesh_inst.mesh == null:
+			continue
+		for s: int in mesh_inst.mesh.get_surface_count():
+			var base: Material = mesh_inst.get_active_material(s)
+			if base is StandardMaterial3D:
+				var tinted: StandardMaterial3D = (base as StandardMaterial3D).duplicate() as StandardMaterial3D
+				tinted.albedo_color = tinted.albedo_color * tint
+				mesh_inst.set_surface_override_material(s, tinted)
+
+
+## Junta todas as cópias de `path` (uma por transformação) numa `MultiMesh`. `tint` escurece todas
+## as superfícies da peça (cor multiplicada), para lajes e estradas não brilharem.
 static func multimesh_from(parent: Node3D, path: String, transforms: Array[Transform3D], tint: Color = Color.WHITE) -> void:
 	if transforms.is_empty():
 		return
@@ -27,11 +50,12 @@ static func multimesh_from(parent: Node3D, path: String, transforms: Array[Trans
 	var mesh: Mesh = mesh_node.mesh
 	if tint != Color.WHITE:
 		mesh = mesh.duplicate() as Mesh
-		var base: Material = mesh.surface_get_material(0)
-		if base is StandardMaterial3D:
-			var dark: StandardMaterial3D = (base as StandardMaterial3D).duplicate() as StandardMaterial3D
-			dark.albedo_color = tint
-			mesh.surface_set_material(0, dark)
+		for s: int in mesh.get_surface_count():
+			var base: Material = mesh.surface_get_material(s)
+			if base is StandardMaterial3D:
+				var dark: StandardMaterial3D = (base as StandardMaterial3D).duplicate() as StandardMaterial3D
+				dark.albedo_color = dark.albedo_color * tint
+				mesh.surface_set_material(s, dark)
 	multi.mesh = mesh
 	multi.instance_count = transforms.size()
 	for i: int in transforms.size():

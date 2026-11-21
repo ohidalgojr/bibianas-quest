@@ -5,6 +5,7 @@ extends Control
 ## `passos=N` depois de `--` para escolher o momento (início, meio, perto do chefe).
 
 var steps: int = 0
+var run_seed: int = 7
 
 
 func _ready() -> void:
@@ -12,8 +13,10 @@ func _ready() -> void:
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("passos="):
 			steps = int(arg.trim_prefix("passos="))
+		elif arg.begins_with("semente="):
+			run_seed = int(arg.trim_prefix("semente="))
 	var data: GameData = DataLoader.load_all()
-	var run: RunState = RunState.new(data, 7, "warrior", [], 0, null, true, [])
+	var run: RunState = RunState.new(data, run_seed, "warrior", [], 0, null, true, [])
 	var taken: int = 0
 	while taken < steps and not run.is_over() and run.phase == RunState.Phase.CHOOSING:
 		run.choose_node(run.options()[0].id)
