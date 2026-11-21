@@ -9,7 +9,7 @@ Leia nesta ordem antes de qualquer trabalho:
 2. A tarefa que vai executar em `docs/tasks/` (e `docs/FEEDBACK.md`, o feedback de playtest do Orlando).
 3. As seções do GDD que a tarefa cita (`docs/GDD.md`) e os ADRs ligados em `docs/adr/`.
 4. Para inimigos, a ficha em `docs/enemies/`; para revisar, `docs/REVIEW-CHECKLIST.md`.
-5. **Para qualquer tela ou gráfico: `docs/ART-DIRECTION.md` e o ADR-0036.** O visual não é "provisório": o GDD §17 e §18 mandam tabuleiro isométrico 3D com kits CC0. Sem print do jogo rodando, a tarefa de tela não está pronta.
+5. **Para qualquer tela, gráfico ou asset: `docs/ART-DIRECTION.md`, `ADR-0036` e `ADR-0042`.** O visual não é "provisório": o GDD §17 e §18 mandam tabuleiro isométrico 3D com kits CC0 sob o cânone estético/gótico obrigatório do `ADR-0042` (`F-022`). Sem print do jogo rodando, a tarefa de tela não está pronta.
 
 ## Regras que não podem ser quebradas
 
@@ -26,6 +26,7 @@ Leia nesta ordem antes de qualquer trabalho:
 11. **Não envie ao GitHub sem o Orlando pedir** e nunca reescreva histórico publicado. Branch `main`, histórico linear.
 12. **Uma revisão por outro modelo** (etapa 4, GDD §21): quem escreveu não revisa o próprio trabalho. `docs/REVIEW-CHECKLIST.md` lista o que conferir.
 13. **Primeiro mapa curto (sem facilitar) e dificuldade gradual:** o primeiro mapa/cenário deve ser curto, funcionando como gancho/tutorial ágil para chamar a atenção dos jogadores logo no início — **não deixe o mapa fácil, apenas mais curto em extensão**. Os demais mapas passam a ficar gradativamente mais longos e difíceis (`docs/FEEDBACK.md` F-020, `TASK-052`).
+14. **Cânone visual e atmosfera gótica obrigatórios em todo asset (`ADR-0042`, `F-022`):** **sempre que qualquer tipo de asset for criado, adaptado ou revisado** (modelo 3D, Blender, kit CC0 retingido, TRELLIS.2/Meshy, textura, cenário/profundidade, prop, personagem, inimigo, item, ícone, retrato, UI/HUD, iluminação, partículas ou shader), siga obrigatoriamente `docs/ART-DIRECTION.md` e o `ADR-0042`: grafismo, cenários e profundidade espacial de **Sword of Convallaria** (referência nº 1 de arte), **Tactics Ogre**, **Triangle Strategy**, **Octopath Traveler**, **Ragnarok Online** e **Buriedbornes**, sempre sob a atmosfera **bem dark e gótica** de **Bloodborne** (prioridade máxima) e **Dark Souls**. Prompts de IA **nunca** citam nomes de jogos, personagens ou artistas (GDD §18).
 
 ### Como o repositório faz cumprir isto
 
@@ -128,7 +129,7 @@ Atributos: HP `hp`, MP `mp`, FOR `strength`, MEN `mind`, DEF `defense`, RES `res
 - ADR criado ou ligado para cada decisão.
 - Testes e simulações verdes em headless.
 - **Executável de teste:** ao fim de cada tarefa que muda o jogo, rode `powershell -ExecutionPolicy Bypass -File tools\build_windows.ps1` e informe ao Orlando o caminho do `.exe` (`build\windows\BibianasQuest.exe` na pasta principal do repositório), para ele testar sem abrir o Godot.
-- **Tarefa de tela (ADR-0036): print do jogo rodando com janela, anexado em `docs/tasks/prints/`, e o "teste do print" de `docs/ART-DIRECTION.md` §8 respondido.** Suíte verde não prova que a tela está certa.
+- **Tarefa de tela ou asset (`ADR-0036`, `ADR-0042`):** conferir aderência ao cânone visual/gótico (`docs/ART-DIRECTION.md`), abrir o jogo com janela para tarefas de tela, anexar print em `docs/tasks/prints/` e responder ao "teste do print" de `docs/ART-DIRECTION.md §8`. Suíte verde não prova que a tela está certa.
 - Revisão cruzada por outro modelo (etapa 4) feita ou registrada como pendente no HANDOFF.
 - GDD, ADRs e HANDOFF atualizados.
 - Um commit com o ID da tarefa.

@@ -888,6 +888,23 @@ Olhando `tools/blender/kit.py` e `tools/blender/make_horrors.py` (`TASK-047-stit
 
 ## Parte 5 — Estudo de Estética Dark Fantasy "Mundo Morrendo" (Refinamento 3D)
 
+### 5.0 Alinhamento Canônico Confirmado pelo Orlando (2026-11-21 — `ADR-0042`, `F-022`)
+
+Após revisar o estudo abaixo, o Orlando definiu o cânone visual e atmosférico obrigatório **sempre que qualquer tipo de asset for criado** (formalizado em `docs/adr/ADR-0042-canon-visual-hd2d-e-atmosfera-gotica.md` e `docs/ART-DIRECTION.md`):
+
+- **Eixo 1 — Gráficos, Craft, Cenários e Profundidade Espacial:**
+  1. **Sword of Convallaria** — **promovido a referência nº 1 de arte, craft tático e iluminação isométrica** (*"arte linda, subiu muito na lista de referências"*).
+  2. **Tactics Ogre** (*Reborn*) — seriedade medieval sombria e arquitetura feudal pesada.
+  3. **Triangle Strategy** — textura mineral em lajes, contraste frio azul-ardósia vs tochas âmbar, partículas em primeiro plano.
+  4. **Octopath Traveler** — profundidade real em camadas (primeiro plano desfocado, palco central, fundo em névoa) e frestas de luz.
+  5. **Ragnarok Online** — verticalidade, escala espacial e arquitetura 3D isométrica estilizada em salões, ruas e catedrais.
+  6. **Buriedbornes** (*Buriedbornes / Buriedbornes2*, citado como *"buried bones"*) — UI escura enxuta, horror corporal e tensão cruel de roguelite.
+- **Eixo 2 — Filtro Atmosférico Obrigatório (Dark Fantasy & Horror Gótico):**
+  1. **Bloodborne** (**prioridade máxima de atmosfera gótica**): arcos ogivais, pináculos, ferro forjado, lampiões na neblina, calçamento molhado sob luar frio e decadência urbana pela praga.
+  2. **Dark Souls**: melancolia monumental de mundo morrendo (*dying world*), cantaria rachada, ferrugem e rarefeitas fogueiras como foco quente isolado.
+
+Todas as recomendações técnicas de `5.2` e `5.3` (corte da luz ambiente lilás, névoa exponencial, Bayer dithering no `PostFx` e eliminação de pinheiros verdes/plástico liso) passam a responder diretamente a esse cânone, mantendo a regra de originalidade do GDD §18 (nenhum prompt cita nomes de jogos ou artistas).
+
 ### 5.1 Galeria de Referências de Estética Analisadas
 
 #### A. Linhagem Square Enix / Yasumi Matsuno (*Final Fantasy Tactics*, *Vagrant Story*, *Tactics Ogre*, *Triangle Strategy*)
@@ -917,6 +934,20 @@ Olhando `tools/blender/kit.py` e `tools/blender/make_horrors.py` (`TASK-047-stit
   1. **Dithering e grão de textura quebram o "liso de plástico":** a posterização pura do nosso `post_fx.gd` (`floor(c * levels + 0.5) / levels`) cria faixas planas que lembram desenho vetorial limpo; quando combinada com uma matriz Bayer 4×4 sutil antes da quantização, sombras e névoa ganham instantaneamente a aspereza orgânica do PS1.
   2. **Zero verde vibrante de pinheiro:** veja `estetica-labyrinth-demon-king-chuva.jpg` — mesmo com vegetação na chuva, o verde é musgo quase cinza-lodo afogado em neblina. Nosso mapa atual usa `pine-crooked.glb` com copa verde-azulada saturada do Kenney que destoa totalmente de um mundo em praga.
   3. **Inimigo emergindo da escuridão absoluta:** em `estetica-labyrinth-demon-king-cripta.jpg`, a luz da tocha morre a poucos metros e o fundo desaparece no preto, fazendo o inimigo parecer perigoso antes mesmo de se mexer.
+
+#### C. Cânone HD-2D / Isométrico & Atmosfera Dark Gótica (*Sword of Convallaria*, *Octopath Traveler*, *Bloodborne*, *Dark Souls*, *Ragnarok Online*, *Buriedbornes*)
+
+| *Sword of Convallaria* (Craft isométrico nº 1) | *Octopath Traveler II* (Profundidade HD-2D em camadas) |
+| :---: | :---: |
+| ![Sword of Convallaria diorama](refs/estetica/estetica-sword-of-convallaria.jpg) | ![Octopath Traveler profundidade](refs/estetica/estetica-octopath-traveler.jpg) |
+
+| *Bloodborne* (Atmosfera gótica prioritária) | *Dark Souls III* (Cantaria monumental e fogo/brasas) |
+| :---: | :---: |
+| ![Bloodborne atmosfera gotica](refs/estetica/estetica-bloodborne.jpg) | ![Dark Souls arquitetura](refs/estetica/estetica-dark-souls.jpg) |
+
+*(As referências de UI de **Buriedbornes2** (`ui/ui-buriedbornes2.jpg`, `ui/ui-buriedbornes2-mapa.jpg`), **Sword of Convallaria** (`ui/ui-sword-of-convallaria.jpg`) e **Octopath Traveler: CotC** (`ui/ui-octopath-cotc.jpg`) estão na Parte 2 e catalogadas em 6.1; **Tactics Ogre** e **Triangle Strategy** estão na seção A acima.)*
+
+- **Síntese para todo asset (`ADR-0042`):** juntar a construção tática detalhada de *Sword of Convallaria*, as três camadas de profundidade do HD-2D (*Octopath Traveler* / *Triangle Strategy*) e a verticalidade isométrica (*Ragnarok Online*) **sempre** filtradas pelas proporções sóbrias de *Tactics Ogre*, pelo horror cru de *Buriedbornes* e pela arquitetura gótica vertical, neblina espessa, lampiões isolados e cantaria enegrecida de **Bloodborne** e **Dark Souls**.
 
 ---
 
@@ -1004,6 +1035,10 @@ Comparando nossos arquivos de cena (`combat3d_stage.gd`, `map3d_screen.gd`, `sce
 | `estetica/estetica-lunacid.jpg` | *Lunacid* | [Steam](https://store.steampowered.com/app/1745510/) | `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1745510/ss_9b06123c6971390c47adcd86588d9596c1fd9423.1920x1080.jpg` |
 | `estetica/estetica-dread-delusion.jpg` | *Dread Delusion* | [Steam](https://store.steampowered.com/app/1574240/) | `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1574240/ss_ed76f806e84e9d25a1637688215657c2a2f7eafc.1920x1080.jpg` |
 | `estetica/estetica-felvidek.jpg` | *Felvidek* | [Steam](https://store.steampowered.com/app/2299900/) | `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2299900/ss_b8b3d7df404a8b809e57abc85b4b5be69f20b6ff.1920x1080.jpg` |
+| `estetica/estetica-sword-of-convallaria.jpg` | *Sword of Convallaria* (Diorama) | [Steam](https://store.steampowered.com/app/2526380/) | `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2526380/ss_4fce1eec92dafb574cf4c6561d82c8c0986eebe2.1920x1080.jpg` |
+| `estetica/estetica-octopath-traveler.jpg` | *OCTOPATH TRAVELER II* (HD-2D) | [Steam](https://store.steampowered.com/app/1971650/) | `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1971650/ss_063d6228ccd9256814aec0cd46ebb4c093b56fea.1920x1080.jpg` |
+| `estetica/estetica-bloodborne.jpg` | *Bloodborne* (Atmosfera gótica) | [PlayStation Store](https://www.playstation.com/en-us/games/bloodborne/) | `https://image.api.playstation.com/vulcan/img/rnd/202010/2614/O2Z66UWrZH8zcejxopwWxhGu.png` |
+| `estetica/estetica-dark-souls.jpg` | *DARK SOULS III* (Estética) | [Steam](https://store.steampowered.com/app/374320/) | `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/374320/ss_5efd318b85a3917d1c6e717f4cb813b47547cd6f.1920x1080.jpg` |
 | `ui/bibiana-mockup-combate-mobile.jpg` e `inimigos/01..08-*.jpg` | Conceitos gerados localmente via Nano Banana | Geração própria da TASK-051 (sem citação de jogos/artistas nos prompts, GDD §18) | Arquivos locais em `docs/design/refs/` |
 
 ---

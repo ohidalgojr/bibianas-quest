@@ -751,9 +751,9 @@ O protótipo faz apenas o cenário 1; a Alpha (Fase 3) tem os cenários 1 a 3, e
 
 **Diretriz em revisão (TASK-052, F-020):** o primeiro mapa será mais curto (ritmo de gancho/tutorial, sem ficar mais fácil) e os demais mapas crescerão gradativamente em extensão e dificuldade; a mudança nos números entra com ADR próprio e incremento de `RULES_VERSION`.
 
-### Visão do tabuleiro (ADR-0036)
+### Visão do tabuleiro (ADR-0036, ADR-0041, ADR-0042)
 
-A referência de composição é o anúncio de Hero Wars (masmorra isométrica em níveis ligados por escadas e portas, números em bolha sobre cada destino) combinada com o terreno em blocos com altura de Final Fantasy Tactics. Regras: câmera ortográfica isométrica em ângulo fixo e posição móvel; **terreno com altura** (a Descida sobe ou desce pelo cenário); os três destinos iluminados com estrada e bolhas de número; o que vem depois ofuscado; **a câmera acompanha a Bibiana e libera o cenário** conforme ela avança. Detalhes, as sete referências e o teste do print estão em `docs/ART-DIRECTION.md`.
+O cânone visual e atmosférico obrigatório em todo cenário, profundidade e asset (`ADR-0042`, `F-022`) combina o grafismo tático, dioramas em terraços e profundidade em camadas de **Sword of Convallaria** (referência nº 1 de arte), **Tactics Ogre**, **Triangle Strategy**, **Octopath Traveler**, **Ragnarok Online** e **Buriedbornes**, sempre sob a atmosfera **bem dark e gótica** de **Bloodborne** (prioridade máxima: verticalidade gótica, arcos ogivais, ferro forjado, lampiões na neblina, luar frio) e **Dark Souls** (cantaria gasta de mundo morrendo e brasas isoladas). Na composição de tela (`ADR-0036`) e coerência arquitetônica (`ADR-0041`), os terraços em blocos seguem o legado de *Final Fantasy Tactics* com destinos legíveis por bolha de número, câmera ortográfica isométrica móvel que acompanha a Bibiana e revela o caminho conforme ela avança. Detalhes completos, matriz de descritores originais e o teste do print estão em `docs/ART-DIRECTION.md`.
 
 ### Geração do tabuleiro
 
@@ -815,6 +815,7 @@ Como usar os kits no jogo:
 
 ### Regras do estilo (resumo do Style Bible)
 
+- **Cânone visual e atmosfera gótica (`ADR-0042`, `F-022`):** todo asset, cenário e tela deve alinhar o craft, a profundidade em camadas e a leitura tática de **Sword of Convallaria** (topo), **Tactics Ogre**, **Triangle Strategy**, **Octopath Traveler**, **Ragnarok Online** e **Buriedbornes** sob o filtro **dark gótico** de **Bloodborne** (prioridade máxima) e **Dark Souls** (`docs/ART-DIRECTION.md`).
 - **Resolução interna:** 480×270 (ajustável), ampliada em múltiplos inteiros para não borrar.
 - **Contorno e realce** por shader de pós-processamento, com paleta reduzida por cenário (24 a 32 cores).
 - **Luz:** baixa e dramática. Fontes quentes (fogo, vela) contra azul-acinzentado frio. Neblina e vinheta.
@@ -837,7 +838,7 @@ A documentação do Godot recomenda luz baked para dispositivos móveis e instan
 
 ### Pipeline de geração de assets
 
-No MVP, as etapas 2 e 4 saem, porque os kits CC0 já vêm modelados, rigados e animados, e a etapa 3 se reduz a ajustes (mecha, paleta, escala). Style Bible, importação, kits modulares e refinamento continuam. A geração por IA descrita aqui volta na troca de arte depois da validação da mecânica.
+No MVP, as etapas 2 e 4 saem, porque os kits CC0 já vêm modelados, rigados e animados, e a etapa 3 se reduz a ajustes (mecha, paleta, escala). Style Bible, importação, kits modulares e refinamento continuam. A geração por IA descrita aqui volta na troca de arte depois da validação da mecânica. Em todas as etapas (inclusive adaptação de kits CC0 e protótipos no Blender), **todo e qualquer asset** obedece ao cânone do `ADR-0042` e de `docs/ART-DIRECTION.md`, traduzido em descritores originais sem citar nomes de jogos nos prompts.
 
 1. **Style Bible e imagens-âncora:** gerar, escolher e fixar 10 a 15 imagens de referência (personagem, inimigo, tile, prop) para guiar todo o resto.
 2. **Geração 3D por IA:** texto ou imagem para 3D com ferramentas como TRELLIS.2 (licença MIT, demo gratuita no Hugging Face) e Meshy ou Tripo nos planos gratuitos, em modo low-poly. Gerar várias opções e descartar silhuetas ruins antes de texturizar.

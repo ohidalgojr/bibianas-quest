@@ -32,6 +32,7 @@ O que parece fazer parte, mas fica para outra tarefa.
 
 - Não mudar fórmulas do GDD sem ADR.
 - Núcleo sem nós e sem aleatoriedade global.
+- Se criar ou alterar qualquer asset (3D, Blender, textura, cenário, prop, inimigo, personagem, item, ícone, retrato, UI, iluminação ou shader): seguir obrigatoriamente `docs/ART-DIRECTION.md` e o `ADR-0042` (craft/profundidade de *Sword of Convallaria*, *Tactics Ogre*, *Triangle Strategy*, *Octopath Traveler*, *Ragnarok Online* e *Buriedbornes* sob atmosfera dark gótica de *Bloodborne* e *Dark Souls*; prompts de IA sem nomes de jogos, GDD §18).
 
 ## Verificação
 

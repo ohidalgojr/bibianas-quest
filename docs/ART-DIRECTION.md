@@ -2,11 +2,11 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aceito (Orlando, 2026-11-19, ao reprovar a apresentação 2D da TASK-031) |
-| Decisão | ADR-0036 |
+| Status | Aceito (Orlando, 2026-11-19; cânone visual/atmosférico atualizado em 2026-11-21) |
+| Decisão | ADR-0036, ADR-0042 |
 | GDD | 5, 6, 12, 17, 18, 19 |
 
-Este arquivo é o contrato visual. **Qualquer tarefa que desenhe tela lê este arquivo antes de escrever código** e só termina quando passa no "teste do print" (última seção). O GDD §17 e §18 continuam sendo a fonte das regras de arte; aqui estão as referências do Orlando, o que cada uma ensina e como isso vira tela.
+Este arquivo é o contrato visual. **Qualquer tarefa que crie ou altere qualquer tipo de asset (modelo 3D, Blender, textura, cenário, prop, personagem, inimigo, item, ícone, retrato, UI/HUD, iluminação, partícula ou shader) ou desenhe tela lê este arquivo e o `ADR-0042` antes de produzir** e só termina quando passa no "teste do print" (seção 8) e nos critérios do cânone. O GDD §17 e §18 continuam sendo a fonte das regras de arte; aqui estão as referências do Orlando, o filtro gótico obrigatório e como tudo vira tela e asset.
 
 ## 1. O que o Orlando pediu (resumo fiel)
 
@@ -16,25 +16,60 @@ Este arquivo é o contrato visual. **Qualquer tarefa que desenhe tela lê este a
 4. **Primeira versão com assets abertos (CC0)**, como já estava no GDD (§18, "MVP com assets abertos"). Se faltar modelo, usar o MCP do Blender.
 5. **O protótipo cinza era só para testar mecânica.** O que existe hoje (retângulos, linhas e silhuetas desenhadas em código) não é "a versão com gráficos".
 
-## 2. As sete referências
+## 2. Referências canônicas
+
+### 2.1 Cânone principal obrigatório para todo asset (`ADR-0042`, `F-022`)
+
+**Regra absoluta:** **sempre que qualquer tipo de asset for criado, adaptado ou revisado** (modelo 3D no Blender, ajuste de kit CC0, TRELLIS.2/Meshy, textura, tile, cenário, prop, personagem, inimigo, item, ícone, retrato, UI/HUD, iluminação, partículas ou shader), o autor e o revisor devem aplicar obrigatoriamente os dois eixos abaixo em conjunto:
+
+#### Eixo 1 — Gráficos, Craft, Cenários e Profundidade Espacial
+
+| Prioridade | Referência | O que define nos assets e cenários | O que **não** adotar |
+| --- | --- | --- | --- |
+| **1 (Topo)** | **Sword of Convallaria** | Dioramas isométricos ricos e artesanais; pedra, madeira e metal com textura tátil; luz quente direcionada sobre sombra fria; leitura cristalina de desníveis; silhuetas adultas e elegantes | Paletas diurnas vibrantes ou fantasia leve |
+| **2** | **Tactics Ogre** (*Reborn*) | Seriedade medieval sombria; arquitetura feudal pesada; proporções sóbrias (sem aspecto de brinquedo); paleta mineral contida | Listas densas de texto fora da zona útil do retrato |
+| **3** | **Triangle Strategy** | Lajes com textura mineral real; contraste azul-ardósia frio contra tochas âmbar; partículas atmosféricas em primeiro plano; profundidade de pátios, escadarias e muralhas | Dezenas de unidades na mesma tela |
+| **4** | **Octopath Traveler** (*I / II / CotC*) | Profundidade em múltiplas camadas (primeiro plano, palco central, fundo Monumental em névoa e tilt-shift controlado no mapa); frestas de luz; escala arquitetônica | Sprites 2D planos no lugar do 3D low-poly pixelizado |
+| **5** | **Ragnarok Online** | Cenários 3D isométricos estilizados com arquitetura imponente, verticalidade de salões/catedrais/ruas e leitura espacial envolvente entre pisos e estruturas | Cores pastéis ou tom alegre de MMO |
+| **6** | **Buriedbornes** (*Buriedbornes / Buriedbornes2*, citado como *"buried bones"*) | Atmosfera cruel de roguelite sombrio; criaturas mórbidas e estranhamento corporal; UI escura e enxuta que sustenta a tensão | Excesso de painéis de texto sobre o palco |
+
+#### Eixo 2 — Filtro Atmosférico Obrigatório (Dark Fantasy & Horror Gótico)
+
+Todo asset e cenário do Eixo 1 passa obrigatoriamente por este filtro — é ele que garante o tom **bem dark e gótico** do jogo:
+
+- **Bloodborne (prioridade máxima gótica):** arquitetura gótica vertical e opressiva (arcos ogivais pontiagudos, pináculos, contrafortes, grades e portões de ferro forjado retorcido, gárgulas, paralelepípedos molhados); lampiões de rua solitários rasgando neblina densa; luar frio cinza-prata cortando sombras quase absolutas; cidade tomada pela decadência e pela praga.
+- **Dark Souls (mundo morrendo):** cantaria monumental rachada, desgastada e enegrecida por fuligem e ferrugem; fogueiras e brasas como raro foco quente contra a escuridão; peso físico e silhuetas sérias em armas, armaduras, monstros e ruínas.
+
+#### Checklist obrigatório antes de criar qualquer asset
+
+1. **Profundidade em camadas:** há separação clara entre primeiro plano (silhueta/partículas/névoa), palco legível e fundo monumental escurecido (`ADR-0041`)?
+2. **Linguagem gótica:** arcos apontam para cima (ogivais), há ferro forjado, cantaria gasta, lampiões isolados e silhuetas verticais?
+3. **Luz dirigida:** poucas fontes quentes pontuais (lampião/fogueira/brasa) contra ambiente frio e escuro (azul-ardósia/carvão, nunca lavanda lavado)?
+4. **Desgaste real:** nada de cor plástica chapada ou quina perfeita — todo material traz sujeira de base, chanfro, ferrugem, lasca ou grão (e zero pinheiro verde vivo).
+5. **Silhueta séria e legível em 270p:** formas marcantes e reconhecíveis no quadro pequeno (`480×270`), sem estética fofa/cartoon.
+6. **Originalidade em prompts de IA (GDD §18):** **nunca** citar nomes dos jogos acima, personagens ou artistas nos prompts; traduzir tudo para os descritores originais do `ADR-0042` §4.
+
+### 2.2 Referências estruturais de composição do MVP (`ADR-0036`)
+
+As sete referências abaixo seguem válidas como guia de **composição de tela e leitura tática**, subordinadas ao cânone estético e gótico da seção 2.1:
 
 | # | Referência | O que mostra | O que adotamos | O que **não** adotamos |
 | --- | --- | --- | --- | --- |
-| 1 | **Hero Wars (anúncio)**, a origem do jogo | Masmorra isométrica em cortes de pedra e lava; herói no centro; **cada destino tem um número em bolha** (vermelho = inimigo e seu nível, azul = recompensa ou o nível do herói); baús com `+10`, `+5`, `+7`; item raro com `x4`; escadas, portas em arco, tochas e luz vermelha vinda de fora do quadro; **vários caminhos visíveis ao mesmo tempo** | O diorama em níveis ligados por escadas e portas; as **bolhas de número sobre cada destino** (nível do inimigo em vermelho, recompensa em dourado ou azul); o baú com valor visível; o brilho quente nos destinos disponíveis; o herói pequeno e legível no meio do cenário | Cores saturadas e estilo de desenho animado: o nosso é sombrio e dessaturado (regra do acento, GDD §18). Puzzles de somar números |
-| 2 | **FFT: ponte de pedra e relva** (chuva, noite) | Torre de pedra com porta de madeira, ponte de lajes, **degraus de relva** com pedras aparentes nas bordas, fundo azul-noite liso, chuva fina; personagens pequenos de pixel art em cima de um **bloco de terreno flutuante** | O **terreno em blocos com altura**, bordas de pedra visíveis, o cenário como **diorama recortado flutuando no escuro**; chuva em partículas finas | Sprites 2D dos personagens (usamos modelos 3D de baixo polígono, GDD §18) |
-| 3 | **FFT: castelo na neve** | Torres e muros de tijolo, passarela de madeira com neve, cantos de blocos, luz fria; **flocos de neve em primeiro plano com desfoque** (profundidade de campo); fundo em gradiente | Peças modulares de muro, torre e passarela; **neve, chuva e névoa** como camada de partículas à frente do cenário; leve desfoque de miniatura (tilt-shift) nas bordas | Neve como bioma do cenário 1 (a Cidade Abandonada tem chuva e névoa, GDD §17) |
-| 4 | **Fear & Hunger (combate)** | Fundo **preto-quase-total com vinheta** e um cenário de silhueta atrás; **inimigo enorme e central**; grupo de costas embaixo; menu à esquerda (Attack, Skills, Guard, Item); painel do grupo (Body, Mind) com barras finas; ícones de status sobre o inimigo; **uma luz fraca no chão** destacando o palco | **Composição**: inimigo grande no centro, a Bibiana de costas ou de três quartos embaixo à esquerda, menu em painéis de bordas simples, ícones de status e de intenção sobre a cabeça do inimigo, vinheta forte, **luz no chão** | O fundo preto vazio: o nosso fundo **vem do nó onde a luta acontece** (rua, passagem, sala do chefe), escurecido |
+| 1 | **Hero Wars (anúncio)**, a origem do jogo | Masmorra isométrica em cortes de pedra e lava; herói no centro; **cada destino tem um número em bolha** (vermelho = inimigo e seu nível, azul = recompensa ou o nível do herói); baús com `+10`, `+5`, `+7`; item raro com `x4`; escadas, portas em arco, tochas e luz vermelha vinda de fora do quadro; **vários caminhos visíveis ao mesmo tempo** | O diorama em níveis ligados por escadas e portas; as **bolhas de número sobre cada destino** (nível do inimigo em vermelho, recompensa em dourado ou azul); o baú com valor visível; o brilho quente nos destinos disponíveis; o herói pequeno e legível no meio do cenário | Cores saturadas e estilo de desenho animado: o nosso é dark gótico e dessaturado (regra do acento, GDD §18 e ADR-0042). Puzzles de somar números |
+| 2 | **FFT: ponte de pedra e relva** (chuva, noite) | Torre de pedra com porta de madeira, ponte de lajes, **degraus de relva** com pedras aparentes nas bordas, fundo azul-noite liso, chuva fina; personagens pequenos de pixel art em cima de um **bloco de terreno flutuante** | O **terreno em blocos com altura**, bordas de pedra visíveis, o cenário como **diorama recortado flutuando no escuro**; chuva em partículas finas | Sprites 2D dos personagens (usamos modelos 3D de baixo polígono, GDD §18) e relva verde clara saturada |
+| 3 | **FFT: castelo na neve** | Torres e muros de tijolo, passarela de madeira com neve, cantos de blocos, luz fria; **flocos de neve em primeiro plano com desfoque** (profundidade de campo); fundo em gradiente | Peças modulares de muro, torre e passarela; **neve, chuva e névoa** como camada de partículas à frente do cenário; leve desfoque de miniatura (tilt-shift) nas bordas do mapa | Neve como bioma do cenário 1 (a Cidade Abandonada tem chuva e névoa, GDD §17) |
+| 4 | **Fear & Hunger (combate)** | Fundo **preto-quase-total com vinheta** e um cenário de silhueta atrás; **inimigo enorme e central**; grupo de costas embaixo; menu à esquerda (Attack, Skills, Guard, Item); painel do grupo (Body, Mind) com barras finas; ícones de status sobre o inimigo; **uma luz fraca no chão** destacando o palco | **Composição**: inimigo grande no centro, a Bibiana de costas ou de três quartos embaixo à esquerda, menu em painéis de bordas simples, ícones de status e de intenção sobre a cabeça do inimigo, vinheta forte, **luz no chão** | O fundo preto vazio: o nosso fundo **vem do nó onde a luta acontece** (rua, passagem, sala do chefe), escurecido em arquitetura gótica |
 | 5 | **FFT: combate com linha do tempo** | **Coluna de retratos à esquerda numerada 1 a 9** (ordem dos próximos turnos, o 5 em destaque); **painel inferior com retrato, HP, MP, CT, chance de acerto, e o dano previsto** (49) entre os dois combatentes; setas de altura; botão de ação "Attack" flutuando sobre o alvo | A **linha do tempo de turnos em coluna** (GDD §6, já pedida); o **painel de previsão** de dano e acerto entre os dois lados (já existe como texto; passa a ser painel); retratos com moldura colorida (azul aliado, vermelho inimigo) | Grade de movimento: o combate é 1 contra 1 (GDD §6) |
-| 6 | **FF VII (batalha)** | Personagens 3D **de lado sobre o chão** com sombra, em frente a **um cenário pintado**; número de dano grande com brilho; painéis azuis embaixo com nome, HP, MP e barras de limite e tempo | **Número de dano grande e luminoso** sobre o alvo; **sombra projetada** no chão; barra de tempo/carga ao lado do HP | O azul clássico dos painéis (usamos pedra e bronze) |
-| 7 | **Darkest Dungeon (acampamento)** | **O grupo sentado em volta da fogueira**, sombras longas, luz vermelha e quente, fundo de ruína; **painel inferior com retratos, atributos, inventário e skills de acampamento** em caixas escuras de borda fina | A **cena de fogueira**: a Bibiana junto ao fogo, luz quente oscilando, ruína ao fundo; as ações (Descansar, skills de fogueira, Galho Seco) em **cartões** embaixo, no estilo dos painéis de inventário | Grupo de 4: aqui é só a Bibiana |
+| 6 | **FF VII (batalha)** | Personagens 3D **de lado sobre o chão** com sombra, em frente a **um cenário pintado**; número de dano grande com brilho; painéis azuis embaixo com nome, HP, MP e barras de limite e tempo | **Número de dano grande e luminoso** sobre o alvo; **sombra projetada** no chão; barra de tempo/carga ao lado do HP | O azul clássico dos painéis (usamos pedra escura, ferro e bronze oxidado) |
+| 7 | **Darkest Dungeon (acampamento)** | **O grupo sentado em volta da fogueira**, sombras longas, luz vermelha e quente, fundo de ruína; **painel inferior com retratos, atributos, inventário e skills de acampamento** em caixas escuras de borda fina | A **cena de fogueira**: a Bibiana junto ao fogo, luz quente oscilando, ruína gótica ao fundo; as ações (Descansar, skills de fogueira, Galho Seco) em **cartões** embaixo, no estilo dos painéis de inventário escuros | Grupo de 4: aqui é só a Bibiana |
 
 ### Padrões que se repetem (e viram regra)
 
-1. **O cenário é o herói da imagem.** Em todas as referências o fundo ocupa a maior parte da tela e tem profundidade (camadas, altura, luz). Painéis de interface ocupam as bordas, nunca o centro.
-2. **Luz dirigida.** Uma ou duas fontes quentes (fogo, lava, tocha) contra o resto frio e escuro. Nenhuma tela é iluminada por igual.
-3. **Números e ícones sobre o mundo** (bolhas do Hero Wars, intenção do Fear & Hunger, dano do FF VII), não só em listas.
-4. **Painéis de interface sóbrios**: fundo escuro, borda fina, texto claro, retrato à esquerda, barras finas.
-5. **Clima e profundidade**: partículas em primeiro plano, névoa entre camadas, vinheta.
+1. **O cenário é o herói da imagem.** O ambiente ocupa a maior parte da tela e tem profundidade real em camadas (altura em terraços, arcos góticos, neblina, luz). Painéis de interface ocupam as bordas, nunca o centro.
+2. **Luz dirigida sobre escuridão gótica.** Uma ou duas fontes quentes pontuais (fogo, tocha, lampião) contra o resto frio e profundo. Nenhuma tela é iluminada por igual.
+3. **Números e ícones sobre o mundo** (bolhas de destino, intenção, dano), integrados ao espaço 3D sem poluir o palco.
+4. **Painéis de interface sóbrios**: pedra escura / ferro / carvão, borda fina em bronze envelhecido, texto claro, retrato à esquerda, barras finas.
+5. **Clima e profundidade**: partículas em primeiro plano, névoa densa entre camadas, dithering/grão e vinheta fechada.
 
 ## 3. Tela do mapa (tabuleiro isométrico com visão parcial)
 
@@ -103,6 +138,7 @@ Tarefa de tela só fecha quando o agente **abre o jogo com janela, tira um print
 4. Há **modelos 3D de kit CC0** (ou do Blender), com contorno ou sombra, e **clima** em partículas?
 5. Os números e ícones estão **sobre o mundo** (bolhas, intenção, dano)?
 6. Funciona em **retrato 540×960**, com toque de 48 px?
+7. Passa no **cânone do `ADR-0042` (`F-022`)**: apresenta grafismo/profundidade no padrão de *Sword of Convallaria*, *Tactics Ogre*, *Triangle Strategy*, *Octopath Traveler*, *Ragnarok Online* e *Buriedbornes*, mergulhado em atmosfera dark gótica de *Bloodborne* e *Dark Souls* (zero cor alegre, zero aspecto fofo/plástico, zero luz lavada e prompts sem nomes de jogos)?
 
 Se qualquer resposta for "não", a tarefa **não está pronta**, mesmo com a suíte verde. O Orlando faz a aprovação final olhando o jogo, não o relatório.
 

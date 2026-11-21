@@ -29,3 +29,4 @@ Drops típicos, texto de aviso e nome mostrado na tela.
 
 - Golpe perigoso sempre é avisado um turno antes; ao menos 2 golpes entre dois golpes de moeda; Golpe Mortal só em chefe.
 - Mudança de regra do GDD precisa de ADR; a ficha só usa as regras existentes.
+- Visual e conceito do inimigo seguem obrigatoriamente `docs/ART-DIRECTION.md` e o `ADR-0042`: horror dark gótico inspirado em *Bloodborne*, *Dark Souls* e *Buriedbornes*, com silhueta tática legível no craft de *Sword of Convallaria* e *Tactics Ogre* (sem estética cartoon e sem citar nomes de jogos em prompts de IA, GDD §18).

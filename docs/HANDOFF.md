@@ -11,7 +11,7 @@ Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2
 | Jogo | RPG tático de turnos roguelite, Godot 4.7. **Visual atual = telas 2D de depuração (reprovadas, ADR-0036); o visual 3D vem nas TASK-035 a 040.** Hoje: gráficos vetoriais e áudio procedural (`SoundFx`): menu com Santuário (Biblioteca, Arsenal e Códice/Bestiário), tabuleiro visual com estradas curvas, brasões e peão da Bibiana com os 9 estágios da mecha (GDD §9), combate com silhuetas de personagem/inimigos, medalhão giratório de Cara/Coroa, emboscadas e inimigos mutados, eventos de mapa, mini boss anunciado, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
 | Classe | só o Guerreiro (Bibiana); 3 skills iniciais, 3 à venda, 5 espaços |
 | Cenário | só a Cidade Abandonada: 4 inimigos comuns (com mutações temáticas Inchado, Voraz, Fantasma e Espinhoso), 1 elite (Carrasco Apodrecido), 1 mini boss anunciado (Carcereiro do Sino), chefe O Coveiro (2 fases), 6 eventos temáticos; cada inimigo com ficha em `docs/enemies/` |
-| Regras | `RULES_VERSION` = 20 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0041 |
+| Regras | `RULES_VERSION` = 20 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0042 |
 | Equilíbrio (simulador, regras v15) | bot mediano vence 66,0% (meta 55% a 65%), cuidadoso 72,0%, 1ª Descida 49,3% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 13,7% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,28 s para criar a Descida |
 | Testes | 315 em 40 scripts, cerca de 11 s |
 | Git | `main` sincronizado com `origin/main` até `TASK-031` |
@@ -156,6 +156,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
 | ADR | Decisão | Status |
 | --- | --- | --- |
+| 0042 | Cânone visual obrigatório para todo asset (`F-022`): craft/cenários/profundidade de Sword of Convallaria (nº 1), Tactics Ogre, Triangle Strategy, Octopath Traveler, Ragnarok Online e Buriedbornes sob atmosfera dark gótica de Bloodborne (prioridade máxima) e Dark Souls; descritores originais sem citar jogos em prompts IA | Aceito (Orlando, 2026-11-21) |
 | 0001 | Godot 4.7, GDScript com tipagem obrigatória, Compatibility, retrato 540×960 com `keep_width` | Aceito |
 | 0002 | `project.godot` na raiz; núcleo sem nós, verificado por teste; identificadores em inglês; vault na raiz | Aceito |
 | 0003 | GUT 9.7.1 instalado por script, fora do Git; um comando roda a suíte em headless | Aceito |
@@ -211,6 +212,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
 - **DIRETRIZ DE RECURSOS (Orlando, 2026-11-18):** Enquanto o MVP jogável de verdade (com gráficos e som) não for alcançado, **não gaste recursos com o simulador de balanceamento (`tools/simulate.gd`) nem com testes de propriedade/balanceamento complexos**. Mantenha os testes unitários enxutos e rápidos.
 - **DIRETRIZ DE PROGRESSÃO DE MAPAS (Orlando, 2026-11-19; F-020, `TASK-052`):** o primeiro mapa deve ser **curto** (ritmo ágil de tutorial-gancho para prender o jogador logo no início), **sem deixá-lo mais fácil**; os mapas seguintes crescem gradativamente em extensão e dificuldade.
+- **CÂNONE VISUAL E ATMOSFERA GÓTICA OBRIGATÓRIOS EM TODO ASSET (Orlando, 2026-11-21; `F-022`, `ADR-0042`):** **sempre que qualquer asset for criado ou ajustado** (3D, Blender, adaptação CC0, texturas, cenários/profundidade, props, inimigos, personagens, itens, ícones, UI, iluminação ou shaders), leia `docs/ART-DIRECTION.md` e `ADR-0042`: grafismo e profundidade espacial de **Sword of Convallaria** (referência nº 1 de arte), **Tactics Ogre**, **Triangle Strategy**, **Octopath Traveler**, **Ragnarok Online** e **Buriedbornes**, sempre sob a atmosfera **bem dark e gótica** de **Bloodborne** (prioridade máxima) e **Dark Souls** (prompts de IA sem citar nomes de jogos, GDD §18).
 - Sorteio no núcleo só por `RngStreams` (`map()`, `combat()`, `loot()`, `coin()`); métodos do `Pcg32`: `draw_int`, `draw_float`, `draw_percent`, `draw_index`, `shuffled_copy`. Não usar `randi`, `shuffle` nem `pick_random`. O save usa `snapshot()` como está (texto, não número de 64 bits em JSON). A semente do próximo mapa vem de `RngStreams.derive_seed`.
 - **Godot 4.7 e enums:** um enum usado dentro da própria classe e por outras com dependência cíclica dá erro de tipo ("Cannot assign Combatant.Side as Side"). Nesses casos, usar constantes inteiras.
 - **Observador:** tem limite de tempo por rodada desde 2026-11-16 (status `timeout`, exit 124). Saída parcial fica em `reports/last_run.out.tmp` enquanto roda.

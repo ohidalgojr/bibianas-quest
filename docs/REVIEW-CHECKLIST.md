@@ -39,12 +39,14 @@ Use esta lista na revisão de qualquer tarefa. O revisor é **outro modelo** que
 - [ ] GDD, ADRs, fichas de inimigos e `FEEDBACK.md` refletem o que foi feito.
 - [ ] A tarefa tem "Verificação" preenchida com comando, resultado e data.
 
-## Fidelidade visual (ADR-0036)
+## Fidelidade visual e cânone de assets (ADR-0036, ADR-0042)
 
-Para tarefa que mexe em tela, o revisor abre o print anexado (e, se puder, o jogo) e responde:
+Para tarefa que crie/altere qualquer asset (3D, Blender, textura, cenário, inimigo, item, ícone, UI, iluminação, shader) ou mexa em tela, o revisor abre os assets/prints anexados (e, se puder, o jogo) e responde:
 
-- [ ] A tela tem cenário com profundidade (altura, camadas, luz dirigida), e não retângulos nem desenho vetorial chapado?
-- [ ] A composição segue a referência citada em `docs/ART-DIRECTION.md` (mapa: Hero Wars e Final Fantasy Tactics; combate: Fear & Hunger e FFT; fogueira: Darkest Dungeon)?
-- [ ] No mapa, os três caminhos aparecem e o que vem depois está ofuscado, com a câmera acompanhando a Bibiana?
-- [ ] Os modelos vêm de kit CC0 (ou do Blender), com licença em `assets/LICENSES.md`?
+- [ ] A tela tem cenário com profundidade real em camadas (altura em terraços, primeiro plano, palco, fundo em névoa e luz dirigida), e não retângulos, chão plano ou desenho vetorial chapado?
+- [ ] **Cânone do ADR-0042 respeitado em todo asset criado/alterado:** grafismo, craft e profundidade espacial alinhados a **Sword of Convallaria** (nº 1), **Tactics Ogre**, **Triangle Strategy**, **Octopath Traveler**, **Ragnarok Online** e **Buriedbornes**, mergulhados em atmosfera **bem dark e gótica** de **Bloodborne** (prioridade máxima) e **Dark Souls** (sem visual cartoon, fofo, plástico liso, verde vivo de pinheiro ou luz ambiente lavada)?
+- [ ] A composição segue as referências estruturais em `docs/ART-DIRECTION.md` (mapa: diorama FFT + bolhas legíveis; combate: composição Fear & Hunger + linha do tempo FFT; fogueira: Darkest Dungeon)?
+- [ ] No mapa, os três caminhos aparecem e o que vem depois está ofuscado, com a câmera acompanhando a Bibiana e respeitando não-oclusão (ADR-0041)?
+- [ ] Os modelos vêm de kit CC0 (retingidos/des-fofificados) ou do Blender/TRELLIS.2/Meshy, com licença registrada em `assets/LICENSES.md`?
+- [ ] **Originalidade (GDD §18):** nenhum prompt de geração por IA cita nomes de jogos, personagens ou artistas (apenas descritores originais do `ADR-0042`)?
 - [ ] O que o ADR da tarefa diz bate com o GDD §17 e §18? Divergência do GDD sem ADR que a declare e sem GDD atualizado é achado crítico.
