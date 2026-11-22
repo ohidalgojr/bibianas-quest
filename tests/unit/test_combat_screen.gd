@@ -18,7 +18,7 @@ func _button(action: String) -> Button:
 func test_opens_with_debug_menu() -> void:
 	assert_true(_screen.data.is_valid())
 	assert_true(_screen._menu.visible, "começa no seletor de luta")
-	assert_eq(_screen._menu_enemies.get_child_count(), 13, "10 comuns, 2 elites e o chefe")
+	assert_eq(_screen._menu_enemies.get_child_count(), 14, "11 comuns, 2 elites e o chefe")
 	assert_true(_button("attack").disabled, "sem luta, sem ação")
 
 

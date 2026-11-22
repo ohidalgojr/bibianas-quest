@@ -25,6 +25,7 @@ const MODELS: Dictionary = {
 	"rat_mother": {"path": OWN + "rat_mother.glb", "scale": 1.0, "yaw_offset": 55.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"sewer_slime": {"path": QUAT + "Slime.fbx", "scale": 30.0, "idle": "Armature|Slime_Idle", "walk": "Armature|Slime_Walk", "attack": "Armature|Slime_Attack", "hit": "Armature|Slime_Idle", "death": "Armature|Slime_Death", "placeholder": false},
 	"alley_leech": {"path": OWN + "alley_leech.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"blind_censer_bearer": {"path": OWN + "blind_censer_bearer.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"bell_warden": {"path": OWN + "bell_warden.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"gravedigger": {"path": OWN + "gravedigger.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 }

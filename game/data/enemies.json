@@ -132,6 +132,19 @@
 			"reactions": [{"when": "self_hp_below", "value": 50, "move": "stitch_rip"}]
 		},
 		{
+			"id": "blind_censer_bearer", "name": "Turiferário Cego", "type": "common", "base_level": 1,
+			"mutation": "bloated",
+			"stats": {"hp": 46, "strength": 11, "defense": 4, "resistance": 3, "speed": 7, "evasion": 4},
+			"element_mults": {"holy": 1.5, "fire": 0.5}, "tags": ["undead"],
+			"phases": [{"below_hp_percent": 100, "moves": [
+				{"id": "attack", "kind": "attack"},
+				{"id": "sulfur_smoke", "kind": "heavy", "fail_effect": "blinded"},
+				{"id": "censer_swing", "kind": "strong", "power": 1.35},
+				{"id": "attack", "kind": "attack"}
+			]}],
+			"reactions": [{"when": "player_defended_twice", "move": "censer_swing"}]
+		},
+		{
 			"id": "rotten_executioner", "name": "Carrasco Apodrecido", "type": "elite", "base_level": 2,
 			"stats": {"hp": 95, "strength": 15, "defense": 9, "resistance": 4, "speed": 5, "evasion": 2},
 			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
