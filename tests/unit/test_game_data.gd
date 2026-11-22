@@ -41,11 +41,11 @@ func test_warrior_skills_match_gdd_section_8() -> void:
 		assert_almost_eq(skills[index].power, reference[index].power, 0.0001, skills[index].id)
 
 
-## GDD §17: Cidade Abandonada, 6 camadas (ADR-0027), inimigos de nível 1 a 6, O Coveiro.
+## GDD §17: Cidade Abandonada, 4 camadas (ADR-0049), inimigos de nível 1 a 6, O Coveiro.
 func test_scenario_one_matches_gdd_section_17() -> void:
 	var scenario: Dictionary = _data.scenario("abandoned_city")
 	assert_eq(scenario["name"], "Cidade Abandonada")
-	assert_eq(int(scenario["layers"]), 6)
+	assert_eq(int(scenario["layers"]), 4)
 	assert_eq(int(scenario["min_level"]), 1)
 	assert_eq(int(scenario["max_level"]), 6)
 	assert_eq(scenario["boss"], "gravedigger")

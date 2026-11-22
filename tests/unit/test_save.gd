@@ -25,8 +25,17 @@ func after_all() -> void:
 
 ## Joga algumas lutas e coloca a Descida no mapa, com estado variado.
 func _played_run() -> RunState:
-	var run: RunState = RunState.new(_data, 33)
-	for step: int in 3:
+	# O mapa curto (ADR-0049) pode cair num evento em 2 passos; usa a primeira semente que termina no mapa.
+	for seed_value: int in range(33, 60):
+		var run: RunState = _play_from(seed_value)
+		if run.phase == RunState.Phase.CHOOSING:
+			return run
+	return _play_from(33)
+
+
+func _play_from(seed_value: int) -> RunState:
+	var run: RunState = RunState.new(_data, seed_value)
+	for step: int in 2:
 		var option: MapNode = run.options()[0]
 		run.choose_node(option.id)
 		if run.phase == RunState.Phase.FIGHT:

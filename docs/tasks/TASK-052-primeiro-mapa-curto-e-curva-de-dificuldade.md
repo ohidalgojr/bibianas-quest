@@ -2,11 +2,11 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aberta (não iniciada; diretriz registrada em `CLAUDE.md`, `AGENTS.md`, `docs/FEEDBACK.md` F-020 e `docs/HANDOFF.md`) |
+| Status | Em verificação (código, testes e simulação prontos; falta o Orlando jogar o mapa curto) |
 | Aberta em | 2026-11-19 |
 | Fase | 1/2, ritmo inicial e progressão de cenários |
 | GDD | 4, 5, 17, 23 |
-| ADRs | a criar (revisa ADR-0027 e complementa ADR-0031) |
+| ADRs | ADR-0049 (revisa ADR-0027 e complementa ADR-0031) |
 
 ## Objetivo
 
@@ -19,11 +19,11 @@ Ajustar a extensão e a curva de dificuldade dos mapas conforme a diretriz do Or
 
 ## Critérios de aceite
 
-- [ ] Definir a extensão enxuta do primeiro mapa (proposta: 3 a 4 camadas mais o chefe) em `game/data/scenarios.json` e `MapConfig`, mantendo a tensão e a dificuldade real dos encontros, golpes de moeda e chefe (não aliviar inimigos nem recompensas defensivas além do previsto em `ADR-0031`).
-- [ ] Preservar as garantias de gancho da primeira Descida (`ADR-0031`) adaptadas ao mapa mais curto (ex.: encontro inicial didático, baú cedo, confronto tenso e chefe visível logo à frente).
-- [ ] Definir escalada gradual de extensão e dificuldade para os mapas/cenários seguintes (cenários 2 a 5: número de camadas, níveis, peso de elites/mutações/emboscadas e pressão de recursos).
-- [ ] Criar ADR próprio registrando os novos limiares, atualizar `docs/GDD.md` (§4, §5, §17) no mesmo commit e incrementar `CoreVersion.RULES_VERSION`.
-- [ ] Validar garantia de vencibilidade (GDD §5) e rodar testes unitários (`test_map_generator.gd`, `test_first_descent.gd`, `test_winnability.gd` e suíte completa).
+- [x] Definir a extensão enxuta do primeiro mapa (proposta: 3 a 4 camadas mais o chefe) em `game/data/scenarios.json` e `MapConfig`, mantendo a tensão e a dificuldade real dos encontros, golpes de moeda e chefe (não aliviar inimigos nem recompensas defensivas além do previsto em `ADR-0031`).
+- [x] Preservar as garantias de gancho da primeira Descida (`ADR-0031`) adaptadas ao mapa mais curto (ex.: encontro inicial didático, baú cedo, confronto tenso e chefe visível logo à frente).
+- [x] Definir escalada gradual de extensão e dificuldade para os mapas/cenários seguintes (cenários 2 a 5: número de camadas, níveis, peso de elites/mutações/emboscadas e pressão de recursos).
+- [x] Criar ADR próprio registrando os novos limiares, atualizar `docs/GDD.md` (§4, §5, §17) no mesmo commit e incrementar `CoreVersion.RULES_VERSION`.
+- [x] Validar garantia de vencibilidade (GDD §5) e rodar testes unitários (`test_map_generator.gd`, `test_first_descent.gd`, `test_winnability.gd` e suíte completa).
 
 ## Arquivos afetados
 
@@ -43,7 +43,7 @@ Ajustar a extensão e a curva de dificuldade dos mapas conforme a diretriz do Or
 
 ## Verificação
 
-Ainda não executada.
+Suíte 364/364. Simulador (150 Descidas, regras v21): mediano 64,7%, cuidadoso 80,0%, 1ª Descida 42,0%, mortes por moeda 11,3%, 0 de 100 mapas sem rota vencível. Sem o ajuste do Coveiro (175/16) o mediano caía para 44% e 11% dos mapas ficavam sem rota. Não verificado: jogada humana.
 
 ## Revisão cruzada
 

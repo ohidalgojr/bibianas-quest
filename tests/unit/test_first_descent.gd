@@ -10,7 +10,7 @@ func before_all() -> void:
 
 
 func test_first_run_guarantees_infected_citizen_early_chest_and_mid_elite() -> void:
-	var config: MapConfig = MapConfig.for_layers(6)
+	var config: MapConfig = MapConfig.for_layers(4)
 	for seed_val: int in range(1, 31):
 		var run: RunState = RunState.new(_data, seed_val, "warrior", [], 0, null, true)
 		assert_true(run.first_run)

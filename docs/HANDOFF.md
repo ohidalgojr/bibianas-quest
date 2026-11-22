@@ -11,7 +11,7 @@ Atualizado em 2026-11-22 (melhorias do estudo do Gemini em andamento: TASK-055 f
 | Jogo | RPG tático de turnos roguelite, Godot 4.7. **Visual atual = telas 2D de depuração (reprovadas, ADR-0036); o visual 3D vem nas TASK-035 a 040.** Hoje: gráficos vetoriais e áudio procedural (`SoundFx`): menu com Santuário (Biblioteca, Arsenal e Códice/Bestiário), tabuleiro visual com estradas curvas, brasões e peão da Bibiana com os 9 estágios da mecha (GDD §9), combate com silhuetas de personagem/inimigos, medalhão giratório de Cara/Coroa, emboscadas e inimigos mutados, eventos de mapa, mini boss anunciado, recompensa, loja, fogueira com Galhos Secos, baú, Ecos, auto-save, primeira Descida chamativa |
 | Classe | só o Guerreiro (Bibiana); 3 skills iniciais, 3 à venda, 5 espaços |
 | Cenário | só a Cidade Abandonada: 4 inimigos comuns (com mutações temáticas Inchado, Voraz, Fantasma e Espinhoso), 1 elite (Carrasco Apodrecido), 1 mini boss anunciado (Carcereiro do Sino), chefe O Coveiro (2 fases), 6 eventos temáticos; cada inimigo com ficha em `docs/enemies/` |
-| Regras | `RULES_VERSION` = 20 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0042 |
+| Regras | `RULES_VERSION` = 21 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0049 |
 | Equilíbrio (simulador, regras v15) | bot mediano vence 66,0% (meta 55% a 65%), cuidadoso 72,0%, 1ª Descida 49,3% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 13,7% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,28 s para criar a Descida |
 | Testes | 315 em 40 scripts, cerca de 11 s |
 | Git | `main` sincronizado com `origin/main` até `TASK-031` |
@@ -129,6 +129,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-058 | Médico da Cera e Rastejador da Vala (modelos Blender aceitos por agente crítico, fichas ENEMY-16 e 17) | agente | em verificação (prints `docs/tasks/prints/TASK-058-*.png`) |
 | 12 | TASK-059 | Menus em bottom sheet: alça, rodapé fixo, loja em cartões 2x2, pinos de Brasas (Ui-C parcial) | agente | em verificação (prints `docs/tasks/prints/TASK-059-*.png`); faltam prévia de nó no mapa e Home/Santuário (Ui-D) |
 | 12 | TASK-060 | Mapa com prévia de nó em dois toques e Home limpa com depuração recolhida (Ui-D parcial) | agente | em verificação (print `docs/tasks/prints/TASK-060-home.png`); faltam Santuário 3D, gaveta de equipamento e troca de fonte |
+| 12 | TASK-052 | Primeiro mapa curto (4 camadas) e escalada 4/6/7/8/10 nos cenários; Coveiro 158/15 (`RULES_VERSION` 21) | agente | feita; simulador (150 Descidas): mediano 64,7%, 1ª Descida 42%, 0 mapas sem rota |
 | 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
 | 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
@@ -163,6 +164,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
 | ADR | Decisão | Status |
 | --- | --- | --- |
+| 0049 | Cenário 1 com 4 camadas e escalada 4/6/7/8/10; Coveiro 158/15 para manter a meta de vitória | Aceito (TASK-052) |
 | 0048 | Prévia de nó em dois toques no mapa; Home sem versão de regras nem semente fora da depuração | Aceito (TASK-060) |
 | 0047 | Menus da Descida em bottom sheet com rodapé fixo e cartões 2x2 na loja | Aceito (TASK-059) |
 | 0046 | Médico da Cera (cura 12%) e Rastejador da Vala (rápido e frágil) entram na Cidade Abandonada | Aceito (TASK-058) |
