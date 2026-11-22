@@ -112,7 +112,10 @@ func _process(_delta: float) -> void:
 func show_home() -> void:
 	music.play_track("camp")
 	ambience.set_mood("home")
-	var box: VBoxContainer = _page("Bibiana's Quest", "Cidade Abandonada (regras v%d)" % CoreVersion.RULES_VERSION, "home")
+	var subtitle: String = "A Cidade Abandonada"
+	if debug_enabled:
+		subtitle += " (regras v%d)" % CoreVersion.RULES_VERSION
+	var box: VBoxContainer = _page("Bibiana's Quest", subtitle, "home")
 	if not data.is_valid():
 		box.add_child(_label("Dados inválidos. Veja o console."))
 		return
@@ -123,18 +126,44 @@ func show_home() -> void:
 	portrait.configure_player(1.0)
 	portrait_center.add_child(portrait)
 	box.add_child(portrait_center)
-	box.add_child(_label("Ecos: %d    Descidas: %d    Santuário: %d/%d" % [
-		echoes, runs_played, meta_unlocks.size(), SanctuaryRules.UPGRADES.size()]))
-	box.add_child(_label(_class_text()))
-	if save_enabled and _store().has_run():
-		box.add_child(_button("Continuar Descida", resume_run))
+	box.add_child(_label("Ecos: %d    Descidas: %d" % [echoes, runs_played]))
+	# CTA principal (D-UI home): Continuar quando há save, senão Nova Descida.
+	var has_save: bool = save_enabled and _store().has_run()
+	if has_save:
+		box.add_child(_cta_button("Continuar Descida", resume_run))
+	var new_run: Button = _cta_button("Nova Descida", _new_run_from_menu) if not has_save else _button("Nova Descida", _new_run_from_menu)
+	box.add_child(new_run)
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	box.add_child(row)
+	var sanctuary: Button = _button("Santuário (Ecos: %d)" % echoes, func() -> void: show_sanctuary())
+	sanctuary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(sanctuary)
+	var class_label: Label = _label("Classe: %s (%s)" % [str(data.classes[CLASS_ID]["name"]), RunState.PLAYER_NAME])
+	class_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(class_label)
 	if debug_enabled:
+		# Depuração recolhida: semente e luta de teste ficam atrás de um botão discreto.
+		var debug_box: VBoxContainer = VBoxContainer.new()
+		debug_box.visible = false
 		_seed_edit = LineEdit.new()
-		_seed_edit.placeholder_text = "Semente (depuração; vazio = aleatória)"
-		box.add_child(_seed_edit)
-	box.add_child(_button("Nova Descida", _new_run_from_menu))
-	box.add_child(_button("Santuário (Ecos: %d)" % echoes, func() -> void: show_sanctuary()))
-	box.add_child(_button("Luta de teste (depuração)", _show_test_fight))
+		_seed_edit.placeholder_text = "Semente (vazio = aleatória)"
+		debug_box.add_child(_seed_edit)
+		debug_box.add_child(_button("Luta de teste", _show_test_fight))
+		var toggle: Button = _button("Depuração", func() -> void: debug_box.visible = not debug_box.visible)
+		toggle.flat = true
+		toggle.custom_minimum_size = Vector2(0, 36)
+		box.add_child(toggle)
+		box.add_child(debug_box)
+
+
+## Botão de chamada principal: mais alto, com realce dourado.
+func _cta_button(text: String, action: Callable) -> Button:
+	var button: Button = _button(text, action)
+	button.custom_minimum_size = Vector2(0, 72)
+	button.add_theme_font_size_override("font_size", 24)
+	button.add_theme_color_override("font_color", Color(0.95, 0.8, 0.3))
+	return button
 
 
 func show_sanctuary(tab_id: String = "library") -> SanctuaryScreen:

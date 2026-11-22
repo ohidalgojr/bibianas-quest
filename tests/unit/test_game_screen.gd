@@ -28,6 +28,12 @@ func _press(root: Node, text: String) -> bool:
 
 func test_home_offers_new_run_and_test_fight() -> void:
 	assert_true(_game.find_children("*", "Button", true, false).size() >= 2)
+	_game.debug_enabled = true
+	_game.show_home()
+	for node: Node in _game.find_children("*", "Button", true, false):
+		if (node as Button).text == "Luta de teste":
+			assert_false((node as Button).is_visible_in_tree(), "depuração recolhida: o botão está oculto")
+	assert_true(_press(_game, "Depuração"), "abre a gaveta de depuração")
 	assert_true(_press(_game, "Luta de teste"))
 	assert_eq(_game.find_children("*", "CombatScreen", true, false).size(), 1)
 
