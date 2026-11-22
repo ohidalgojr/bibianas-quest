@@ -13,6 +13,23 @@ const STONE: Color = Color(0.085, 0.09, 0.115)
 const STONE_LIGHT: Color = Color(0.14, 0.145, 0.18)
 const PARCHMENT: Color = Color(0.9, 0.86, 0.76)
 
+## Tokens da paleta fechada (docs/design/IDENTIDADE-VISUAL.md §B.1, ADR-0050).
+const ABYSS: Color = Color("07080B")
+const SLATE_DEAD: Color = Color("1B2029")
+const STONE_WET: Color = Color("4A4E54")
+const STEEL_MOON: Color = Color("7E8FA8")
+const MUD: Color = Color("3A3128")
+const AMBER_LAMP: Color = Color("E08A30")
+const DANGER: Color = Color("B82824")
+const COIN_GOLD: Color = Color("D9AA32")
+## Botão com até esta quantidade de palavras usa Cinzel; o resto usa Alegreya (D-UI-4).
+const MAX_WORDS_DISPLAY_FONT: int = 3
+const PRESS_SCALE: float = 0.96
+## Alvo mínimo de toque em pixels (Estudo §2.3, Lei 7).
+const MIN_TOUCH: float = 48.0
+## Vibração curta ao tocar; desligável em [GfxSettings].
+const HAPTIC_MS: int = 12
+
 static var _theme: Theme
 
 
@@ -43,6 +60,7 @@ static func build() -> Theme:
 	theme.default_font_size = 20
 	_style_labels(theme)
 	_style_buttons(theme)
+	_style_variations(theme)
 	_style_panels(theme)
 	_style_bars(theme)
 	_style_scroll(theme)
@@ -78,8 +96,9 @@ static func _style_labels(theme: Theme) -> void:
 
 
 static func _style_buttons(theme: Theme) -> void:
-	theme.set_font("font", "Button", title_font(600))
-	theme.set_font_size("font_size", "Button", 17)
+	# Corpo em Alegreya (legível em 540x960); Cinzel só nas variações de botão curto.
+	theme.set_font("font", "Button", body_font(700))
+	theme.set_font_size("font_size", "Button", 18)
 	theme.set_color("font_color", "Button", PARCHMENT)
 	theme.set_color("font_hover_color", "Button", Color(1.0, 0.93, 0.7))
 	theme.set_color("font_pressed_color", "Button", GOLD)
@@ -93,6 +112,71 @@ static func _style_buttons(theme: Theme) -> void:
 	var focus: StyleBoxFlat = _box(Color(0, 0, 0, 0), GOLD, 2)
 	focus.shadow_size = 0
 	theme.set_stylebox("focus", "Button", focus)
+
+
+## Variações do design system (Estudo §3.3): botão de ação curto, primário, perigo, risco, cartão.
+static func _style_variations(theme: Theme) -> void:
+	for variation: String in ["ActionButton", "PrimaryButton", "DangerButton", "RiskButton"]:
+		theme.add_type(variation)
+		theme.set_type_variation(variation, "Button")
+		theme.set_font("font", variation, title_font(650))
+		theme.set_font_size("font_size", variation, 19)
+	theme.set_font_size("font_size", "PrimaryButton", 24)
+	theme.set_color("font_color", "PrimaryButton", COIN_GOLD)
+	theme.set_stylebox("normal", "PrimaryButton", _box(STONE_LIGHT, COIN_GOLD, 2, 6, 14))
+	theme.set_stylebox("hover", "PrimaryButton", _box(Color(0.19, 0.18, 0.17), COIN_GOLD, 3, 6, 14))
+	theme.set_stylebox("pressed", "PrimaryButton", _box(Color(0.07, 0.065, 0.06), COIN_GOLD, 3, 6, 14))
+	theme.set_color("font_color", "DangerButton", Color(0.95, 0.78, 0.74))
+	theme.set_stylebox("normal", "DangerButton", _box(Color(0.12, 0.06, 0.06), DANGER, 2, 6, 12))
+	theme.set_stylebox("hover", "DangerButton", _box(Color(0.18, 0.08, 0.08), DANGER, 3, 6, 12))
+	theme.set_stylebox("pressed", "DangerButton", _box(Color(0.07, 0.03, 0.03), DANGER, 3, 6, 12))
+	theme.set_color("font_color", "RiskButton", Color(0.98, 0.86, 0.62))
+	theme.set_stylebox("normal", "RiskButton", _box(Color(0.12, 0.09, 0.05), AMBER_LAMP, 2, 6, 12))
+	theme.set_stylebox("hover", "RiskButton", _box(Color(0.18, 0.12, 0.06), AMBER_LAMP, 3, 6, 12))
+	theme.set_stylebox("pressed", "RiskButton", _box(Color(0.07, 0.05, 0.03), AMBER_LAMP, 3, 6, 12))
+	# Cartão: painel de pedra escura sem sombra pesada, para grades de itens e skills.
+	theme.add_type("CardPanel")
+	theme.set_type_variation("CardPanel", "PanelContainer")
+	var card: StyleBoxFlat = _box(Color(0.043, 0.047, 0.063, 0.94), BRONZE, 2, 6, 10)
+	card.shadow_size = 0
+	theme.set_stylebox("panel", "CardPanel", card)
+	# Folha de baixo (bottom sheet): vidro escuro do Estudo §3.3.
+	theme.add_type("SheetPanel")
+	theme.set_type_variation("SheetPanel", "PanelContainer")
+	var sheet: StyleBoxFlat = _box(Color(0.043, 0.047, 0.063, 0.92), BRONZE, 2, 10, 14)
+	sheet.shadow_size = 0
+	theme.set_stylebox("panel", "SheetPanel", sheet)
+	theme.add_type("MutedLabel")
+	theme.set_type_variation("MutedLabel", "Label")
+	theme.set_color("font_color", "MutedLabel", Color(0.62, 0.64, 0.7))
+	theme.add_type("DeltaUpLabel")
+	theme.set_type_variation("DeltaUpLabel", "Label")
+	theme.set_color("font_color", "DeltaUpLabel", COIN_GOLD)
+	theme.add_type("DeltaDownLabel")
+	theme.set_type_variation("DeltaDownLabel", "Label")
+	theme.set_color("font_color", "DeltaDownLabel", DANGER.lightened(0.15))
+
+
+## Aplica o comportamento do botão (D-UI-6): fonte por tamanho do texto, alvo mínimo de 48 px,
+## escala 0,96 ao apertar e vibração curta. Idempotente; ignora botões planos (áreas de toque).
+static func polish_button(button: Button) -> void:
+	if button == null or button.flat or button.has_meta("polished"):
+		return
+	button.set_meta("polished", true)
+	if button.theme_type_variation == &"" and _word_count(button.text) <= MAX_WORDS_DISPLAY_FONT and not button.text.is_empty():
+		button.theme_type_variation = &"ActionButton"
+	if button.custom_minimum_size.y < MIN_TOUCH:
+		button.custom_minimum_size.y = MIN_TOUCH
+	button.button_down.connect(func() -> void:
+		button.pivot_offset = button.size * 0.5
+		button.scale = Vector2.ONE * PRESS_SCALE
+		if GfxSettings.haptics and not Engine.is_editor_hint():
+			Input.vibrate_handheld(HAPTIC_MS))
+	button.button_up.connect(func() -> void: button.scale = Vector2.ONE)
+
+
+static func _word_count(text: String) -> int:
+	return text.strip_edges().split(" ", false).size()
 
 
 static func _style_panels(theme: Theme) -> void:

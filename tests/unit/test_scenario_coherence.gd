@@ -83,7 +83,7 @@ func test_path_cells_tracks_actual_walkable_roads_between_linked_nodes() -> void
 				assert_lte(absi(bp.height_at(path[i]) - bp.height_at(path[i - 1])), 1, "degrau máximo de 1 bloco no trajeto")
 
 
-func test_shop_uses_keeper_instead_of_gravedigger_and_no_pine_trees_anywhere() -> void:
+func test_shop_uses_hooded_merchant_instead_of_gravedigger_and_no_pine_trees_anywhere() -> void:
 	var backdrop: Scene3DBackdrop = Scene3DBackdrop.new()
 	backdrop.kind = "shop"
 	backdrop.time_scale = 0.0
@@ -92,10 +92,10 @@ func test_shop_uses_keeper_instead_of_gravedigger_and_no_pine_trees_anywhere() -
 	var has_gravedigger: bool = false
 	for child: Node in backdrop.find_children("*", "Node3D", true, false):
 		var cname: String = child.name.to_lower()
-		if cname.contains("keeper"):
+		if cname.contains("merchant"):
 			has_keeper = true
 		if cname.contains("gravedigger"):
 			has_gravedigger = true
 		assert_false(cname.contains("pine"), "sem pinheiros verdes na cena 3D: %s" % child.name)
-	assert_true(has_keeper, "loja usa o vigia/mercador character-keeper")
+	assert_true(has_keeper, "loja tem o mercador encapuzado próprio (sem personagem chibi do kit, TASK-063)")
 	assert_false(has_gravedigger, "loja não reutiliza o chefe O Coveiro")

@@ -7,17 +7,19 @@ extends RefCounted
 
 const K_MINI: String = "res://assets/kenney/mini_dungeon/"
 const K_GRAVE: String = "res://assets/kenney/graveyard/"
+const K_SCENERY: String = "res://assets/bibiana/scenery/"
 
-const TINT_CLIFF: Color = Color(0.50, 0.47, 0.51)
-const TINT_MOSS: Color = Color(0.54, 0.64, 0.50)
-const TINT_STONE_BASE: Color = Color(0.56, 0.55, 0.59)
-const TINT_PLAZA_TILE: Color = Color(0.60, 0.58, 0.63)
-const TINT_COURT_TILE: Color = Color(0.52, 0.51, 0.56)
-const TINT_ROAD: Color = Color(0.52, 0.44, 0.38)
-const TINT_STAIR: Color = Color(0.64, 0.62, 0.60)
-const TINT_WALL: Color = Color(0.68, 0.66, 0.70)
-const TINT_ROOF: Color = Color(0.62, 0.60, 0.66)
-const TINT_FENCE: Color = Color(0.70, 0.72, 0.76)
+const TINT_CLIFF: Color = Color(0.1, 0.11, 0.14)
+const TINT_MOSS: Color = Color(0.11, 0.12, 0.15)
+const TINT_STONE_BASE: Color = Color(0.14, 0.15, 0.19)
+const TINT_PLAZA_TILE: Color = Color(0.4, 0.41, 0.46)
+const TINT_COURT_TILE: Color = Color(0.07, 0.075, 0.1)
+const TINT_ROAD: Color = Color(0.46, 0.47, 0.52)
+const TINT_STAIR: Color = Color(0.40, 0.39, 0.43)
+const TINT_WALL: Color = Color(0.36, 0.38, 0.46)
+const TINT_ROOF: Color = Color(0.24, 0.25, 0.32)
+const PROP_DARKEN: Color = Color(0.55, 0.55, 0.62)
+const TINT_FENCE: Color = Color(0.18, 0.19, 0.23)
 
 ## Assets com múltiplos MeshInstance3D internos devem ser colocados como Node3D e não em MultiMesh.
 const MULTI_MESH_EXCEPTIONS: Array[String] = ["urn-round.glb", "urn-square.glb", "coffin.glb", "chest.glb"]
@@ -31,7 +33,10 @@ static func render(parent: Node3D, bp: ScenarioBlueprint, include_focal_lights: 
 	_render_wall_runs(bp, batches)
 	_render_compounds(parent, bp, batches, include_focal_lights)
 	_render_lamps(parent, bp, batches, include_focal_lights)
-	_render_props(parent, bp, batches)
+	if include_focal_lights:
+		_render_gothic_mass(parent, bp, batches)
+	else:
+		_render_props(parent, bp, batches)
 	_flush_batches(parent, batches)
 	if include_focal_lights:
 		for light_def: Dictionary in bp.focal_lights:
@@ -120,7 +125,7 @@ static func _render_terrain_and_water(parent: Node3D, bp: ScenarioBlueprint, bat
 	_build_multimesh(parent, K_MINI + "dirt.glb", cliff_blocks, TINT_CLIFF, false)
 	_build_multimesh(parent, K_MINI + "dirt.glb", moss_tops, TINT_MOSS, bp.is_focal)
 	_build_multimesh(parent, K_MINI + "dirt.glb", stone_tops, TINT_STONE_BASE, bp.is_focal)
-	_build_multimesh(parent, K_MINI + "floor-detail.glb", plaza_tiles, TINT_PLAZA_TILE, false)
+	_build_multimesh(parent, K_MINI + "floor.glb", plaza_tiles, TINT_PLAZA_TILE, false)
 	_build_multimesh(parent, K_MINI + "floor.glb", court_tiles, TINT_COURT_TILE, false)
 	_build_multimesh(parent, K_MINI + "floor.glb", road_tiles, TINT_ROAD, false)
 	_build_water_multimesh(parent, water_transforms)
@@ -144,7 +149,8 @@ static func _build_water_multimesh(parent: Node3D, transforms: Array[Transform3D
 	var plane: PlaneMesh = PlaneMesh.new()
 	plane.size = Vector2(1.02, 1.02)
 	var shader: Shader = Shader.new()
-	shader.code = "shader_type spatial;\nrender_mode blend_mix, cull_disabled, depth_draw_never;\nvoid fragment() {\n\tvec2 p = UV * 6.0;\n\tfloat ripple = sin(p.x * 3.0 + TIME * 1.4) * sin(p.y * 3.0 - TIME * 1.1);\n\tvec3 deep = vec3(0.04, 0.12, 0.20);\n\tvec3 light = vec3(0.16, 0.34, 0.48);\n\tALBEDO = mix(deep, light, 0.5 + 0.5 * ripple);\n\tALPHA = 0.90;\n\tROUGHNESS = 0.14;\n\tMETALLIC = 0.35;\n}\n"
+	shader.code = "shader_type spatial;\nrender_mode blend_mix, cull_disabled, depth_draw_never;\nvoid fragment() {\n\tvec2 p = UV * 6.0;\n\tfloat ripple = sin(p.x * 3.0 + TIME * 1.4) * sin(p.y * 3.0 - TIME * 1.1);\n\tvec3 deep = vec3(0.015, 0.025, 0.04);\n\tvec3 light = vec3(0.06, 0.1, 0.15);\n\tALBEDO = mix(deep, light, 0.5 + 0.5 * ripple);\n\tALPHA = 0.90;\n\tROUGHNESS = 0.6;\n\tMETALLIC = 0.0;
+	SPECULAR = 0.0;\n}\n"
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = shader
 	plane.material = material
@@ -331,8 +337,8 @@ static func _render_courtyard_ruin(batches: Dictionary, bp: ScenarioBlueprint, o
 
 	var bench_pos: Vector3 = center + ScenarioBlueprint.rotate_offset_deg(Vector3(0.0, 0.0, -0.32 if sz.y <= 2 else -0.45), face_yaw)
 	var barrel_pos: Vector3 = center + ScenarioBlueprint.rotate_offset_deg(Vector3(-0.62, 0.0, 0.22 if sz.y <= 2 else 0.35), face_yaw)
-	_batch_add(batches, K_GRAVE + "bench-damaged.glb", bench_pos, face_yaw, Vector3.ONE * 1.1, Color(0.75, 0.72, 0.70), false)
-	_batch_add(batches, K_MINI + "barrel.glb", barrel_pos, 0.0, Vector3.ONE * 1.3, Color(0.8, 0.76, 0.72), false)
+	_batch_add(batches, K_GRAVE + "bench-damaged.glb", bench_pos, face_yaw, Vector3.ONE * 1.1, Color(0.4, 0.34, 0.3), false)
+	_batch_add(batches, K_MINI + "barrel.glb", barrel_pos, 0.0, Vector3.ONE * 1.3, Color(0.3, 0.24, 0.2), false)
 
 
 static func _render_shrine(batches: Dictionary, center: Vector3, face_yaw: float) -> void:
@@ -366,7 +372,7 @@ static func _render_lamps(parent: Node3D, bp: ScenarioBlueprint, batches: Dictio
 		var cell: Vector2i = lamp["cell"] as Vector2i
 		var pos: Vector3 = bp.world_of(cell)
 		var yaw: float = float(lamp["yaw"])
-		_batch_add(batches, K_GRAVE + "lightpost-single.glb", pos, yaw, Vector3.ONE * 1.45, Color(0.84, 0.86, 0.88), false)
+		_batch_add(batches, K_GRAVE + "lightpost-single.glb", pos, yaw, Vector3.ONE * 1.45, Color(0.2, 0.21, 0.25), false)
 		if with_lights and bool(lamp.get("lit", false)):
 			var arm_off: Vector3 = ScenarioBlueprint.rotate_offset_deg(Vector3(0.0, 1.85, 0.35), yaw)
 			_spawn_light(parent, pos + arm_off, Color(1.0, 0.72, 0.36), 1.5, 4.2)
@@ -380,7 +386,7 @@ static func _render_props(parent: Node3D, bp: ScenarioBlueprint, batches: Dictio
 		var pos: Vector3 = bp.world_of(cell)
 		var yaw: float = float(info["yaw"])
 		var scale_f: float = float(info["scale"])
-		var tint: Color = info.get("tint", Color.WHITE) as Color
+		var tint: Color = (info.get("tint", Color.WHITE) as Color) * PROP_DARKEN
 		var is_multi: bool = false
 		for exc: String in MULTI_MESH_EXCEPTIONS:
 			if rel.ends_with(exc):
@@ -399,3 +405,117 @@ static func _spawn_light(parent: Node3D, pos: Vector3, color: Color, energy: flo
 	light.omni_range = range_
 	light.position = pos
 	parent.add_child(light)
+
+
+## Massa gótica do mapa (IDENTIDADE-VISUAL §C.2): fachadas altas atrás das ruas (o lado oposto à
+## câmera), ruínas baixas à frente (para não esconder os destinos), agulhas, janelas âmbar e a
+## catedral do chefe. Determinístico por semente (hash da célula). Só no mapa.
+const MASS_TINTS: Array[Color] = [Color(0.16, 0.17, 0.2), Color(0.12, 0.13, 0.16), Color(0.2, 0.21, 0.25)]
+const MASS_RADIUS: int = 4
+const WINDOW_COLOR: Color = Color(0.5, 0.28, 0.1)
+
+
+static func _cell_hash(cell: Vector2i, salt: int, seed_value: int) -> float:
+	var n: int = (cell.x * 73856093) ^ (cell.y * 19349663) ^ (salt * 83492791) ^ (seed_value * 2654435761)
+	n = (n ^ (n >> 13)) * 1274126177
+	n = n ^ (n >> 16)
+	return float(absi(n) % 1000) / 1000.0
+
+
+static func _render_gothic_mass(parent: Node3D, bp: ScenarioBlueprint, batches: Dictionary) -> void:
+	var walk: Array[Vector2i] = []
+	for z: int in bp.rows:
+		for x: int in bp.cols:
+			var c: Vector2i = Vector2i(x, z)
+			var zone: int = bp.zone_at(c)
+			if zone == ScenarioBlueprint.ZONE_ROAD or zone == ScenarioBlueprint.ZONE_PLAZA or zone == ScenarioBlueprint.ZONE_BRIDGE or zone == ScenarioBlueprint.ZONE_BUILDING or zone == ScenarioBlueprint.ZONE_COURTYARD:
+				walk.append(c)
+	var windows: Array[Transform3D] = []
+	for z: int in bp.rows:
+		for x: int in bp.cols:
+			var cell: Vector2i = Vector2i(x, z)
+			if bp.zone_at(cell) != ScenarioBlueprint.ZONE_TERRACE:
+				continue
+			var best: int = 99
+			var nearest: Vector2i = cell
+			var near_sum: int = 9999
+			for dz: int in range(-MASS_RADIUS - 2, MASS_RADIUS + 3):
+				for dx: int in range(-MASS_RADIUS - 2, MASS_RADIUS + 3):
+					var other: Vector2i = cell + Vector2i(dx, dz)
+					if not bp.in_bounds(other):
+						continue
+					var oz: int = bp.zone_at(other)
+					if oz == ScenarioBlueprint.ZONE_ROAD or oz == ScenarioBlueprint.ZONE_PLAZA or oz == ScenarioBlueprint.ZONE_BRIDGE or oz == ScenarioBlueprint.ZONE_BUILDING or oz == ScenarioBlueprint.ZONE_COURTYARD:
+						var d: int = maxi(absi(dx), absi(dz))
+						near_sum = mini(near_sum, other.x + other.y)
+						if d <= MASS_RADIUS and d < best:
+							best = d
+							nearest = other
+			if best > MASS_RADIUS:
+				continue
+			var away: Vector2i = cell - nearest
+			var front: bool = cell.x + cell.y >= near_sum - 1 or away.x + away.y > 0
+			var rnd: float = _cell_hash(cell, 1, bp.map_seed)
+			var height: float
+			if front:
+				if best > 1 or rnd > 0.45:
+					continue
+				height = 0.35 + 0.35 * rnd
+			else:
+				height = 2.0 + 1.2 * rnd + 0.9 * float(best - 1) + 1.1 * _cell_hash(cell, 2, bp.map_seed)
+			var base: Vector3 = bp.world_of(cell)
+			var tint: Color = MASS_TINTS[int(_cell_hash(cell, 3, bp.map_seed) * 3.0) % 3]
+			_batch_add(batches, K_MINI + "wall.glb", base, 90.0 * float(int(rnd * 4.0)), Vector3(1.0, height / 1.1, 1.0), tint, false)
+			if not front:
+				if _cell_hash(cell, 4, bp.map_seed) > 0.8:
+					_batch_add(batches, K_SCENERY + "spire.glb", base + Vector3(0, height, 0), 0.0, Vector3(0.5, 0.9, 0.5), tint, false)
+				elif _cell_hash(cell, 5, bp.map_seed) > 0.9:
+					_batch_add(batches, K_GRAVE + "cross-column.glb", base + Vector3(0, height, 0), 0.0, Vector3.ONE * 1.6, tint, false)
+				if best <= 2 and _cell_hash(cell, 6, bp.map_seed) < 0.22:
+					var wy: float = base.y + height * (0.45 + 0.3 * _cell_hash(cell, 7, bp.map_seed))
+					windows.append(Transform3D(Basis(Vector3.UP, deg_to_rad(90.0)), base + Vector3(0.505, wy - base.y, 0.0)))
+					windows.append(Transform3D(Basis.IDENTITY, base + Vector3(0.0, wy - base.y, 0.505)))
+	_render_cathedral(parent, bp, batches, windows)
+	_build_window_quads(parent, windows)
+
+
+static func _render_cathedral(_parent: Node3D, bp: ScenarioBlueprint, batches: Dictionary, windows: Array[Transform3D]) -> void:
+	for comp: Dictionary in bp.compounds:
+		if int(comp["kind"]) != ScenarioBlueprint.COMPOUND_BOSS_MAUSOLEUM:
+			continue
+		var origin: Vector2i = comp["origin"] as Vector2i
+		var sz: Vector2i = comp["size"] as Vector2i
+		var center: Vector3 = _pad_world_center(bp, origin, sz) + Vector3(0.0, 0.0, -3.0)
+		var dark: Color = Color(0.1, 0.11, 0.14)
+		# Fachada da catedral: arcada ogival alta, torres com agulhas e contrafortes.
+		_batch_add(batches, K_SCENERY + "ogive_arcade.glb", center, 0.0, Vector3(1.5, 2.2, 1.5), dark, false)
+		_batch_add(batches, K_SCENERY + "ogive_arch.glb", center + Vector3(0.0, 0.0, -1.2), 0.0, Vector3(1.3, 2.4, 1.3), dark.darkened(0.2), false)
+		for side: float in [-4.6, 4.6]:
+			_batch_add(batches, K_MINI + "wall.glb", center + Vector3(side, 0.0, 0.2), 0.0, Vector3(2.0, 11.0, 2.0), dark, false)
+			_batch_add(batches, K_SCENERY + "spire.glb", center + Vector3(side, 11.0 * 1.1, 0.2), 0.0, Vector3(1.6, 2.4, 1.6), dark, false)
+			_batch_add(batches, K_SCENERY + "buttress.glb", center + Vector3(side * 0.62, 0.0, 1.0), 0.0, Vector3(1.0, 1.5, 1.0), dark, false)
+		_batch_add(batches, K_SCENERY + "spire.glb", center + Vector3(0.0, 13.0, -1.0), 0.0, Vector3(2.2, 2.6, 2.2), dark, false)
+		# Vitral âmbar tênue entre as torres (a promessa de luz do chefe).
+		windows.append(Transform3D(Basis.IDENTITY.scaled(Vector3(2.4, 5.0, 1.0)), center + Vector3(0.0, 5.2, -1.0)))
+		windows.append(Transform3D(Basis.IDENTITY.scaled(Vector3(1.2, 3.0, 1.0)), center + Vector3(-3.2, 4.0, 1.4)))
+
+
+static func _build_window_quads(parent: Node3D, windows: Array[Transform3D]) -> void:
+	if windows.is_empty():
+		return
+	var quad: QuadMesh = QuadMesh.new()
+	quad.size = Vector2(0.26, 0.5)
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = WINDOW_COLOR
+	quad.material = mat
+	var multi: MultiMesh = MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.mesh = quad
+	multi.instance_count = windows.size()
+	for i: int in windows.size():
+		multi.set_instance_transform(i, windows[i])
+	var holder: MultiMeshInstance3D = MultiMeshInstance3D.new()
+	holder.multimesh = multi
+	holder.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(holder)

@@ -1,6 +1,6 @@
 # HANDOFF
 
-Atualizado em 2026-11-22 (melhorias do estudo do Gemini em andamento: TASK-055 feita, seguem as Ui-A a Ui-D). Antes: 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2D vetorial, sem assets, visão de cima): o GDD manda tabuleiro isométrico 3D com kits CC0. Leia o ADR-0036 (análise de onde as instruções falharam) e `docs/ART-DIRECTION.md`. Estado: núcleo e regras prontos (TASK-001 a 034, suíte 348/348, `RULES_VERSION` = 20); **TASK-035 feita (kits CC0, prova isométrica, ferramenta de print; aguarda o seu OK ao print)**, seguem 036 a 040; TASK-014, 032 e 033 esperam.
+Atualizado em 2026-11-22. **PARADA POR COTA: leia primeiro `docs/design/PROXIMA-RODADA-VALIDACAO.md`** (o que o diretor de arte precisa revisar, comandos e backlog). Nenhuma arte foi aprovada ainda: modelos (TASK-062) e cenários (TASK-063) estão na rodada 2, aguardando o diretor. Antes: 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2D vetorial, sem assets, visão de cima): o GDD manda tabuleiro isométrico 3D com kits CC0. Leia o ADR-0036 (análise de onde as instruções falharam) e `docs/ART-DIRECTION.md`. Estado: núcleo e regras prontos (TASK-001 a 034, suíte 348/348, `RULES_VERSION` = 20); **TASK-035 feita (kits CC0, prova isométrica, ferramenta de print; aguarda o seu OK ao print)**, seguem 036 a 040; TASK-014, 032 e 033 esperam.
 - **`TASK-029` (`b08098f`), `TASK-026` (`09b6a04`), `TASK-027` (`35d06b4`), `TASK-028` (`5ccfeb6`), `TASK-030` (`9fa4254`) e `TASK-031`**: **100% concluídas, validadas (315/315 testes em 40 scripts) e enviadas para `origin/main`**.
 - **Numeração:** as tarefas de calibração e do portão da Fase 1 (propostas pelo Claude) são a TASK-032 e a TASK-033; as TASK-030 e 031 são as do Argon.
 
@@ -131,6 +131,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-060 | Mapa com prévia de nó em dois toques e Home limpa com depuração recolhida (Ui-D parcial) | agente | em verificação (print `docs/tasks/prints/TASK-060-home.png`); faltam Santuário 3D, gaveta de equipamento e troca de fonte |
 | 12 | TASK-052 | Primeiro mapa curto (4 camadas) e escalada 4/6/7/8/10 nos cenários; Coveiro 158/15 (`RULES_VERSION` 21) | agente | feita; simulador (150 Descidas): mediano 64,7%, 1ª Descida 42%, 0 mapas sem rota |
 | 11 | TASK-061 | **Identidade visual (ADR-0050, `docs/design/IDENTIDADE-VISUAL.md`)**: combate como duelo (câmera, escala, luz, arena `DuelArena`, aviso sem faixa cinza). Regra nova: arte só é aprovada por print 540×960 do jogo contra o checklist E, revisado por agente de direção de arte | agente | em verificação; seguem TASK-062 (inimigos refeitos por kitbash), mapa, fogueira e loja |
+| 11 | TASK-064 | DarkTheme 2.0 (tokens, Alegreya no corpo, componentes, toque 0,96 e vibração), `TrailBar` e combate com palco cheio (~68%), intenção sobre a cabeça e letreiro (auditoria pacotes 1, 2, 4) | agente | em verificação; backlog completo em `docs/design/AUDITORIA-UI-vs-ESTUDO.md`, decisões em `docs/design/DECISOES-ARTE-UI.md` |
 | 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
 | 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
@@ -165,6 +166,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
 | ADR | Decisão | Status |
 | --- | --- | --- |
+| 0051 | DarkTheme 2.0 e combate com palco cheio, intenção sobre a cabeça, letreiro de 2,2 s | Aceito (TASK-064) |
 | 0050 | Identidade visual: foco quente único, escala de pesadelo, paleta de 8 cores, câmera de duelo e aprovação só por print do jogo | Aceito (TASK-061) |
 | 0049 | Cenário 1 com 4 camadas e escalada 4/6/7/8/10; Coveiro 158/15 para manter a meta de vitória | Aceito (TASK-052) |
 | 0048 | Prévia de nó em dois toques no mapa; Home sem versão de regras nem semente fora da depuração | Aceito (TASK-060) |

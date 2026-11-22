@@ -1,0 +1,4 @@
+Modelos 3D dos inimigos do Bibiana's Quest (giant_rat, plague_hound, carrion_crow, rotten_executioner),
+gerados por script no Blender (tools/blender/make_enemies.py) para este projeto.
+Dedicados ao dominio publico: CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/
+Criados em 2026-11-19.

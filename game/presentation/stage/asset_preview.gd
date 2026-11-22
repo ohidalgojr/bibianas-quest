@@ -46,11 +46,11 @@ func _ready() -> void:
 		var node: Node3D = packed.instantiate() as Node3D
 		node.position = Vector3(x, 0, 0)
 		world.add_child(node)
-		x += size_units * 0.5
+		x += size_units * 0.16
 	var cam: Camera3D = Camera3D.new()
 	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
 	cam.size = size_units
 	world.add_child(cam)
-	var center: Vector3 = Vector3(x * 0.5 - size_units * 0.25, size_units * 0.2, 0)
+	var center: Vector3 = Vector3((x - size_units * 0.16) * 0.5, size_units * 0.1, 0)
 	cam.position = center + Vector3(1.0, 0.7, 1.0) * 20.0
 	cam.look_at(center)

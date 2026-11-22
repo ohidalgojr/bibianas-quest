@@ -7,3 +7,5 @@ static var post_fx: bool = true
 static var weather: bool = true
 ## Relâmpagos na tela (GDD §19, "reduzir flashes"): falso desliga só o clarão, não o som.
 static var flashes: bool = true
+## Vibração curta ao tocar em botões (Estudo §3.3): falso desliga sem mexer em regra.
+static var haptics: bool = true

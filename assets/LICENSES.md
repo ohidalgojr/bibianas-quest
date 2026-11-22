@@ -40,5 +40,6 @@ Pacote novo: baixar, conferir o texto de licença do próprio pacote, adicionar 
 | Pacote | Autor | Fonte | Licença | Criado em | Pasta | Uso |
 | --- | --- | --- | --- | --- | --- | --- |
 | Inimigos do cenário 1 | Projeto Bibiana's Quest (script de Blender) | `tools/blender/make_enemies.py` | CC0 1.0 | 2026-11-19 | `assets/bibiana/enemies/` | Rato Grande, Cão de Peste, Corvo Carniceiro e Carrasco Apodrecido (TASK-044) |
+| Peças góticas de cenário | Projeto Bibiana's Quest (script de Blender) | `tools/blender/make_scenery.py` | CC0 1.0 | 2026-11-22 | `assets/bibiana/scenery/` | Arco ogival, arcada, contraforte e agulha (TASK-063) |
 
 | Game Icons (só audioOn e audioOff) | Kenney | https://opengameart.org/content/game-icons | CC0 1.0 | 2026-11-19 | `assets/kenney/game_icons/` | Botão de som (TASK-050) |

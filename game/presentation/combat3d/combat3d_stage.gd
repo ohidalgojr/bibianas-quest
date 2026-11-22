@@ -9,7 +9,7 @@ const K_MINI: String = "res://assets/kenney/mini_dungeon/"
 const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const SHRINK: int = 2
 ## Câmera de duelo (ADR-0050, IDENTIDADE-VISUAL §C.1): perto e baixa, o inimigo é o herói do quadro.
-const CAM_SIZE: float = 3.9
+const CAM_SIZE: float = 4.3
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.62, 1.0) * 16.0
 const CAM_TARGET: Vector3 = Vector3(-0.5, 1.75, -0.4)
 const ENEMY_POS: Vector3 = Vector3(-0.9, 0.9, -1.0)
@@ -33,6 +33,7 @@ var _world: Node3D
 var _scene_root: Node3D
 var _enemy_id: String = ""
 var _enemy_scale: float = 2.4
+var _enemy_height: float = HEIGHT_COMMON
 var _shake: float = 0.0
 var _dim: ColorRect
 var _portraits: Dictionary = {}
@@ -151,6 +152,7 @@ func _spawn_actors(kind: int) -> void:
 	_scene_root.add_child(enemy_node)
 	_enemy_scale = _scale_to_height(enemy_node, target, 1.7)
 	enemy_node.scale = Vector3.ONE * _enemy_scale
+	_enemy_height = target
 	ModelRegistry.play(enemy_node, _enemy_id, "idle")
 
 
@@ -162,6 +164,13 @@ func _scale_to_height(node: Node3D, height: float, max_ratio: float) -> float:
 	if box.size.y < 0.05 or longest < 0.05:
 		return 2.0
 	return minf(height / box.size.y, height * max_ratio / longest)
+
+
+## Topo da cabeça do inimigo em coordenadas deste `Control` (o aviso de intenção fica sobre ele).
+func head_screen_pos() -> Vector2:
+	if enemy_node == null or camera == null or not camera.is_inside_tree():
+		return Vector2(size.x * 0.5, size.y * 0.3)
+	return camera.unproject_position(enemy_node.position + Vector3(0, _enemy_height, 0)) * float(SHRINK)
 
 
 ## Posição de tela (coordenadas deste `Control`) do alvo, para números de dano e ícones.

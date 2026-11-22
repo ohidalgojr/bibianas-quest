@@ -14,6 +14,8 @@ var time_scale: float = 1.0
 
 ## Altura em que o bottom sheet começa (o diorama 3D fica com o resto, D-UI-3).
 const SHEET_TOP: float = 0.46
+## Fogueira e loja deixam mais cena à mostra (IDENTIDADE-VISUAL §C.3: painel até ~38%/50%).
+const SHEET_TOP_BY_KIND: Dictionary = {"campfire": 0.6, "shop": 0.5}
 
 var _box: VBoxContainer
 var _footer: HBoxContainer
@@ -44,7 +46,7 @@ func _ready() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	panel.anchor_left = 0.04
 	panel.anchor_right = 0.96
-	panel.anchor_top = 0.1 if backdrop_kind.is_empty() else SHEET_TOP
+	panel.anchor_top = 0.1 if backdrop_kind.is_empty() else float(SHEET_TOP_BY_KIND.get(backdrop_kind, SHEET_TOP))
 	panel.anchor_bottom = 0.9 if backdrop_kind.is_empty() else 0.98
 	add_child(panel)
 	_box = VBoxContainer.new()
@@ -356,6 +358,9 @@ func _card(grid: GridContainer, text: String, action: Callable, icon: Texture2D 
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button.add_theme_font_size_override("font_size", 15)
+	# Cartão sem ouro suficiente continua legível: pergaminho claro (o botão só deixa de agir).
+	button.add_theme_color_override("font_disabled_color", Color(0.78, 0.74, 0.64))
+	button.add_theme_color_override("font_color", Color(0.93, 0.89, 0.78))
 	if icon != null:
 		button.icon = icon
 		button.expand_icon = true

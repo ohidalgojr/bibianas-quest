@@ -10,18 +10,16 @@ const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const FLOOR_Y: float = 0.9
 ## Cores de kit multiplicadas pela paleta da IDENTIDADE-VISUAL §B.1 (nunca a cor original).
 const TINT_WALL: Color = Color(0.62, 0.65, 0.78)
-const TINT_FLOOR: Color = Color(0.55, 0.52, 0.55)
-const TINT_DARK_STONE: Color = Color(0.46, 0.48, 0.56)
-const TINT_WOOD: Color = Color(0.62, 0.50, 0.40)
+const TINT_FLOOR: Color = Color(0.36, 0.37, 0.42)
+const TINT_DARK_STONE: Color = Color(0.3, 0.32, 0.37)
+const TINT_WOOD: Color = Color(0.227, 0.192, 0.157)
 const TINT_IRON: Color = Color(0.34, 0.35, 0.40)
 const AMBER: Color = Color("E08A30")
 
 
 ## Monta a arena de `kind` ("combat_common", "combat_elite" ou "combat_boss") sob `parent`.
 static func build(parent: Node3D, kind: String) -> void:
-	_floor(parent)
-	_back_walls(parent, kind)
-	_puddles(parent)
+	build_base(parent, kind)
 	match kind:
 		"combat_boss":
 			_boss_props(parent)
@@ -30,6 +28,13 @@ static func build(parent: Node3D, kind: String) -> void:
 		_:
 			_common_props(parent)
 	_foreground(parent)
+
+
+## Só o palco (piso, canto de paredes com portão, poças): base comum dos dioramas de fogueira e loja.
+static func build_base(parent: Node3D, kind: String = "") -> void:
+	_floor(parent)
+	_back_walls(parent, kind)
+	_puddles(parent)
 
 
 static func _floor(parent: Node3D) -> void:
@@ -41,23 +46,13 @@ static func _floor(parent: Node3D) -> void:
 
 ## Duas paredes altas em canto atrás do inimigo (a câmera olha de +X,+Z), uma com o portão.
 static func _back_walls(parent: Node3D, kind: String) -> void:
-	var wall_z: float = -3.4
-	var wall_x: float = -3.6
-	for i: int in 3:
-		var x: float = -2.0 + float(i) * 4.0
-		var piece: String = "gate.glb" if i == 2 else "template-wall.glb"
-		StageKit.place(parent, K_MOD + piece, Vector3(x, FLOOR_Y, wall_z), 0.0, 1.0, TINT_WALL)
-	for i: int in 3:
-		var z: float = -2.0 + float(i) * 4.0
-		StageKit.place(parent, K_MOD + "template-wall.glb", Vector3(wall_x, FLOOR_Y, z), 90.0, 1.0, TINT_WALL)
-	StageKit.place(parent, K_MOD + "template-wall-corner.glb", Vector3(wall_x, FLOOR_Y, wall_z), 0.0, 1.0, TINT_DARK_STONE)
-	# Luz do outro lado do portão: promessa de luz, fraca e distante.
-	var beyond: OmniLight3D = OmniLight3D.new()
-	beyond.light_color = AMBER
-	beyond.light_energy = 1.4
-	beyond.omni_range = 4.5
-	beyond.position = Vector3(6.0, FLOOR_Y + 1.6, wall_z - 1.2)
-	parent.add_child(beyond)
+	FocalSet.gothic_nave(parent, FLOOR_Y)
+	if kind == "combat_boss":
+		# Vitral de catedral atrás da arcada: promessa de luz, a 25% (não é uma segunda fonte).
+		FocalSet.box(parent, Vector3(-1.2, FLOOR_Y + 2.7, -4.3), Vector3(1.3, 3.4, 0.05), Color(0.62, 0.34, 0.1), Vector3.ZERO, true)
+		for i: int in 3:
+			FocalSet.box(parent, Vector3(-1.2 + (float(i) - 1.0) * 0.4, FLOOR_Y + 2.7, -4.25), Vector3(0.07, 3.4, 0.06), Color(0.03, 0.03, 0.04))
+		FocalSet.box(parent, Vector3(-1.2, FLOOR_Y + 3.4, -4.25), Vector3(1.3, 0.07, 0.06), Color(0.03, 0.03, 0.04))
 
 
 static func _puddles(parent: Node3D) -> void:
@@ -83,7 +78,6 @@ static func _common_props(parent: Node3D) -> void:
 	StageKit.place(parent, K_GRAVE + "coffin-old.glb", Vector3(-2.6, FLOOR_Y, -1.6), 35.0, 2.6, TINT_WOOD)
 	StageKit.place(parent, K_GRAVE + "debris.glb", Vector3(-1.9, FLOOR_Y, -2.3), 80.0, 2.4, TINT_DARK_STONE)
 	StageKit.place(parent, K_GRAVE + "lightpost-single.glb", Vector3(0.8, FLOOR_Y, -2.4), 180.0, 2.4, TINT_IRON)
-	StageKit.place(parent, K_GRAVE + "candle-multiple.glb", Vector3(-2.2, FLOOR_Y, -0.2), 0.0, 3.0, Color(0.7, 0.62, 0.5))
 	_lantern_light(parent, Vector3(0.7, FLOOR_Y + 2.7, -2.2))
 
 
@@ -102,7 +96,7 @@ static func _boss_props(parent: Node3D) -> void:
 	StageKit.place(parent, K_GRAVE + "altar-stone.glb", Vector3(-0.9, FLOOR_Y, -3.0), 0.0, 3.0, TINT_DARK_STONE)
 	StageKit.place(parent, K_GRAVE + "coffin.glb", Vector3(-2.9, FLOOR_Y, -0.6), 70.0, 2.8, TINT_WOOD)
 	StageKit.place(parent, K_GRAVE + "shovel-dirt.glb", Vector3(1.7, FLOOR_Y, -1.5), 30.0, 3.0, TINT_WOOD)
-	StageKit.place(parent, K_GRAVE + "fire-basket.glb", Vector3(1.2, FLOOR_Y, -2.7), 0.0, 3.0, TINT_IRON)
+	StageKit.place(parent, K_GRAVE + "fire-basket.glb", Vector3(1.2, FLOOR_Y, -2.7), 0.0, 3.0, Color(0.12, 0.12, 0.14))
 	_lantern_light(parent, Vector3(1.2, FLOOR_Y + 1.2, -2.6))
 
 
@@ -110,7 +104,7 @@ static func _boss_props(parent: Node3D) -> void:
 ## no canto da câmera.
 static func _foreground(parent: Node3D) -> void:
 	for i: int in 3:
-		StageKit.place(parent, K_GRAVE + "iron-fence-damaged.glb", Vector3(2.2 + float(i) * 2.2, FLOOR_Y, 3.6 - float(i) * 0.1), 90.0, 2.4, Color(0.16, 0.17, 0.21))
+		StageKit.place(parent, K_GRAVE + "iron-fence-damaged.glb", Vector3(3.4 + float(i) * 1.1, FLOOR_Y, 2.6 - float(i) * 1.1), 45.0, 2.4, Color(0.04, 0.045, 0.055))
 
 
 ## A luz âmbar única do diorama: um lampião de ferro aceso ao lado do inimigo.
