@@ -18,6 +18,8 @@ const COIN_DELAY: float = 1.2
 const TIMELINE_SIZE: int = 6
 const LOG_LINES: int = 7
 const LEVELS: Array[int] = [1, 2, 3, 4, 5, 6]
+const DRAWER_ORDER: Array[String] = ["skills", "items", "tactical"]
+const DRAWER_TITLES: Dictionary = {"skills": "Habilidades", "items": "Itens", "tactical": "Tático"}
 
 const COLOR_BG: Color = Color(0.07, 0.08, 0.1)
 const COLOR_PANEL: Color = Color(0.13, 0.14, 0.17)
@@ -71,6 +73,12 @@ var _player_mp_bar: ProgressBar
 var _player_stats: Label
 var _player_effects: Label
 var _buttons: Dictionary = {}
+var _drawers: Dictionary = {}
+var _drawer_tabs: Dictionary = {}
+var _open_drawer: String = ""
+var _selected_action: String = ""
+## Skill, item e Fugir pedem um segundo toque (D-UI-1); desligado nos testes e na depuração 2D.
+var confirm_taps: bool = DisplayServer.get_name() != "headless"
 var _coin_overlay: PanelContainer
 var _coin_medallion: VisualTheme.CoinMedallion
 var _coin_label: Label
@@ -598,28 +606,44 @@ func _build() -> void:
 	_player_effects.add_theme_font_size_override("font_size", 16)
 	player_info.add_child(_player_effects)
 
-	# Ações na zona do polegar: ações de combate em 2 colunas, utilitários em 3 (texto quebra
-	# em vez de alargar a tela).
+	# Ações na zona do polegar (ADR-0044, D-UI-1 e D-UI-2): Atacar e Defender sempre à vista, em
+	# um toque; Habilidades, Itens e Tático ficam em gavetas de abas, e o que gasta recurso pede
+	# um segundo toque para confirmar (celular não tem hover).
 	var grid: GridContainer = GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	column.add_child(grid)
-	var utility: GridContainer = GridContainer.new()
-	utility.columns = 3
-	utility.add_theme_constant_override("h_separation", 8)
-	utility.add_theme_constant_override("v_separation", 8)
-	column.add_child(utility)
+	var tab_row: HBoxContainer = HBoxContainer.new()
+	tab_row.add_theme_constant_override("separation", 6)
+	column.add_child(tab_row)
+	for tab: String in DRAWER_ORDER:
+		var tab_button: Button = Button.new()
+		tab_button.text = str(DRAWER_TITLES[tab])
+		tab_button.toggle_mode = true
+		tab_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab_button.custom_minimum_size = Vector2(0, 38)
+		tab_button.add_theme_font_size_override("font_size", 15)
+		tab_button.pressed.connect(_select_drawer.bind(tab))
+		tab_row.add_child(tab_button)
+		_drawer_tabs[tab] = tab_button
+		var drawer: GridContainer = GridContainer.new()
+		drawer.columns = 2 if tab == "skills" else 3
+		drawer.add_theme_constant_override("h_separation", 8)
+		drawer.add_theme_constant_override("v_separation", 8)
+		drawer.visible = false
+		column.add_child(drawer)
+		_drawers[tab] = drawer
 	for entry: Array in [["attack", "Atacar"], ["defend", "Defender"], ["skill_0", "Skill"], ["skill_1", "Skill"],
 			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["ether", "Éter Sujo"],
-			["flee", "Fugir"], ["luck", "Moeda da Sorte (0)"], ["speed", "Velocidade 1x"]]:
+			["luck", "Moeda da Sorte (0)"], ["flee", "Fugir"], ["speed", "Velocidade 1x"]]:
 		var action: String = str(entry[0])
-		var main_action: bool = action == "attack" or action == "defend" or action.begins_with("skill_")
+		var main_action: bool = action == "attack" or action == "defend"
 		var button: Button = Button.new()
 		button.text = str(entry[1])
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(0, (62 if use_stage else 76) if main_action else (44 if use_stage else 48))
+		button.custom_minimum_size = Vector2(0, (62 if use_stage else 76) if main_action else (52 if action.begins_with("skill_") else 46))
 		button.add_theme_font_size_override("font_size", 16)
 		var ui_icon: Texture2D = IconRegistry.texture_for("ui", action if action != "luck" else "luck")
 		if action == "potion":
@@ -631,9 +655,10 @@ func _build() -> void:
 		elif action == "luck":
 			button.pressed.connect(_toggle_lucky)
 		else:
-			button.pressed.connect(perform.bind(action))
-		(grid if main_action else utility).add_child(button)
+			button.pressed.connect(_on_action_pressed.bind(action))
+		(grid if main_action else _drawers[_drawer_of(action)]).add_child(button)
 		_buttons[action] = button
+	_select_drawer("skills")
 
 	_coin_overlay = _overlay()
 	var coin_box: VBoxContainer = VBoxContainer.new()
@@ -719,6 +744,49 @@ func _open_result(title: String) -> void:
 		control.visible = false
 	_continue.visible = true
 	_menu.visible = true
+
+
+## Gaveta (aba) de cada ação que não é Atacar nem Defender.
+func _drawer_of(action: String) -> String:
+	if action.begins_with("skill_"):
+		return "skills"
+	if action == "potion" or action == "ether" or action == "luck":
+		return "items"
+	return "tactical"
+
+
+## Abre uma aba da gaveta; tocar na aberta de novo a recolhe (devolve altura ao palco).
+func _select_drawer(tab: String) -> void:
+	var was_open: bool = _open_drawer == tab
+	_open_drawer = "" if was_open else tab
+	for tab_name: String in DRAWER_ORDER:
+		(_drawers[tab_name] as GridContainer).visible = tab_name == _open_drawer
+		(_drawer_tabs[tab_name] as Button).button_pressed = tab_name == _open_drawer
+	_clear_selection()
+
+
+## Toque numa ação. Atacar e Defender executam direto; skill, item e Fugir pedem confirmação
+## (primeiro toque seleciona e mostra a previsão, o segundo executa) quando [member confirm_taps].
+func _on_action_pressed(action: String) -> void:
+	if not confirm_taps or action == "attack" or action == "defend":
+		perform(action)
+		return
+	if _selected_action == action:
+		_clear_selection()
+		perform(action)
+		return
+	_clear_selection()
+	_selected_action = action
+	(_buttons[action] as Button).modulate = Color(1.35, 1.2, 0.85)
+	_set_forecast(_forecast_for(action) + "   (toque de novo para confirmar)")
+
+
+func _clear_selection() -> void:
+	if not _selected_action.is_empty() and _buttons.has(_selected_action):
+		(_buttons[_selected_action] as Button).modulate = Color.WHITE
+		if _forecast != null and session != null:
+			_set_forecast(_forecast_for("attack"))
+	_selected_action = ""
 
 
 ## Arma ou desarma a Moeda da Sorte para o próximo lance errado (ADR-0026).
@@ -839,6 +907,10 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> void:
 		hover_button.focus_entered.connect(func() -> void: _set_forecast(_forecast_for(action)))
 	_intent_icon.add_theme_font_size_override("font_size", 18)
 	_intent_detail.add_theme_font_size_override("font_size", 13)
+	# As barras já trazem os números e os ícones de status ficam no palco: sem texto duplicado.
+	_player_stats.visible = false
+	_enemy_hp_label.visible = false
+	_player_effects.visible = false
 
 
 ## Coluna de retratos numerados com a ordem dos próximos turnos, à esquerda do palco (FFT):

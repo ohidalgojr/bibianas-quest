@@ -124,6 +124,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-053 | Algoritmo próprio Terrace-Grammar-Constraint para cenários 3D coerentes (mapa + combate + backdrops, ADR-0041) | em verificação | 9 prints `docs/tasks/prints/TASK-053-*.png` e executável gerados (< 50k primitivas); aguarda OK do Orlando |
 | 12 | TASK-054 | Conceito visual Nano Banana (`O Perseguidor Coroado`, 5 pranchas) e dossiê 3D/Nemesis do Roaming Boss (`F-023`, `ADR-0042`) | em verificação | aguarda OK visual do Orlando em `docs/design/ROAMING-BOSS-perseguidor-coroado.md` antes de modelar `.glb` |
 | 12 | TASK-055 | Atmosfera do estudo (D-ART-1/2/3, D-UI-5): ambiente frio, neblina, foco quente, dithering Bayer, fogueira apagada até acender | agente | em verificação (prints `docs/tasks/prints/TASK-055-*.png`) |
+| 12 | TASK-056 | Combate mobile: gavetas Habilidades/Itens/Tático, confirmação em dois toques, palco maior (D-UI-1/2) | agente | em verificação (print `docs/tasks/prints/TASK-056-combate.png`; falta jogar no celular) |
 | 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
 | 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
@@ -158,6 +159,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
 | ADR | Decisão | Status |
 | --- | --- | --- |
+| 0044 | Combate mobile: Atacar/Defender fixos, gavetas por aba, skill/item/Fugir com 2 toques (previsão no 1º), sem texto duplicado | Aceito (TASK-056) |
 | 0043 | Atmosfera comum (ambiente 0,46 azul-ardósia, neblina, foco quente no combate, dithering Bayer, desfoque 0,35 no combate) e fogueira 3D sincronizada com o estado aceso | Aceito (TASK-055) |
 | 0042 | Cânone visual obrigatório para todo asset (`F-022`): craft/cenários/profundidade de Sword of Convallaria (nº 1), Tactics Ogre, Triangle Strategy, Octopath Traveler, Ragnarok Online e Buriedbornes sob atmosfera dark gótica de Bloodborne (prioridade máxima) e Dark Souls; descritores originais sem citar jogos em prompts IA | Aceito (Orlando, 2026-11-21) |
 | 0001 | Godot 4.7, GDScript com tipagem obrigatória, Compatibility, retrato 540×960 com `keep_width` | Aceito |
