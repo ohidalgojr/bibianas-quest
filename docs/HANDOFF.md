@@ -130,6 +130,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-059 | Menus em bottom sheet: alça, rodapé fixo, loja em cartões 2x2, pinos de Brasas (Ui-C parcial) | agente | em verificação (prints `docs/tasks/prints/TASK-059-*.png`); faltam prévia de nó no mapa e Home/Santuário (Ui-D) |
 | 12 | TASK-060 | Mapa com prévia de nó em dois toques e Home limpa com depuração recolhida (Ui-D parcial) | agente | em verificação (print `docs/tasks/prints/TASK-060-home.png`); faltam Santuário 3D, gaveta de equipamento e troca de fonte |
 | 12 | TASK-052 | Primeiro mapa curto (4 camadas) e escalada 4/6/7/8/10 nos cenários; Coveiro 158/15 (`RULES_VERSION` 21) | agente | feita; simulador (150 Descidas): mediano 64,7%, 1ª Descida 42%, 0 mapas sem rota |
+| 11 | TASK-061 | **Identidade visual (ADR-0050, `docs/design/IDENTIDADE-VISUAL.md`)**: combate como duelo (câmera, escala, luz, arena `DuelArena`, aviso sem faixa cinza). Regra nova: arte só é aprovada por print 540×960 do jogo contra o checklist E, revisado por agente de direção de arte | agente | em verificação; seguem TASK-062 (inimigos refeitos por kitbash), mapa, fogueira e loja |
 | 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
 | 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
@@ -164,6 +165,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
 | ADR | Decisão | Status |
 | --- | --- | --- |
+| 0050 | Identidade visual: foco quente único, escala de pesadelo, paleta de 8 cores, câmera de duelo e aprovação só por print do jogo | Aceito (TASK-061) |
 | 0049 | Cenário 1 com 4 camadas e escalada 4/6/7/8/10; Coveiro 158/15 para manter a meta de vitória | Aceito (TASK-052) |
 | 0048 | Prévia de nó em dois toques no mapa; Home sem versão de regras nem semente fora da depuração | Aceito (TASK-060) |
 | 0047 | Menus da Descida em bottom sheet com rodapé fixo e cartões 2x2 na loja | Aceito (TASK-059) |

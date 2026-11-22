@@ -3,8 +3,8 @@ extends GutTest
 
 
 func test_ambient_is_dark_and_cold() -> void:
-	assert_lte(Atmosphere.AMBIENT_ENERGY, 0.52, "estudo D-ART-1: ambiente entre 0,40 e 0,52")
-	assert_gte(Atmosphere.AMBIENT_ENERGY, 0.40)
+	assert_lte(Atmosphere.AMBIENT_ENERGY, 0.40, "IDENTIDADE-VISUAL §B.2: ambiente entre 0,30 e 0,40")
+	assert_gte(Atmosphere.AMBIENT_ENERGY, 0.30)
 	assert_gt(Atmosphere.AMBIENT_COLOR.b, Atmosphere.AMBIENT_COLOR.r, "tom azul-ardósia")
 
 

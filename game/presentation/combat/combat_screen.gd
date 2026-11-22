@@ -65,6 +65,7 @@ var _enemy_name: Label
 var _enemy_hp_bar: ProgressBar
 var _enemy_hp_label: Label
 var _intent_panel: PanelContainer
+var _intent_style: StyleBoxFlat
 var _intent_icon: Label
 var _intent_detail: Label
 var _log_label: Label
@@ -233,7 +234,7 @@ func _apply(event: CombatEvent) -> void:
 			else:
 				_intent_icon.text = "..."
 				_intent_detail.text = ""
-				_intent_panel.self_modulate = COLOR_CALM
+				_set_intent_tone(COLOR_CALM)
 		CombatEvent.Type.DAMAGE:
 			var on_enemy: bool = event.side != Combatant.PLAYER
 			if _stage != null:
@@ -306,18 +307,30 @@ func _play_defeat() -> void:
 	tween.tween_property(_enemy_shape, "modulate", Color(1, 1, 1, 0.0), 0.5 * time_scale)
 
 
+## Cor de ameaça do aviso do inimigo: na borda do cartão do palco (ou no painel inteiro, sem palco).
+func _set_intent_tone(color: Color) -> void:
+	if _intent_style != null:
+		_intent_style.border_color = color
+	elif _intent_panel != null:
+		_intent_panel.self_modulate = color
+
+
 func _show_intent(move_id: String, reason: int = 0) -> void:
 	var view: Dictionary = session.intent_view(move_id, reason)
-	_intent_icon.text = "%s  %s" % [view["icon"], view["name"]]
+	var icon_text: String = str(view["icon"])
+	var name_text: String = str(view["name"])
+	# "ATAQUE  Ataque" era texto duplicado (IDENTIDADE-VISUAL §A.1): só repete se o nome diz algo novo.
+	_intent_icon.text = icon_text if icon_text.to_lower() == name_text.to_lower() else "%s  %s" % [icon_text, name_text]
 	_intent_detail.text = str(view["detail"])
+	_intent_detail.visible = not _intent_detail.text.is_empty()
 	if bool(view["coin"]):
-		_intent_panel.self_modulate = COLOR_COIN
+		_set_intent_tone(COLOR_COIN)
 	elif bool(view["debuff"]):
-		_intent_panel.self_modulate = COLOR_DEBUFF
+		_set_intent_tone(COLOR_DEBUFF)
 	elif bool(view["dangerous"]):
-		_intent_panel.self_modulate = COLOR_DANGER
+		_set_intent_tone(COLOR_DANGER)
 	else:
-		_intent_panel.self_modulate = COLOR_CALM
+		_set_intent_tone(COLOR_CALM)
 
 
 ## Lance da moeda (GDD §7, ADR-0014): o jogador escolhe o lado vendo a chance, a moeda
@@ -556,7 +569,7 @@ func _build() -> void:
 		_enemy_shape.visible = false
 	_intent_panel = PanelContainer.new()
 	_intent_panel.add_theme_stylebox_override("panel", _box(Color.WHITE))
-	_intent_panel.self_modulate = COLOR_CALM
+	_set_intent_tone(COLOR_CALM)
 	column.add_child(_intent_panel)
 	var intent_box: VBoxContainer = VBoxContainer.new()
 	_intent_panel.add_child(intent_box)
@@ -878,7 +891,7 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> void:
 	bottom.add_child(log_panel)
 	for panel: Control in [_intent_panel, log_panel]:
 		panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		panel.modulate = Color(1, 1, 1, 0.88)
+		panel.modulate = Color(1, 1, 1, 0.94)
 	log_panel.custom_minimum_size = Vector2(0, 44)
 	_timeline.visible = false
 	_status_enemy = HBoxContainer.new()
@@ -905,8 +918,20 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> void:
 		var hover_button: Button = _buttons[action]
 		hover_button.mouse_entered.connect(func() -> void: _set_forecast(_forecast_for(action)))
 		hover_button.focus_entered.connect(func() -> void: _set_forecast(_forecast_for(action)))
-	_intent_icon.add_theme_font_size_override("font_size", 18)
+	_intent_icon.add_theme_font_size_override("font_size", 20)
 	_intent_detail.add_theme_font_size_override("font_size", 13)
+	# Aviso do inimigo como cartão escuro com borda de ameaça (vermelho, ouro, roxo), não faixa cinza.
+	_intent_style = StyleBoxFlat.new()
+	_intent_style.bg_color = Color(0.027, 0.03, 0.043, 0.82)
+	_intent_style.set_border_width_all(3)
+	_intent_style.set_corner_radius_all(6)
+	_intent_style.set_content_margin_all(8)
+	_intent_style.border_color = COLOR_CALM
+	_intent_panel.add_theme_stylebox_override("panel", _intent_style)
+	_intent_panel.self_modulate = Color.WHITE
+	_intent_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_intent_icon.add_theme_color_override("font_color", Color(0.92, 0.9, 0.84))
+	_intent_detail.add_theme_color_override("font_color", Color(0.72, 0.74, 0.8))
 	# As barras já trazem os números e os ícones de status ficam no palco: sem texto duplicado.
 	_player_stats.visible = false
 	_enemy_hp_label.visible = false

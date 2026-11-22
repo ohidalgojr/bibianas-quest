@@ -5,9 +5,9 @@ extends RefCounted
 ## a cena. Só apresentação.
 
 ## Energia da luz ambiente (o estudo pedia 0,40 a 0,52; era 0,72 a 0,85).
-const AMBIENT_ENERGY: float = 0.46
+const AMBIENT_ENERGY: float = 0.38
 ## Azul-ardósia frio `#1B2029` clareado o bastante para a luz ambiente.
-const AMBIENT_COLOR: Color = Color(0.17, 0.2, 0.28)
+const AMBIENT_COLOR: Color = Color(0.14, 0.17, 0.23)
 const FOG_COLOR: Color = Color(0.06, 0.075, 0.1)
 const FOG_DENSITY: float = 0.014
 
