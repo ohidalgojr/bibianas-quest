@@ -44,6 +44,10 @@ var _fog_now: PackedFloat32Array = PackedFloat32Array()
 var _fog_goal: PackedFloat32Array = PackedFloat32Array()
 var _cam_target: Vector3 = Vector3.ZERO
 var _walking: bool = false
+## Primeiro toque abre a prévia do destino, o segundo (ou "Caminhar") confirma (ADR-0048, D-UI-3).
+var preview_enabled: bool = DisplayServer.get_name() != "headless"
+var _previewed: int = -1
+var _preview_card: PanelContainer
 var _overlay: Control
 var _header: Label
 var _taps: Dictionary = {}
@@ -414,6 +418,10 @@ func button_for(node_id: int) -> Button:
 func _on_pick(node_id: int) -> void:
 	if _walking:
 		return
+	if preview_enabled and _previewed != node_id:
+		_show_preview(node_id)
+		return
+	_close_preview(false)
 	SoundFx.play(self, "step")
 	var from_cell: Vector2i = layout.node_cells[view.run.current_node_id]
 	var to_cell: Vector2i = layout.node_cells[node_id]
@@ -532,3 +540,75 @@ func _gear_slot(tex: Texture2D, tip: String, count: String) -> Control:
 		label.add_theme_font_size_override("font_size", 13)
 		row.add_child(label)
 	return frame
+
+
+## Mini-card do destino (D-UI-3): a câmera desliza até ele e o card diz o que o espera, com
+## "Caminhar" e "Voltar". Evita entrar sem querer numa elite ou emboscada.
+func _show_preview(node_id: int) -> void:
+	_close_preview(false)
+	_previewed = node_id
+	var info: Dictionary = {}
+	for entry: Dictionary in view.nodes():
+		if int(entry["id"]) == node_id:
+			info = entry
+	var node: MapNode = view.run.map.node_by_id(node_id)
+	_preview_card = PanelContainer.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.043, 0.047, 0.063, 0.92)
+	style.border_color = VisualTheme.COLOR_BORDER_BRONZE
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	style.set_content_margin_all(12)
+	_preview_card.add_theme_stylebox_override("panel", style)
+	_preview_card.anchor_left = 0.04
+	_preview_card.anchor_right = 0.96
+	_preview_card.anchor_top = 1.0
+	_preview_card.anchor_bottom = 1.0
+	_preview_card.offset_top = -190.0
+	_preview_card.offset_bottom = -16.0
+	var box: VBoxContainer = VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	_preview_card.add_child(box)
+	var title: Label = Label.new()
+	title.text = str(info.get("title", "Destino"))
+	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_color_override("font_color", Color(0.9, 0.75, 0.25))
+	box.add_child(title)
+	var detail: Label = Label.new()
+	detail.text = str(info.get("detail", ""))
+	detail.add_theme_font_size_override("font_size", 16)
+	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(detail)
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	box.add_child(row)
+	var back: Button = Button.new()
+	back.text = "Voltar"
+	back.custom_minimum_size = Vector2(0, 54)
+	back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	back.pressed.connect(func() -> void: _close_preview(true))
+	row.add_child(back)
+	var go: Button = Button.new()
+	go.text = "Caminhar"
+	go.custom_minimum_size = Vector2(0, 54)
+	go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	go.pressed.connect(func() -> void: _on_pick(node_id))
+	row.add_child(go)
+	add_child(_preview_card)
+	if time_scale > 0.0:
+		var start: Vector3 = _cam_target
+		var finish: Vector3 = _aim_point(node_id)
+		var tween: Tween = create_tween()
+		tween.tween_method(func(t: float) -> void: _set_camera_target(start.lerp(finish, t)), 0.0, 1.0, 0.35 / time_scale)
+
+
+func _close_preview(recenter: bool) -> void:
+	if _preview_card != null:
+		_preview_card.queue_free()
+		_preview_card = null
+	_previewed = -1
+	if recenter and time_scale > 0.0:
+		var start: Vector3 = _cam_target
+		var finish: Vector3 = _aim_point(view.run.current_node_id)
+		var tween: Tween = create_tween()
+		tween.tween_method(func(t: float) -> void: _set_camera_target(start.lerp(finish, t)), 0.0, 1.0, 0.3 / time_scale)

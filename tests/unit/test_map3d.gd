@@ -130,3 +130,27 @@ func test_walk_animation_reaches_the_destination_then_emits() -> void:
 	assert_signal_emitted_with_parameters(screen, "node_chosen", [target])
 	var goal: Vector3 = screen.layout.node_world(target)
 	assert_lt(screen._hero.position.distance_to(goal), 0.05, "a Bibiana chegou à praça")
+
+
+## ADR-0048 (D-UI-3): com a prévia ligada, o primeiro toque só abre o mini-card do destino.
+func test_first_tap_opens_a_preview_and_caminhar_confirms() -> void:
+	var run: RunState = RunState.new(DataLoader.load_all(), 5, "warrior", [], 0, null, false, [])
+	var view: MapView = MapView.new(run)
+	var screen: Map3DScreen = Map3DScreen.new()
+	screen.view = view
+	screen.time_scale = 0.0
+	screen.preview_enabled = true
+	add_child_autofree(screen)
+	var chosen: Array[int] = []
+	screen.node_chosen.connect(func(id: int) -> void: chosen.append(id))
+	var target: int = run.options()[0].id
+	screen.button_for(target).pressed.emit()
+	assert_true(chosen.is_empty(), "1º toque não caminha")
+	assert_not_null(screen._preview_card)
+	var go: Button = null
+	for node: Node in screen._preview_card.find_children("*", "Button", true, false):
+		if (node as Button).text == "Caminhar":
+			go = node
+	assert_not_null(go)
+	go.pressed.emit()
+	assert_eq(chosen, [target], "Caminhar confirma o destino")
