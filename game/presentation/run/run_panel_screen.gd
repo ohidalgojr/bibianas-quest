@@ -14,6 +14,7 @@ var time_scale: float = 1.0
 
 var _box: VBoxContainer
 var _mode: String = ""
+var _backdrop: Scene3DBackdrop
 
 
 func _ready() -> void:
@@ -22,6 +23,8 @@ func _ready() -> void:
 		var backdrop: Scene3DBackdrop = Scene3DBackdrop.new()
 		backdrop.kind = backdrop_kind
 		backdrop.time_scale = time_scale
+		backdrop.fire_lit = false
+		_backdrop = backdrop
 		add_child(backdrop)
 	var dim: ColorRect = ColorRect.new()
 	dim.color = Color(0.0, 0.0, 0.0, 0.0 if not backdrop_kind.is_empty() else 0.55)
@@ -191,6 +194,8 @@ func _render_shop() -> void:
 
 func _render_campfire() -> void:
 	var view: Dictionary = panels.campfire_view()
+	if _backdrop != null:
+		_backdrop.set_fire_lit(bool(view["lit"]))
 	_title("Fogueira")
 	if not bool(view["lit"]):
 		_text("A fogueira está apagada. %s" % str(view["status"]), 18)

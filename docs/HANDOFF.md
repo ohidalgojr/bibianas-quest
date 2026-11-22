@@ -1,6 +1,6 @@
 # HANDOFF
 
-Atualizado em 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2D vetorial, sem assets, visão de cima): o GDD manda tabuleiro isométrico 3D com kits CC0. Leia o ADR-0036 (análise de onde as instruções falharam) e `docs/ART-DIRECTION.md`. Estado: núcleo e regras prontos (TASK-001 a 034, suíte 348/348, `RULES_VERSION` = 20); **TASK-035 feita (kits CC0, prova isométrica, ferramenta de print; aguarda o seu OK ao print)**, seguem 036 a 040; TASK-014, 032 e 033 esperam.
+Atualizado em 2026-11-22 (melhorias do estudo do Gemini em andamento: TASK-055 feita, seguem as Ui-A a Ui-D). Antes: 2026-11-19. **O Orlando reprovou a apresentação da TASK-031** (2D vetorial, sem assets, visão de cima): o GDD manda tabuleiro isométrico 3D com kits CC0. Leia o ADR-0036 (análise de onde as instruções falharam) e `docs/ART-DIRECTION.md`. Estado: núcleo e regras prontos (TASK-001 a 034, suíte 348/348, `RULES_VERSION` = 20); **TASK-035 feita (kits CC0, prova isométrica, ferramenta de print; aguarda o seu OK ao print)**, seguem 036 a 040; TASK-014, 032 e 033 esperam.
 - **`TASK-029` (`b08098f`), `TASK-026` (`09b6a04`), `TASK-027` (`35d06b4`), `TASK-028` (`5ccfeb6`), `TASK-030` (`9fa4254`) e `TASK-031`**: **100% concluídas, validadas (315/315 testes em 40 scripts) e enviadas para `origin/main`**.
 - **Numeração:** as tarefas de calibração e do portão da Fase 1 (propostas pelo Claude) são a TASK-032 e a TASK-033; as TASK-030 e 031 são as do Argon.
 
@@ -123,6 +123,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-052 | Primeiro mapa curto como tutorial-gancho (sem facilitar) e dificuldade gradual nos demais (`docs/FEEDBACK.md` F-020) | agente (após MVP visual / decisão do Orlando) | aberta; diretriz registrada em `CLAUDE.md` e `AGENTS.md` |
 | 12 | TASK-053 | Algoritmo próprio Terrace-Grammar-Constraint para cenários 3D coerentes (mapa + combate + backdrops, ADR-0041) | em verificação | 9 prints `docs/tasks/prints/TASK-053-*.png` e executável gerados (< 50k primitivas); aguarda OK do Orlando |
 | 12 | TASK-054 | Conceito visual Nano Banana (`O Perseguidor Coroado`, 5 pranchas) e dossiê 3D/Nemesis do Roaming Boss (`F-023`, `ADR-0042`) | em verificação | aguarda OK visual do Orlando em `docs/design/ROAMING-BOSS-perseguidor-coroado.md` antes de modelar `.glb` |
+| 12 | TASK-055 | Atmosfera do estudo (D-ART-1/2/3, D-UI-5): ambiente frio, neblina, foco quente, dithering Bayer, fogueira apagada até acender | agente | em verificação (prints `docs/tasks/prints/TASK-055-*.png`) |
 | 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
 | 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
@@ -157,6 +158,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
 | ADR | Decisão | Status |
 | --- | --- | --- |
+| 0043 | Atmosfera comum (ambiente 0,46 azul-ardósia, neblina, foco quente no combate, dithering Bayer, desfoque 0,35 no combate) e fogueira 3D sincronizada com o estado aceso | Aceito (TASK-055) |
 | 0042 | Cânone visual obrigatório para todo asset (`F-022`): craft/cenários/profundidade de Sword of Convallaria (nº 1), Tactics Ogre, Triangle Strategy, Octopath Traveler, Ragnarok Online e Buriedbornes sob atmosfera dark gótica de Bloodborne (prioridade máxima) e Dark Souls; descritores originais sem citar jogos em prompts IA | Aceito (Orlando, 2026-11-21) |
 | 0001 | Godot 4.7, GDScript com tipagem obrigatória, Compatibility, retrato 540×960 com `keep_width` | Aceito |
 | 0002 | `project.godot` na raiz; núcleo sem nós, verificado por teste; identificadores em inglês; vault na raiz | Aceito |

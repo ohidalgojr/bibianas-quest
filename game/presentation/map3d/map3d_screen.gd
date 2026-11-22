@@ -102,9 +102,8 @@ func _build_environment() -> void:
 	var env: Environment = Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.024, 0.028, 0.044)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.24, 0.28, 0.39)
-	env.ambient_light_energy = 0.85
+	Atmosphere.apply(env, false)
+	env.ambient_light_energy = 0.62
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 0.56
 	env.adjustment_contrast = 1.18

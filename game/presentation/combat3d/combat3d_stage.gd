@@ -40,7 +40,7 @@ func _ready() -> void:
 	container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(container)
-	PostFx.apply(container)
+	PostFx.apply(container, PostFx.COMBAT_BLUR)
 	_viewport = SubViewport.new()
 	_viewport.size = Vector2i(270, 300)
 	_viewport.msaa_3d = Viewport.MSAA_DISABLED
@@ -75,9 +75,7 @@ func _build_environment() -> void:
 	var env: Environment = Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.02, 0.024, 0.038)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.24, 0.28, 0.40)
-	env.ambient_light_energy = 0.72
+	Atmosphere.apply(env)
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 0.56
 	env.adjustment_contrast = 1.2
@@ -96,6 +94,7 @@ func _build_environment() -> void:
 	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
 	moon.directional_shadow_max_distance = 35.0
 	_world.add_child(moon)
+	_world.add_child(Atmosphere.make_focus_spot(CAM_TARGET))
 
 
 ## Monta o palco de uma luta. `kind` é o [enum MapNode.Kind] do nó (usa -1 para a luta de teste).
