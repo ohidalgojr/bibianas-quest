@@ -22,11 +22,11 @@ func test_width_follows_layer_count() -> void:
 	assert_eq(MapConfig.for_layers(9).width, 5)
 
 
-func test_scenarios_grow_from_6_to_10_layers() -> void:
-	var expected: Array[int] = [6, 7, 8, 9, 10]
+func test_scenarios_grow_from_4_to_10_layers() -> void:
+	var expected: Array[int] = [4, 6, 7, 8, 10]
 	for scenario: int in range(1, 6):
 		assert_eq(MapConfig.for_scenario(scenario).layer_count, expected[scenario - 1])
-	assert_eq(MapConfig.for_scenario(0).layer_count, 6)
+	assert_eq(MapConfig.for_scenario(0).layer_count, 4)
 	assert_eq(MapConfig.for_scenario(99).layer_count, 10)
 
 

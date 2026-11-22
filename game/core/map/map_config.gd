@@ -31,9 +31,13 @@ static func for_layers(layers: int) -> MapConfig:
 	return config
 
 
-## Cenário 1 tem 6 camadas, crescendo até 10 no cenário 5 (GDD §5, ADR-0027).
+## GDD §5, ADR-0049: o cenário 1 é curto (4 camadas, tutorial-gancho) e os seguintes crescem
+## gradualmente até 10 no cenário 5.
+const SCENARIO_LAYERS: Array[int] = [4, 6, 7, 8, 10]
+
+
 static func for_scenario(scenario: int) -> MapConfig:
-	return for_layers(5 + clampi(scenario, 1, 5))
+	return for_layers(SCENARIO_LAYERS[clampi(scenario, 1, 5) - 1])
 
 
 ## Quantas camadas iniciais não podem ter elite.

@@ -39,7 +39,7 @@ func test_run_starts_on_the_map() -> void:
 	assert_eq(run.mp, 20)
 	assert_eq(run.consumable_count("murky_potion"), 2)
 	assert_eq(run.options().size(), 3, "três destinos (GDD §5)")
-	assert_eq(run.map.layer_count, 6, "cenário 1 com 6 camadas (ADR-0027)")
+	assert_eq(run.map.layer_count, 4, "cenário 1 com 4 camadas (ADR-0049)")
 	assert_eq(run.map.boss_node().enemy_id, "gravedigger")
 	assert_eq(run.map.boss_node().level, 6)
 	for node: MapNode in run.map.nodes:

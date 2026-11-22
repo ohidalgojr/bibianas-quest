@@ -72,7 +72,7 @@ func test_different_seeds_give_different_maps() -> void:
 
 func test_golden_maps_pin_the_generation() -> void:
 	# Se estes textos mudarem, as Descidas gravadas mudaram: exige ADR e RULES_VERSION.
-	assert_eq(_generate(12345, MapConfig.for_scenario(1)).signature(), "6x4@1/VABV/BACV/CEFB/BBVB/CFVB/EBBB")
+	assert_eq(_generate(12345, MapConfig.for_scenario(1)).signature(), "4x4@1/BVAB/VBAC/BFVE/EBEB")
 	assert_eq(_generate(12345, MapConfig.for_scenario(5)).signature(), "10x5@2/BVBAC/VFVVB/AABBA/VBVCC/BBBAA/BAFAB/BEBVC/AVBBA/BAFCE/ECVBB")
 
 

@@ -112,7 +112,7 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 
 ### Estrutura
 
-- O cenário tem N camadas de nós mais o chefe: 6 camadas no cenário 1, crescendo até 10 no cenário 5 (ADR-0027).
+- O cenário tem N camadas de nós mais o chefe: 4 camadas no cenário 1 (tutorial-gancho curto, sem inimigos mais fracos), depois 6, 7, 8 e 10 até o cenário 5 (ADR-0049, que revisa o ADR-0027).
 - **Diretriz em revisão (TASK-052, F-020):** o primeiro mapa será mais curto (ritmo de gancho/tutorial, sem ficar mais fácil) e os demais mapas crescerão gradativamente em extensão e dificuldade; a mudança nos números entra com ADR próprio e incremento de `RULES_VERSION`.
 - Cada camada tem largura W (4 para 5 a 6 camadas, 5 para 7 a 9). Cada nó liga a 3 nós consecutivos da camada seguinte, em uma janela deslizante limitada às bordas. Assim há sempre 3 opções, e a rota escolhida muda quais 3 opções aparecem depois.
 - As duas últimas camadas convergem para o portal do chefe. A penúltima sempre oferece uma fogueira em pelo menos uma das três opções.
