@@ -10,6 +10,14 @@ O projeto não tem falta de documento de arte. Tem excesso de lista de referênc
 
 ---
 
+## Regras do dono que valem acima de todo o resto (2026-11-22)
+
+1. **Nada fofo, nada tosco.** A direção principal do jogo é **mundo sombrio** (mundo morrendo, gótico, adulto). Personagem chibi, cabeça redonda de brinquedo, olho grande ou cor de maquete são reprovação automática.
+2. **Retro não significa tosco.** Facetado de PS1/PS2 é aceito; primitiva empilhada, haste fina, forma chapada e proporção de boneco não são.
+3. **Os modelos dos kits de PERSONAGEM (Kenney, Quaternius, KayKit) não servem de corpo**, porque são chibi. Kit só serve para arquitetura e props (paredes, arcos, colunas, caixões, lampiões, grades), sempre escurecido, envelhecido e multiplicado pela paleta.
+4. **O alvo visual dos inimigos são os conceitos registrados no estudo do Gemini** (`docs/design/refs/inimigos/01..08`, `docs/design/refs/roaming-boss/`, especificações YAML em `ESTUDO-ui-mobile-inimigos-estetica.md` §4.2 a §4.9) e a estética da Parte 5 do mesmo estudo, com as imagens de `docs/design/refs/estetica/`. O modelo tem que parecer a versão 3D daquela pintura, na escala do jogo.
+5. A Bibiana também entra na régua: o capacete de boneco do KayKit é candidato a refazer (decisão registrada na lista de pendências da TASK-062).
+
 ## A. Diagnóstico brutal (o que os prints mostram)
 
 **Causa-raiz única:** a câmera, a luz e a escala estão de acordo com um *tabuleiro tático visto de longe*, mas o jogo é um *duelo 1x1* e um *mapa de 3 escolhas*. Tudo o que o Orlando quer (inimigo assustador, cenário com sentido) exige câmera perto e luz com intenção. Hoje o jogo mostra o mundo pequeno e uniformemente esmaecido.
