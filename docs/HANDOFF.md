@@ -122,6 +122,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-051 | Estudo de UI mobile, 8 inimigos dark fantasy (Nano Banana + spec Blender) e estética de mundo morrendo (`docs/design/ESTUDO-ui-mobile-inimigos-estetica.md`) | Orlando decide | em verificação (aguardando decisões da Parte 6 antes do código) |
 | 12 | TASK-052 | Primeiro mapa curto como tutorial-gancho (sem facilitar) e dificuldade gradual nos demais (`docs/FEEDBACK.md` F-020) | agente (após MVP visual / decisão do Orlando) | aberta; diretriz registrada em `CLAUDE.md` e `AGENTS.md` |
 | 12 | TASK-053 | Algoritmo próprio Terrace-Grammar-Constraint para cenários 3D coerentes (mapa + combate + backdrops, ADR-0041) | em verificação | 9 prints `docs/tasks/prints/TASK-053-*.png` e executável gerados (< 50k primitivas); aguarda OK do Orlando |
+| 12 | TASK-054 | Conceito visual Nano Banana (`O Perseguidor Coroado`, 5 pranchas) e dossiê 3D/Nemesis do Roaming Boss (`F-023`, `ADR-0042`) | em verificação | aguarda OK visual do Orlando em `docs/design/ROAMING-BOSS-perseguidor-coroado.md` antes de modelar `.glb` |
 | 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
 | 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
