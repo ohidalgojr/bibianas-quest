@@ -45,6 +45,8 @@ const MOVE_ID_NAMES: Dictionary = {
 	"sway_kick": "Chute Pendurado",
 	"wrecking_arm": "Braço Remendado",
 	"stitch_rip": "Costura Rasgada",
+	"sulfur_smoke": "Defumação de Enxofre",
+	"censer_swing": "Balanço do Turíbulo",
 	"gnaw": "Roer",
 	"swarm_bite": "Mordida do Enxame",
 	"plague_squeal": "Guincho da Peste",
