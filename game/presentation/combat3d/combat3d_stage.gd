@@ -8,11 +8,17 @@ extends Control
 const K_MINI: String = "res://assets/kenney/mini_dungeon/"
 const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const SHRINK: int = 2
-const CAM_SIZE: float = 6.6
-const CAM_OFFSET: Vector3 = Vector3(1.0, 0.8, 1.0) * 16.0
-const CAM_TARGET: Vector3 = Vector3(0.0, 1.9, 0.0)
-const ENEMY_POS: Vector3 = Vector3(-1.4, 0.9, -1.4)
-const PLAYER_POS: Vector3 = Vector3(0.2, 0.9, 2.9)
+## Câmera de duelo (ADR-0050, IDENTIDADE-VISUAL §C.1): perto e baixa, o inimigo é o herói do quadro.
+const CAM_SIZE: float = 3.9
+const CAM_OFFSET: Vector3 = Vector3(1.0, 0.62, 1.0) * 16.0
+const CAM_TARGET: Vector3 = Vector3(-0.5, 1.75, -0.4)
+const ENEMY_POS: Vector3 = Vector3(-0.9, 0.9, -1.0)
+const PLAYER_POS: Vector3 = Vector3(0.9, 0.9, 2.8)
+## Alturas de pé em unidades (inimigo comum, elite, chefe e Bibiana).
+const HEIGHT_COMMON: float = 2.5
+const HEIGHT_ELITE: float = 3.0
+const HEIGHT_BOSS: float = 3.6
+const HEIGHT_PLAYER: float = 1.45
 const ENEMY_YAW: float = 45.0
 const PLAYER_YAW: float = 225.0
 const ARENA_HALF: int = 5
@@ -76,6 +82,9 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.02, 0.024, 0.038)
 	Atmosphere.apply(env)
+	# O duelo precisa de mais ambiente que as outras cenas: o palco é fechado e as peças vêm tingidas.
+	env.ambient_light_energy = 0.62
+	env.fog_density = 0.007
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 0.56
 	env.adjustment_contrast = 1.2
@@ -87,14 +96,21 @@ func _build_environment() -> void:
 	holder.environment = env
 	_world.add_child(holder)
 	var moon: DirectionalLight3D = DirectionalLight3D.new()
-	moon.light_color = Color(0.62, 0.70, 0.95)
-	moon.light_energy = 1.1
-	moon.rotation_degrees = Vector3(-50, 30, 0)
+	# Luar de aço rasante vindo de trás do inimigo: recorta a silhueta (IDENTIDADE-VISUAL §B.2).
+	moon.light_color = Color("7E8FA8")
+	moon.light_energy = 0.7
+	moon.rotation_degrees = Vector3(-35, 225, 0)
 	moon.shadow_enabled = true
 	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
 	moon.directional_shadow_max_distance = 35.0
 	_world.add_child(moon)
-	_world.add_child(Atmosphere.make_focus_spot(CAM_TARGET))
+	# Preenchimento frio vindo da câmera, sem sombra: as paredes do fundo ainda se leem.
+	var fill: DirectionalLight3D = DirectionalLight3D.new()
+	fill.light_color = Color("7E8FA8")
+	fill.light_energy = 0.55
+	fill.rotation_degrees = Vector3(-30, 45, 0)
+	_world.add_child(fill)
+	_world.add_child(Atmosphere.make_focus_spot(ENEMY_POS + Vector3(0.0, 1.6, 0.0), 7.0))
 
 
 ## Monta o palco de uma luta. `kind` é o [enum MapNode.Kind] do nó (usa -1 para a luta de teste).
@@ -113,22 +129,16 @@ func setup(enemy_id: String, kind: int, mutation: String = "") -> void:
 func _build_arena(kind: int) -> void:
 	var boss: bool = kind == MapNode.Kind.BOSS or kind == MapNode.Kind.MINI_BOSS
 	var focal_kind: String = "combat_boss" if boss else ("combat_elite" if kind == MapNode.Kind.ELITE else "combat_common")
-	var bp: ScenarioBlueprint = ScenarioGenerator.generate_focal_diorama(focal_kind, 7)
-	ScenarioRenderer.render(_scene_root, bp, true)
-	var warm: OmniLight3D = OmniLight3D.new()
-	warm.light_color = Color(1.0, 0.36, 0.16) if boss else Color(1.0, 0.54, 0.22)
-	warm.light_energy = 2.6
-	warm.omni_range = 6.8
-	warm.position = Vector3(-0.3, 1.8, 0.5)
-	_scene_root.add_child(warm)
+	# Arena de duelo composta (ADR-0050): canto de nave gótica, não o diorama procedural.
+	DuelArena.build(_scene_root, focal_kind)
 
 
 func _spawn_actors(kind: int) -> void:
 	player_node = ModelRegistry.spawn("bibiana")
 	player_node.position = PLAYER_POS
 	player_node.rotation_degrees.y = PLAYER_YAW
-	player_node.scale = Vector3.ONE * 1.9
 	_scene_root.add_child(player_node)
+	player_node.scale = Vector3.ONE * _scale_to_height(player_node, HEIGHT_PLAYER, 1.0)
 	ModelRegistry.play(player_node, "bibiana", "idle")
 	if not ModelRegistry.has_model(_enemy_id):
 		return
@@ -136,14 +146,22 @@ func _spawn_actors(kind: int) -> void:
 	enemy_node.position = ENEMY_POS
 	enemy_node.rotation_degrees.y = ENEMY_YAW + ModelRegistry.yaw_offset(_enemy_id)
 	var boss: bool = kind == MapNode.Kind.BOSS or kind == MapNode.Kind.MINI_BOSS
-	# Escala pela maior dimensão do modelo: o rato, o cão e o carrasco ocupam o mesmo palco.
-	var target: float = 2.4 if boss else (2.1 if kind == MapNode.Kind.ELITE else 1.9)
-	var box: AABB = _aabb(enemy_node)
-	var longest: float = maxf(box.size.x, maxf(box.size.y, box.size.z))
-	_enemy_scale = target / longest if longest > 0.05 else 2.4
-	enemy_node.scale = Vector3.ONE * _enemy_scale
+	# Escala pela altura de pé (a criatura alta lê alta), com teto para as largas (cão, rato).
+	var target: float = HEIGHT_BOSS if boss else (HEIGHT_ELITE if kind == MapNode.Kind.ELITE else HEIGHT_COMMON)
 	_scene_root.add_child(enemy_node)
+	_enemy_scale = _scale_to_height(enemy_node, target, 1.7)
+	enemy_node.scale = Vector3.ONE * _enemy_scale
 	ModelRegistry.play(enemy_node, _enemy_id, "idle")
+
+
+## Fator de escala que leva a altura do modelo a [param height], sem deixar a maior dimensão passar de
+## [param max_ratio] vezes essa altura.
+func _scale_to_height(node: Node3D, height: float, max_ratio: float) -> float:
+	var box: AABB = _aabb(node)
+	var longest: float = maxf(box.size.x, maxf(box.size.y, box.size.z))
+	if box.size.y < 0.05 or longest < 0.05:
+		return 2.0
+	return minf(height / box.size.y, height * max_ratio / longest)
 
 
 ## Posição de tela (coordenadas deste `Control`) do alvo, para números de dano e ícones.
