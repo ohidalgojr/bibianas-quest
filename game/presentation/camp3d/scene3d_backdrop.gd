@@ -22,6 +22,10 @@ var _bases: Array[float] = []
 var _flicker_time: float = 0.0
 
 var _hero_power: float = 1.0
+## Fogueira acesa (D-UI-5): apagada, só brasa fraca; acesa, chama, faíscas e luz forte.
+var fire_lit: bool = true
+var _fire_parts: Array[Node3D] = []
+var _fire_light: OmniLight3D
 
 
 func _ready() -> void:
@@ -60,9 +64,9 @@ func _build_environment() -> void:
 	var env: Environment = Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.02, 0.024, 0.038)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.22, 0.28, 0.42) if cold else Color(0.25, 0.29, 0.40)
-	env.ambient_light_energy = 0.75
+	Atmosphere.apply(env)
+	if cold:
+		env.ambient_light_color = Color(0.15, 0.2, 0.3)
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 0.56
 	env.adjustment_contrast = 1.2
@@ -168,15 +172,17 @@ func _embers(pos: Vector3) -> void:
 	particles.emission_sphere_radius = 0.25
 	particles.position = pos
 	_world.add_child(particles)
+	_fire_parts.append(particles)
 
 
 ## Fogueira (referência Darkest Dungeon): a Bibiana sentada junto ao fogo diante do abrigo em ruína.
 func _build_campfire() -> void:
 	var center: Vector3 = Vector3(0, 0.93, 0.2)
 	StageKit.place(_world, K_GRAVE + "fire-basket.glb", center, 0.0, 3.0)
-	_warm(Vector3(0, 1.5, 0.2), 6.2, Color(1.0, 0.45, 0.15), 8.0)
+	_fire_light = _warm(Vector3(0, 1.5, 0.2), 6.2, Color(1.0, 0.45, 0.15), 8.0)
 	_embers(Vector3(0, 1.3, 0.2))
 	_flame(Vector3(0, 1.0, 0.2), 1.0)
+	set_fire_lit(fire_lit)
 	_hero(Vector3(0.1, 0.93, 2.0), 180.0, "Sit_Floor_Idle", 2.0)
 	_aim(Vector3(0.1, 1.3, 0.1), 6.2)
 
@@ -251,6 +257,20 @@ func _build_defeat() -> void:
 	_aim(Vector3(-0.2, 1.1, -0.2), 6.0)
 
 
+## Acende ou apaga a fogueira da cena (só a de `kind == "campfire"` tem peças de fogo).
+func set_fire_lit(lit: bool) -> void:
+	fire_lit = lit
+	if kind != "campfire":
+		return
+	for part: Node3D in _fire_parts:
+		part.visible = lit
+	if _fire_light != null:
+		var index: int = _lights.find(_fire_light)
+		if index >= 0:
+			_bases[index] = 6.2 if lit else 0.5
+			_fire_light.light_energy = _bases[index]
+
+
 func _process(delta: float) -> void:
 	if time_scale <= 0.0:
 		return
@@ -289,3 +309,4 @@ func _flame(pos: Vector3, factor: float) -> void:
 		flame.scale = Vector3.ONE * factor * (1.7 - 0.25 * float(i))
 		flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_world.add_child(flame)
+		_fire_parts.append(flame)
