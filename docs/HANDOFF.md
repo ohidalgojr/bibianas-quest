@@ -127,6 +127,7 @@ Ordem sugerida; cada item tem arquivo de tarefa ou é feito pelo Orlando. Antes 
 | 12 | TASK-056 | Combate mobile: gavetas Habilidades/Itens/Tático, confirmação em dois toques, palco maior (D-UI-1/2) | agente | em verificação (print `docs/tasks/prints/TASK-056-combate.png`; falta jogar no celular) |
 | 12 | TASK-057 | Turiferário Cego: 1º inimigo do estudo, modelo Blender aceito por agente crítico (3 rodadas), ficha ENEMY-15 | agente | em verificação (print `docs/tasks/prints/TASK-057-turiferario.png`); próximos: Médico da Cera e Rastejador da Vala |
 | 12 | TASK-058 | Médico da Cera e Rastejador da Vala (modelos Blender aceitos por agente crítico, fichas ENEMY-16 e 17) | agente | em verificação (prints `docs/tasks/prints/TASK-058-*.png`) |
+| 12 | TASK-059 | Menus em bottom sheet: alça, rodapé fixo, loja em cartões 2x2, pinos de Brasas (Ui-C parcial) | agente | em verificação (prints `docs/tasks/prints/TASK-059-*.png`); faltam prévia de nó no mapa e Home/Santuário (Ui-D) |
 | 12 | TASK-043 | Ícones, cartões, barras, status, inventário e xN | agente | em verificação |
 | 12 | TASK-044 | Ícones e cartões; modelos próprios e 4 inimigos novos | agente | em verificação (ver as tarefas) |
 | 12 | TASK-042 | Atmosfera: tema de UI dark fantasy, som ambiente, cinzas, relâmpago, transições | agente | feedback "parece RPG de texto": em verificação |
@@ -161,6 +162,7 @@ Regra do pedido: ao fim de cada tarefa, parar e mostrar o resumo.
 
 | ADR | Decisão | Status |
 | --- | --- | --- |
+| 0047 | Menus da Descida em bottom sheet com rodapé fixo e cartões 2x2 na loja | Aceito (TASK-059) |
 | 0046 | Médico da Cera (cura 12%) e Rastejador da Vala (rápido e frágil) entram na Cidade Abandonada | Aceito (TASK-058) |
 | 0045 | Turiferário Cego entra na Cidade Abandonada; revisão crítica por agente obrigatória para modelos novos (`tools/blender/render_preview.py`) | Aceito (TASK-057) |
 | 0044 | Combate mobile: Atacar/Defender fixos, gavetas por aba, skill/item/Fugir com 2 toques (previsão no 1º), sem texto duplicado | Aceito (TASK-056) |

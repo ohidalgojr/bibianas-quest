@@ -12,7 +12,11 @@ var forced_coin: int = -1
 var backdrop_kind: String = ""
 var time_scale: float = 1.0
 
+## Altura em que o bottom sheet começa (o diorama 3D fica com o resto, D-UI-3).
+const SHEET_TOP: float = 0.46
+
 var _box: VBoxContainer
+var _footer: HBoxContainer
 var _mode: String = ""
 var _backdrop: Scene3DBackdrop
 
@@ -40,7 +44,7 @@ func _ready() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	panel.anchor_left = 0.04
 	panel.anchor_right = 0.96
-	panel.anchor_top = 0.1 if backdrop_kind.is_empty() else 0.5
+	panel.anchor_top = 0.1 if backdrop_kind.is_empty() else SHEET_TOP
 	panel.anchor_bottom = 0.9 if backdrop_kind.is_empty() else 0.98
 	add_child(panel)
 	_box = VBoxContainer.new()
@@ -48,11 +52,25 @@ func _ready() -> void:
 	if backdrop_kind.is_empty():
 		panel.add_child(_box)
 	else:
+		# Bottom sheet (ADR-0047): alça, conteúdo rolável e rodapé fixo com a ação principal.
+		var sheet: VBoxContainer = VBoxContainer.new()
+		sheet.add_theme_constant_override("separation", 8)
+		panel.add_child(sheet)
+		var handle_row: CenterContainer = CenterContainer.new()
+		sheet.add_child(handle_row)
+		var handle: ColorRect = ColorRect.new()
+		handle.color = VisualTheme.COLOR_BORDER_BRONZE
+		handle.custom_minimum_size = Vector2(56, 5)
+		handle_row.add_child(handle)
 		var scroll: ScrollContainer = ScrollContainer.new()
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		scroll.add_child(_box)
-		panel.add_child(scroll)
+		sheet.add_child(scroll)
+		_footer = HBoxContainer.new()
+		_footer.add_theme_constant_override("separation", 8)
+		sheet.add_child(_footer)
 	_render()
 
 
@@ -87,9 +105,12 @@ func show_event() -> void:
 
 
 func _render() -> void:
-	for child: Node in _box.get_children():
-		_box.remove_child(child)
-		child.queue_free()
+	for container: Container in [_box, _footer]:
+		if container == null:
+			continue
+		for child: Node in container.get_children():
+			container.remove_child(child)
+			child.queue_free()
 	match _mode:
 		"reward":
 			_render_reward()
@@ -111,7 +132,7 @@ func _render_reward() -> void:
 	var drop: Dictionary = view["drop"]
 	if not drop.is_empty():
 		_render_drop(drop)
-	_button("Continuar (vende o drop)" if not drop.is_empty() else "Continuar", func() -> void: closed.emit())
+	_footer_button("Continuar (vende o drop)" if not drop.is_empty() else "Continuar", func() -> void: closed.emit())
 
 
 ## Equipamento caído: raridade, efeito, mudança de atributos e Equipar ou Vender.
@@ -152,7 +173,7 @@ func _render_chest() -> void:
 			panels.boost_chest("ad")
 			_render(), IconRegistry.texture_for("ui", "gold"))
 		ad.disabled = not bool(view["can_ad"])
-	_button("Seguir", func() -> void: closed.emit())
+	_footer_button("Seguir", func() -> void: closed.emit())
 
 
 func _render_shop() -> void:
@@ -162,34 +183,38 @@ func _render_shop() -> void:
 	var offer: Array = view["offer"]
 	if offer.is_empty():
 		_text("Nada mais à venda.")
+	var grid: GridContainer = _card_grid()
 	for entry: Dictionary in offer:
-
-		var label: String = "%s (%s), %d ouro
-%s" % [str(entry["name"]), str(entry["slot"]), int(entry["price"]), str(entry["description"])]
+		var label: String = "%s
+%s
+%s
+%d ouro" % [str(entry["name"]), str(entry["slot"]), str(entry["description"]), int(entry["price"])]
 		if not bool(entry["can_buy"]):
-			label += " (%s)" % str(entry["reason"])
+			label += "
+(%s)" % str(entry["reason"])
 		var item_id: String = str(entry["id"])
-		var buy: Button = _button(label, func() -> void:
+		var buy: Button = _card(grid, label, func() -> void:
 			panels.buy(item_id)
 			_render(), IconRegistry.texture_for("item", item_id))
 		buy.disabled = not bool(entry["can_buy"])
 	var skill: Dictionary = view["skill"]
 	if not skill.is_empty():
-		var skill_title: Label = _text("Skill: %s (%d MP). %s. %s" % [str(skill["name"]), int(skill["cost"]),
-			str(skill["description"]), str(skill["slots"])], 16)
-		skill_title.add_theme_color_override("font_color", Color(0.75, 0.6, 0.95))
-		var learn_label: String = "Aprender %s: %d ouro" % [str(skill["name"]), int(skill["price"])]
+		var learn_label: String = "%s (%d MP)
+%s
+%s
+%d ouro" % [str(skill["name"]), int(skill["cost"]), str(skill["description"]), str(skill["slots"]), int(skill["price"])]
 		if not bool(skill["can_buy"]):
-			learn_label += " (%s)" % str(skill["reason"])
-		var learn: Button = _button(learn_label, func() -> void:
+			learn_label += "
+(%s)" % str(skill["reason"])
+		var learn: Button = _card(grid, learn_label, func() -> void:
 			panels.buy_skill()
 			_render(), IconRegistry.texture_for("skill", str(skill["id"])))
 		learn.disabled = not bool(skill["can_buy"])
-	var reroll: Button = _button("Atualizar loja: %d ouro" % int(view["reroll_cost"]), func() -> void:
+	var reroll: Button = _footer_button("Atualizar: %d ouro" % int(view["reroll_cost"]), func() -> void:
 		panels.reroll()
 		_render())
 	reroll.disabled = not bool(view["can_reroll"])
-	_button("Seguir", func() -> void: closed.emit())
+	_footer_button("Seguir", func() -> void: closed.emit())
 
 
 func _render_campfire() -> void:
@@ -205,9 +230,10 @@ func _render_campfire() -> void:
 		light.disabled = not bool(view["can_light"])
 		if not bool(view["can_light"]):
 			_text("Sem Galhos Secos não dá para acender. Eles caem raro de inimigos, baús e chefes, ou se compram na loja.", 16)
-		_button("Seguir", func() -> void: closed.emit())
+		_footer_button("Seguir", func() -> void: closed.emit())
 		return
-	_text("Brasas: %d. %s" % [int(view["embers"]), str(view["status"])])
+	_text(_ember_pins(int(view["embers"])), 26)
+	_text(str(view["status"]), 16)
 	var rest: Button = _button("Descansar (%d Brasas)" % int(view["rest_cost"]), func() -> void:
 		panels.rest()
 		_render(), IconRegistry.texture_for("ui", "embers"))
@@ -232,7 +258,7 @@ func _render_campfire() -> void:
 		if int(entry["left"]) > 0:
 			detail += ". Ativa por mais %d lutas" % int(entry["left"])
 		_text(detail, 16)
-	_button("Seguir", func() -> void: closed.emit())
+	_footer_button("Seguir", func() -> void: closed.emit())
 
 
 func _render_event() -> void:
@@ -248,7 +274,7 @@ func _render_event() -> void:
 		var drop: Dictionary = view["drop"]
 		if not drop.is_empty():
 			_render_drop(drop)
-		_button("Seguir (vende o drop)" if not drop.is_empty() else "Seguir", func() -> void: closed.emit())
+		_footer_button("Seguir (vende o drop)" if not drop.is_empty() else "Seguir", func() -> void: closed.emit())
 		return
 	for choice: Dictionary in view["choices"]:
 		var idx: int = int(choice["index"])
@@ -296,3 +322,53 @@ func _button(text: String, action: Callable, icon: Texture2D = null) -> Button:
 	button.pressed.connect(action)
 	_box.add_child(button)
 	return button
+
+
+## Rodapé fixo do sheet (ação principal sempre à vista); sem sheet cai no fim do conteúdo.
+func _footer_button(text: String, action: Callable) -> Button:
+	if _footer == null:
+		return _button(text, action)
+	var button: Button = Button.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(0, 58)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.pressed.connect(action)
+	_footer.add_child(button)
+	return button
+
+
+func _card_grid() -> GridContainer:
+	var grid: GridContainer = GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_box.add_child(grid)
+	return grid
+
+
+## Cartão de item (D-UI-3, loja em grade 2x2): ícone no alto, nome, efeito e preço.
+func _card(grid: GridContainer, text: String, action: Callable, icon: Texture2D = null) -> Button:
+	var button: Button = Button.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(0, 150)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.add_theme_font_size_override("font_size", 15)
+	if icon != null:
+		button.icon = icon
+		button.expand_icon = true
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		button.add_theme_constant_override("icon_max_width", 40)
+		button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	button.pressed.connect(action)
+	grid.add_child(button)
+	return button
+
+
+## Pinos de Brasas acesas e apagadas: "●●●○○○  3/6" (D-UI-4).
+static func _ember_pins(embers: int) -> String:
+	var total: int = maxi(RunRules.EMBERS, embers)
+	return "%s%s   %d/%d Brasas" % ["●".repeat(embers), "○".repeat(total - embers), embers, total]
