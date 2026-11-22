@@ -58,6 +58,10 @@ var _mute: MuteButton
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	theme = DarkTheme.build()
+	# Todo botão do jogo ganha fonte por tamanho do texto, alvo de 48 px, escala ao toque e vibração.
+	get_tree().node_added.connect(func(node: Node) -> void:
+		if node is Button:
+			DarkTheme.polish_button(node as Button))
 	if data == null:
 		data = DataLoader.load_all()
 	if save_enabled:

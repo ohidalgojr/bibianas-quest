@@ -77,27 +77,39 @@ func _build_environment() -> void:
 	var holder: WorldEnvironment = WorldEnvironment.new()
 	holder.environment = env
 	_world.add_child(holder)
+	env.ambient_light_color = Color("1B2029")
+	env.ambient_light_energy = 2.8
 	var moon: DirectionalLight3D = DirectionalLight3D.new()
-	moon.light_color = Color(0.62, 0.70, 0.94)
-	moon.light_energy = 1.05
-	moon.rotation_degrees = Vector3(-50, 30, 0)
+	moon.light_color = Color("7E8FA8")
+	moon.light_energy = 0.6
+	moon.rotation_degrees = Vector3(-28, -140, 0)
 	moon.shadow_enabled = true
 	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
 	moon.directional_shadow_max_distance = 35.0
 	_world.add_child(moon)
+	var fill: DirectionalLight3D = DirectionalLight3D.new()
+	fill.light_color = Color("7E8FA8")
+	fill.light_energy = 0.85
+	fill.rotation_degrees = Vector3(-42, 25, 0)
+	_world.add_child(fill)
 
 
-func _aim(target: Vector3, size: float) -> void:
-	_camera.size = size * (2.1 if kind == "shop" else (1.95 if kind == "home" else 1.55))
+func _aim(target: Vector3, size: float, lift: float = 0.8, drop: float = 2.4, zoom: float = -1.0) -> void:
+	var factor: float = 2.1 if kind == "shop" else (1.95 if kind == "home" else 1.55)
+	_camera.size = size * factor if zoom < 0.0 else zoom
 	# O assunto fica na metade de cima da tela (o painel ocupa a de baixo): mira abaixo dele.
-	target += Vector3(1.0, 0.0, 1.0) * 2.4
-	_camera.position = target + Vector3(1.0, 0.8, 1.0) * 16.0
+	target += Vector3(1.0, 0.0, 1.0) * drop
+	_camera.position = target + Vector3(1.0, lift, 1.0) * 16.0
 	_camera.look_at(target)
 
 
 func _build_scene() -> void:
-	var bp: ScenarioBlueprint = ScenarioGenerator.generate_focal_diorama(kind, 7)
-	ScenarioRenderer.render(_world, bp, false)
+	if kind == "campfire" or kind == "shop":
+		# Diorama composto da identidade visual (ADR-0050): lajes escuras, ruína gótica, uma luz.
+		FocalSet.floor_slabs(_world, 2)
+	else:
+		var bp: ScenarioBlueprint = ScenarioGenerator.generate_focal_diorama(kind, 7)
+		ScenarioRenderer.render(_world, bp, false)
 	match kind:
 		"campfire":
 			_build_campfire()
@@ -175,32 +187,105 @@ func _embers(pos: Vector3) -> void:
 	_fire_parts.append(particles)
 
 
-## Fogueira (referência Darkest Dungeon): a Bibiana sentada junto ao fogo diante do abrigo em ruína.
+const FIRE_LIT_ENERGY: float = 5.5
+const FIRE_COLD_ENERGY: float = 0.45
+var _cold_parts: Array[Node3D] = []
+
+
+## Fogueira (IDENTIDADE-VISUAL §C.3): pira de lenha torta com espada fincada e chama, a Bibiana
+## sentada de perfil diante dela, capela em ruína atrás. Apagada: só cinza e brasa fria.
 func _build_campfire() -> void:
-	var center: Vector3 = Vector3(0, 0.93, 0.2)
-	StageKit.place(_world, K_GRAVE + "fire-basket.glb", center, 0.0, 3.0)
-	_fire_light = _warm(Vector3(0, 1.5, 0.2), 6.2, Color(1.0, 0.45, 0.15), 8.0)
-	_embers(Vector3(0, 1.3, 0.2))
-	_flame(Vector3(0, 1.0, 0.2), 1.0)
+	var c: Vector3 = Vector3(0.0, FocalSet.FLOOR_Y, 0.0)
+	FocalSet.gothic_nave(_world, c.y)
+	FocalSet.foreground(_world, c.y, Vector3(5.2, c.y, 0.4))
+	StageKit.place(_world, K_GRAVE + "debris.glb", Vector3(1.9, c.y, -1.2), 40.0, 2.2, FocalSet.STONE_DARK)
+	FocalSet.tilted(_world, K_GRAVE + "cross.glb", Vector3(-2.6, c.y + 0.1, -2.4), 20.0, Vector3(0, 0, 24), 2.4, FocalSet.STONE_TINT)
+	StageKit.place(_world, K_GRAVE + "gravestone-broken.glb", Vector3(2.6, c.y, 0.8), 70.0, 2.2, FocalSet.STONE_DARK)
+	# Pira torta: toras apoiadas umas nas outras, espada fincada no meio.
+	var log_path: String = K_GRAVE + "trunk-long.glb"
+	var leans: Array[Vector3] = [Vector3(0, 0, 33), Vector3(0, 0, 30), Vector3(0, 0, 40), Vector3(0, 0, 27)]
+	var yaws: Array[float] = [0.0, 180.0, -90.0, 90.0]
+	var lengths: Array[float] = [1.5, 1.35, 1.2, 1.1]
+	for i: int in 4:
+		var foot: Vector3 = Vector3(sin(deg_to_rad(yaws[i])), 0.0, cos(deg_to_rad(yaws[i]))) * 0.0
+		var pole: Node3D = FocalSet.tilted(_world, log_path, c + Vector3(0.0, 0.0, 0.0) + foot, yaws[i], leans[i], 1.0, FocalSet.TINT_WOOD)
+		pole.scale = Vector3(0.5, lengths[i], 0.5)
+		pole.position += Vector3(cos(deg_to_rad(yaws[i])), 0.0, -sin(deg_to_rad(yaws[i]))) * 0.45
+	FocalSet.tilted(_world, K_MINI + "weapon-sword.glb", c + Vector3(0.0, 0.05, 0.0), 30.0, Vector3(0, 0, 8), 3.6, Color(0.66, 0.7, 0.82))
+	for i: int in 7:
+		var a: float = float(i) / 7.0 * TAU + 0.3
+		StageKit.place(_world, K_MINI + "stones.glb", c + Vector3(cos(a) * 1.15, 0.0, sin(a) * 1.15), float(i) * 70.0, 0.55 + 0.1 * float(i % 3), Color(0.2, 0.22, 0.27))
+	# Cinza e brasa fria (visíveis só com a fogueira apagada).
+	FocalSet.stain(_world, c, Vector2(1.9, 1.9), Color(0.05, 0.05, 0.06), 1.0, 0.0, 15.0)
+	for i: int in 5:
+		var spot: MeshInstance3D = MeshInstance3D.new()
+		var box: BoxMesh = BoxMesh.new()
+		box.size = Vector3(0.14, 0.07, 0.14)
+		var cold: StandardMaterial3D = StandardMaterial3D.new()
+		cold.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		cold.albedo_color = Color(0.95, 0.28, 0.08)
+		box.material = cold
+		spot.mesh = box
+		spot.position = c + Vector3(cos(float(i) * 1.7) * 0.4, 0.22, sin(float(i) * 1.7) * 0.4)
+		_world.add_child(spot)
+		_cold_parts.append(spot)
+	# Chama, faíscas, luz quente única e mancha de luz nas lajes.
+	_fire_parts.append_array(FocalSet.flame(_world, c + Vector3(0, 0.35, 0), 2.1))
+	_fire_parts.append(FocalSet.sparks(_world, c + Vector3(0, 1.3, 0), 26))
+	_fire_parts.append(FocalSet.glow_disc(_world, c, 3.4, Color(1.0, 0.5, 0.15), 0.55))
+	_fire_light = _warm(c + Vector3(0.7, 1.1, 0.7), FIRE_LIT_ENERGY, Color(1.0, 0.5, 0.16), 6.5)
+	_fire_light.shadow_enabled = true
 	set_fire_lit(fire_lit)
-	_hero(Vector3(0.1, 0.93, 2.0), 180.0, "Sit_Floor_Idle", 2.0)
-	_aim(Vector3(0.1, 1.3, 0.1), 6.2)
+	_hero(c + Vector3(-1.5, 0.0, 1.3), 125.0, "Sit_Floor_Idle", 2.15)
+	_aim(c + Vector3(-0.2, 1.2, -0.2), 6.3, 0.62, 1.2, 19.0)
 
 
-## Loja: vigia mercador (character-keeper) atrás do balcão de mercadorias sob o pórtico.
+## Loja (IDENTIDADE-VISUAL §C.3): vulto encapuzado de manto Lama atrás de uma carroça escura com
+## três mercadorias sob um lampião pendurado (a única luz quente), arcada ogival ao fundo.
 func _build_shop() -> void:
-	var table_scale: float = 2.2
-	var table_pos: Vector3 = Vector3(-0.9, 0.93, -0.9)
-	StageKit.place(_world, K_MINI + "table.glb", table_pos, 45.0, table_scale, Color(0.84, 0.78, 0.72))
-	var merchant: Node3D = StageKit.place(_world, K_GRAVE + "character-keeper.glb", Vector3(-1.95, 0.93, -1.95), 45.0, 2.0, Color(0.86, 0.84, 0.82))
-	_play_named(merchant, "idle")
-	var top_y: float = 0.93 + 0.31 * table_scale - 0.01
-	StageKit.place(_world, K_MINI + "potion.glb", Vector3(-0.6, top_y, -1.15), 0.0, 2.2)
-	StageKit.place(_world, K_MINI + "pot.glb", Vector3(-1.2, top_y, -0.65), 25.0, 1.2)
-	StageKit.place(_world, K_MINI + "chest.glb", Vector3(-2.6, 0.93, -2.5), 20.0, 2.0, Color(0.85, 0.82, 0.78))
-	_warm(Vector3(0.0, 2.2, -1.1), 3.8, Color(1.0, 0.7, 0.35), 7.5)
-	_hero(Vector3(1.3, 0.93, 1.3), 225.0)
-	_aim(Vector3(-0.3, 1.5, -0.3), 6.4)
+	var y: float = FocalSet.FLOOR_Y
+	FocalSet.gothic_nave(_world, y)
+	FocalSet.foreground(_world, y, Vector3(5.2, y, 0.4))
+	StageKit.place(_world, K_GRAVE + "debris.glb", Vector3(2.8, y, -1.6), 20.0, 2.2, FocalSet.STONE_DARK)
+	var cart: Node3D = Node3D.new()
+	cart.position = Vector3(-0.3, y, -0.3)
+	cart.rotation_degrees.y = 45.0
+	_world.add_child(cart)
+	var wood: Color = Color(0.17, 0.14, 0.11)
+	var top_y: float = 1.0
+	FocalSet.box(cart, Vector3(0, 0.5, 0.0), Vector3(2.5, 1.0, 1.4), wood)
+	FocalSet.box(cart, Vector3(0, top_y + 0.04, 0.0), Vector3(2.7, 0.09, 1.6), Color(0.13, 0.105, 0.085))
+	for side: float in [-1.0, 1.0]:
+		var wheel: CylinderMesh = CylinderMesh.new()
+		wheel.top_radius = 0.34
+		wheel.bottom_radius = 0.34
+		wheel.height = 0.1
+		wheel.radial_segments = 6
+		wheel.material = FocalSet._paint(Color(0.1, 0.085, 0.07), false)
+		var wheel_node: MeshInstance3D = MeshInstance3D.new()
+		wheel_node.mesh = wheel
+		wheel_node.rotation_degrees = Vector3(90, 0, 0)
+		wheel_node.position = Vector3(side * 0.95, 0.34, 0.75)
+		cart.add_child(wheel_node)
+		FocalSet.box(cart, Vector3(side * 1.9, 0.55, 0.1), Vector3(1.5, 0.09, 0.09), wood, Vector3(0, 0, side * -4.0))
+	# Mercadorias: frasco escuro, lâmina deitada, relicário quadrado (pequenos).
+	FocalSet.box(cart, Vector3(-0.8, top_y + 0.24, 0.1), Vector3(0.16, 0.34, 0.16), Color(0.2, 0.26, 0.3))
+	FocalSet.tilted(cart, K_MINI + "weapon-sword.glb", Vector3(0.0, top_y + 0.14, 0.2), 0.0, Vector3(0, 0, 82), 3.2, Color(0.5, 0.55, 0.66))
+	FocalSet.box(cart, Vector3(0.8, top_y + 0.16, 0.0), Vector3(0.26, 0.2, 0.18), Color(0.34, 0.27, 0.12))
+	# Lampião pendurado num poste torto.
+	var post: Vector3 = Vector3(0.9, 0.0, 0.0)
+	FocalSet.box(cart, post + Vector3(0, 1.45, -0.6), Vector3(0.12, 2.9, 0.12), wood, Vector3(0, 0, -4))
+	FocalSet.box(cart, post + Vector3(-0.55, 2.88, -0.6), Vector3(1.2, 0.1, 0.1), wood)
+	FocalSet.box(cart, post + Vector3(-1.1, 2.62, -0.6), Vector3(0.03, 0.4, 0.03), FocalSet.TINT_IRON)
+	var lamp: Vector3 = post + Vector3(-1.1, 2.25, -0.6)
+	FocalSet.box(cart, lamp, Vector3(0.24, 0.36, 0.24), Color(1.0, 0.62, 0.2), Vector3.ZERO, true)
+	FocalSet.box(cart, lamp + Vector3(0, 0.23, 0), Vector3(0.34, 0.07, 0.34), FocalSet.TINT_IRON)
+	FocalSet.box(cart, lamp + Vector3(0, -0.21, 0), Vector3(0.32, 0.06, 0.32), FocalSet.TINT_IRON)
+	_warm(cart.to_global(lamp + Vector3(0.2, -0.3, 0.6)), 5.0, Color(0.88, 0.54, 0.19), 5.0).shadow_enabled = true
+	FocalSet.glow_disc(_world, cart.position, 2.2, Color(0.88, 0.54, 0.19), 0.3)
+	FocalSet.hooded_figure(_world, Vector3(-1.2, y, -1.3), 45.0, 2.5).name = "Merchant"
+	_hero(Vector3(-1.5, y, 1.2), 125.0, "idle", 1.9)
+	_aim(Vector3(-0.3, 1.6, -0.3), 6.4, 0.62, 3.4, 16.5)
 
 
 ## Baú: grande, no centro, abrindo, com moedas de ouro e cofre abobadado atrás.
@@ -264,11 +349,15 @@ func set_fire_lit(lit: bool) -> void:
 		return
 	for part: Node3D in _fire_parts:
 		part.visible = lit
+	for part: Node3D in _cold_parts:
+		part.visible = not lit
 	if _fire_light != null:
 		var index: int = _lights.find(_fire_light)
 		if index >= 0:
-			_bases[index] = 6.2 if lit else 0.5
+			_bases[index] = FIRE_LIT_ENERGY if lit else FIRE_COLD_ENERGY
 			_fire_light.light_energy = _bases[index]
+			_fire_light.light_color = Color(1.0, 0.5, 0.16) if lit else Color(0.88, 0.54, 0.19)
+		_fire_light.omni_range = 6.5 if lit else 2.4
 
 
 func _process(delta: float) -> void:

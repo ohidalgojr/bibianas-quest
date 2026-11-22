@@ -66,6 +66,8 @@ var _enemy_hp_bar: ProgressBar
 var _enemy_hp_label: Label
 var _intent_panel: PanelContainer
 var _intent_style: StyleBoxFlat
+var _ticker: Label
+var _ticker_tween: Tween
 var _intent_icon: Label
 var _intent_detail: Label
 var _log_label: Label
@@ -169,6 +171,8 @@ func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 			skill_button.text = session.skill_label(index)
 			_style_icon_button(skill_button, IconRegistry.texture_for("skill", session.skills[index].id))
 	_refresh_bars()
+	for bar: ProgressBar in [_enemy_hp_bar, _player_hp_bar, _player_mp_bar]:
+		(bar as TrailBar).snap()
 
 
 func perform(action: String) -> void:
@@ -460,11 +464,27 @@ func _refresh_buttons() -> void:
 		_set_forecast(_forecast_for("attack"))
 
 
+## Última linha do registro como letreiro sobre o palco por 2,2 s (Estudo 3.2.1, UI-C4): sem painel fixo.
+func _show_ticker(line: String) -> void:
+	if _ticker == null:
+		return
+	_ticker.text = line
+	_ticker.modulate.a = 1.0
+	if time_scale <= 0.0 or not is_inside_tree():
+		return
+	if _ticker_tween != null:
+		_ticker_tween.kill()
+	_ticker_tween = create_tween()
+	_ticker_tween.tween_interval(2.2 * time_scale)
+	_ticker_tween.tween_property(_ticker, "modulate:a", 0.0, 0.4)
+
+
 func _push_log(line: String) -> void:
 	_log.append(line)
 	while _log.size() > LOG_LINES:
 		_log.remove_at(0)
 	_log_label.text = "\n".join(_log)
+	_show_ticker(line)
 
 
 # --- Menu de depuração ---------------------------------------------------------------
@@ -611,10 +631,15 @@ func _build() -> void:
 	player_row.add_child(player_info)
 	_player_stats = Label.new()
 	player_info.add_child(_player_stats)
+	var bars_row: HBoxContainer = HBoxContainer.new()
+	bars_row.add_theme_constant_override("separation", 8)
+	player_info.add_child(bars_row)
 	_player_hp_bar = _bar(Color(0.3, 0.7, 0.35))
-	player_info.add_child(_player_hp_bar)
+	_player_hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bars_row.add_child(_player_hp_bar)
 	_player_mp_bar = _bar(Color(0.3, 0.45, 0.85))
-	player_info.add_child(_player_mp_bar)
+	_player_mp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bars_row.add_child(_player_mp_bar)
 	_player_effects = Label.new()
 	_player_effects.add_theme_font_size_override("font_size", 16)
 	player_info.add_child(_player_effects)
@@ -635,7 +660,7 @@ func _build() -> void:
 		tab_button.text = str(DRAWER_TITLES[tab])
 		tab_button.toggle_mode = true
 		tab_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tab_button.custom_minimum_size = Vector2(0, 38)
+		tab_button.custom_minimum_size = Vector2(0, 48)
 		tab_button.add_theme_font_size_override("font_size", 15)
 		tab_button.pressed.connect(_select_drawer.bind(tab))
 		tab_row.add_child(tab_button)
@@ -671,7 +696,6 @@ func _build() -> void:
 			button.pressed.connect(_on_action_pressed.bind(action))
 		(grid if main_action else _drawers[_drawer_of(action)]).add_child(button)
 		_buttons[action] = button
-	_select_drawer("skills")
 
 	_coin_overlay = _overlay()
 	var coin_box: VBoxContainer = VBoxContainer.new()
@@ -746,7 +770,8 @@ func _build() -> void:
 	_continue.pressed.connect(func() -> void: run_fight_done.emit())
 	menu_box.add_child(_continue)
 	if _stage != null:
-		_move_hud_into_stage(log_panel)
+		var forecast_panel: PanelContainer = _move_hud_into_stage(log_panel)
+		column.move_child(forecast_panel, player_row.get_index() + 1)
 	_refresh_buttons()
 
 
@@ -831,7 +856,7 @@ func _overlay() -> PanelContainer:
 
 ## Barra com moldura de bronze e o número dentro (TASK-043).
 func _bar(color: Color) -> ProgressBar:
-	var bar: ProgressBar = ProgressBar.new()
+	var bar: ProgressBar = TrailBar.new()
 	bar.custom_minimum_size = Vector2(0, 22)
 	bar.show_percentage = false
 	var fill: StyleBoxFlat = StyleBoxFlat.new()
@@ -875,24 +900,24 @@ func _box(color: Color) -> StyleBoxFlat:
 
 ## No palco 3D, a intenção do inimigo fica numa faixa no topo da cena e o registro da luta numa
 ## faixa embaixo (como o painel de Fear & Hunger), liberando altura para os personagens.
-func _move_hud_into_stage(log_panel: PanelContainer) -> void:
-	var top: VBoxContainer = VBoxContainer.new()
-	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	_stage.add_child(top)
-	var bottom: VBoxContainer = VBoxContainer.new()
-	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	bottom.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_stage.add_child(bottom)
+func _move_hud_into_stage(log_panel: PanelContainer) -> PanelContainer:
+	var column: Control = _stage.get_parent() as Control
 	_intent_panel.get_parent().remove_child(_intent_panel)
-	top.add_child(_intent_panel)
-	log_panel.get_parent().remove_child(log_panel)
-	bottom.add_child(log_panel)
-	for panel: Control in [_intent_panel, log_panel]:
-		panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		panel.modulate = Color(1, 1, 1, 0.94)
-	log_panel.custom_minimum_size = Vector2(0, 44)
+	_stage.add_child(_intent_panel)
+	# O registro fixo some: a última linha vira um letreiro de 2,2 s no pé do palco.
+	log_panel.visible = false
+	_ticker = Label.new()
+	_ticker.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_ticker.offset_top = -44.0
+	_ticker.offset_bottom = -8.0
+	_ticker.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_ticker.add_theme_font_size_override("font_size", 17)
+	_ticker.add_theme_color_override("font_color", Color(0.9, 0.86, 0.76))
+	_ticker.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
+	_ticker.add_theme_constant_override("outline_size", 5)
+	_ticker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ticker.modulate.a = 0.0
+	_stage.add_child(_ticker)
 	_timeline.visible = false
 	_status_enemy = HBoxContainer.new()
 	_status_enemy.position = Vector2(300, 68)
@@ -912,8 +937,7 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> void:
 	_forecast.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
 	_forecast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	forecast_panel.add_child(_forecast)
-	bottom.add_child(forecast_panel)
-	bottom.move_child(forecast_panel, 0)
+	column.add_child(forecast_panel)
 	for action: String in _buttons.keys():
 		var hover_button: Button = _buttons[action]
 		hover_button.mouse_entered.connect(func() -> void: _set_forecast(_forecast_for(action)))
@@ -929,13 +953,29 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> void:
 	_intent_style.border_color = COLOR_CALM
 	_intent_panel.add_theme_stylebox_override("panel", _intent_style)
 	_intent_panel.self_modulate = Color.WHITE
-	_intent_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_intent_icon.add_theme_color_override("font_color", Color(0.92, 0.9, 0.84))
 	_intent_detail.add_theme_color_override("font_color", Color(0.72, 0.74, 0.8))
 	# As barras já trazem os números e os ícones de status ficam no palco: sem texto duplicado.
 	_player_stats.visible = false
 	_enemy_hp_label.visible = false
 	_player_effects.visible = false
+	return forecast_panel
+
+
+## Prende o aviso do inimigo sobre a cabeça dele (Estudo 3.2.1, UI-C3), sem sair do palco.
+func _anchor_intent() -> void:
+	if _stage == null or _intent_panel == null or _intent_panel.get_parent() != _stage:
+		return
+	var head: Vector2 = _stage.head_screen_pos()
+	var panel_size: Vector2 = _intent_panel.get_combined_minimum_size()
+	_intent_panel.size = panel_size
+	var x: float = clampf(head.x - panel_size.x * 0.5, 8.0, maxf(_stage.size.x - panel_size.x - 8.0, 8.0))
+	var y: float = clampf(head.y - panel_size.y - 10.0, 8.0, maxf(_stage.size.y - panel_size.y - 8.0, 8.0))
+	_intent_panel.position = Vector2(x, y)
+
+
+func _process(_delta: float) -> void:
+	_anchor_intent()
 
 
 ## Coluna de retratos numerados com a ordem dos próximos turnos, à esquerda do palco (FFT):

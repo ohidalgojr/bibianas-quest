@@ -10,7 +10,7 @@ signal node_chosen(node_id: int)
 const K_MINI: String = "res://assets/kenney/mini_dungeon/"
 const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const SHRINK: int = 2
-const CAM_SIZE: float = 27.0
+const CAM_SIZE: float = 18.0
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.82, 1.0) * 22.0
 ## A câmera mira um pouco à frente da Bibiana, para mostrar o que vem pela névoa.
 const CAM_LOOKAHEAD: Vector3 = Vector3(0.0, 0.0, -2.5)
@@ -20,7 +20,7 @@ const STEP_SECONDS: float = 0.2
 ## Neblina por situação da camada da célula (ART-DIRECTION §3, item 3).
 const FOG_BEHIND: float = 0.42
 const FOG_AHEAD_BASE: float = 0.38
-const FOG_AHEAD_MAX: float = 0.78
+const FOG_AHEAD_MAX: float = 0.7
 const FOG_BOSS: float = 0.4
 const REWARD_HINT: Dictionary = {
 	MapNode.Kind.BATTLE: "ouro", MapNode.Kind.AMBUSH: "emboscada", MapNode.Kind.ELITE: "equip. raro",
@@ -53,6 +53,8 @@ var _header: Label
 var _taps: Dictionary = {}
 var _bubbles: Dictionary = {}
 var _gear_row: HBoxContainer
+var _pulse_lights: Array[OmniLight3D] = []
+var _pulse_time: float = 0.0
 
 
 func _ready() -> void:
@@ -92,9 +94,11 @@ func _ready() -> void:
 	_header.size = Vector2(450, 90)
 	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_header.visible = false
 	add_child(_header)
+	_build_hud()
 	_gear_row = HBoxContainer.new()
-	_gear_row.position = Vector2(10, 104)
+	_gear_row.position = Vector2(10, 24)
 	_gear_row.add_theme_constant_override("separation", 6)
 	_gear_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_gear_row)
@@ -107,7 +111,8 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.024, 0.028, 0.044)
 	Atmosphere.apply(env, false)
-	env.ambient_light_energy = 0.62
+	env.ambient_light_color = Color("1B2029")
+	env.ambient_light_energy = 2.2
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 0.56
 	env.adjustment_contrast = 1.18
@@ -119,8 +124,8 @@ func _build_environment() -> void:
 	holder.environment = env
 	_world.add_child(holder)
 	var moon: DirectionalLight3D = DirectionalLight3D.new()
-	moon.light_color = Color(0.66, 0.74, 0.96)
-	moon.light_energy = 1.32
+	moon.light_color = Color("7E8FA8")
+	moon.light_energy = 0.95
 	moon.rotation_degrees = Vector3(-55, 35, 0)
 	moon.shadow_enabled = true
 	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
@@ -160,7 +165,7 @@ func _build_fog() -> void:
 	var sheet: PlaneMesh = PlaneMesh.new()
 	sheet.size = Vector2(1.0, 1.0)
 	var shader: Shader = Shader.new()
-	shader.code = "shader_type spatial;\nrender_mode unshaded, blend_mix, depth_draw_never, cull_disabled;\nvoid fragment() {\n\tALBEDO = vec3(0.07, 0.09, 0.15);\n\tALPHA = COLOR.a;\n}\n"
+	shader.code = "shader_type spatial;\nrender_mode unshaded, blend_mix, depth_draw_never, cull_disabled;\nvoid fragment() {\n\tALBEDO = vec3(0.012, 0.016, 0.03);\n\tALPHA = COLOR.a;\n}\n"
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = shader
 	sheet.material = material
@@ -251,7 +256,27 @@ func _process(delta: float) -> void:
 			changed = true
 	if changed:
 		_apply_fog()
+	_pulse_time += delta
+	for light: OmniLight3D in _pulse_lights:
+		if is_instance_valid(light):
+			light.light_energy = 2.4 * (0.7 + 0.3 * sin(_pulse_time * 3.2))
 	_update_overlay()
+
+
+## Cor da luz de um destino alcançável: brasa (fogueira), âmbar (evento), ouro (baú), vermelho (luta).
+func _destination_color(kind: int) -> Color:
+	match kind:
+		MapNode.Kind.BONFIRE:
+			return Color(1.0, 0.45, 0.14)
+		MapNode.Kind.EVENT:
+			return Color(0.9, 0.55, 0.22)
+		MapNode.Kind.CHEST:
+			return Color(0.95, 0.75, 0.22)
+	return Color(0.85, 0.16, 0.1)
+
+
+func _is_hostile(kind: int) -> bool:
+	return kind != MapNode.Kind.BONFIRE and kind != MapNode.Kind.EVENT and kind != MapNode.Kind.CHEST
 
 
 ## Redesenha props dos nós, Bibiana, destinos e bolhas a partir do estado atual da Descida.
@@ -260,7 +285,9 @@ func refresh() -> void:
 		return
 	for child: Node in _node_root.get_children():
 		child.queue_free()
+	_pulse_lights.clear()
 	_header.text = view.header()
+	_refresh_hud()
 	_fill_gear()
 	for node_view: Dictionary in view.nodes():
 		_build_node(node_view)
@@ -287,7 +314,6 @@ func _build_node(info: Dictionary) -> void:
 		glow.omni_range = 4.2
 		glow.position = at + Vector3(0, 1.6, 0)
 		_node_root.add_child(glow)
-		_add_option_beacon(at, glow_color)
 	if state == MapView.State.CURRENT or kind == MapNode.Kind.START:
 		return
 	if node.is_fight() and not node.enemy_id.is_empty() and ModelRegistry.has_model(node.enemy_id):
@@ -296,9 +322,9 @@ func _build_node(info: Dictionary) -> void:
 		foe.rotation_degrees.y = 0.0
 		var factor: float = 1.7
 		if node.kind == MapNode.Kind.ELITE:
-			factor = 2.8
+			factor = 2.3
 		elif node.kind == MapNode.Kind.MINI_BOSS or node.kind == MapNode.Kind.BOSS:
-			factor = 2.8
+			factor = 2.3
 		foe.scale = Vector3.ONE * factor
 		_node_root.add_child(foe)
 		ModelRegistry.play(foe, node.enemy_id, "idle")
@@ -612,3 +638,61 @@ func _close_preview(recenter: bool) -> void:
 		var finish: Vector3 = _aim_point(view.run.current_node_id)
 		var tween: Tween = create_tween()
 		tween.tween_method(func(t: float) -> void: _set_camera_target(start.lerp(finish, t)), 0.0, 1.0, 0.3 / time_scale)
+
+
+var _hud_hp: ProgressBar
+var _hud_mp: ProgressBar
+var _hud_gold: Label
+
+
+## Barras finas de HP e MP e ouro com ícone no topo (ESTUDO Parte 3.2, mapa): sem texto de depuração.
+func _build_hud() -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.position = Vector2(10, 6)
+	row.add_theme_constant_override("separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(row)
+	_hud_hp = _thin_bar(Color(0.72, 0.16, 0.14), 150.0)
+	_hud_mp = _thin_bar(Color(0.45, 0.55, 0.72), 90.0)
+	row.add_child(_hud_hp)
+	row.add_child(_hud_mp)
+	var coin: TextureRect = TextureRect.new()
+	coin.texture = IconRegistry.texture_for("ui", "gold")
+	coin.custom_minimum_size = Vector2(16, 16)
+	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	coin.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(coin)
+	_hud_gold = Label.new()
+	_hud_gold.add_theme_font_size_override("font_size", 14)
+	_hud_gold.add_theme_color_override("font_color", Color("D9AA32"))
+	_hud_gold.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(_hud_gold)
+
+
+func _thin_bar(color: Color, width: float) -> ProgressBar:
+	var bar: ProgressBar = ProgressBar.new()
+	bar.custom_minimum_size = Vector2(width, 8)
+	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bar.show_percentage = false
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var fill: StyleBoxFlat = StyleBoxFlat.new()
+	fill.bg_color = color
+	var back: StyleBoxFlat = StyleBoxFlat.new()
+	back.bg_color = Color(0.03, 0.035, 0.05, 0.85)
+	back.border_color = Color(0.3, 0.25, 0.17)
+	back.set_border_width_all(1)
+	bar.add_theme_stylebox_override("fill", fill)
+	bar.add_theme_stylebox_override("background", back)
+	return bar
+
+
+func _refresh_hud() -> void:
+	if _hud_hp == null or view == null:
+		return
+	var stats: Stats = view.run.player_stats()
+	_hud_hp.max_value = float(maxi(stats.max_hp, 1))
+	_hud_hp.value = float(view.run.hp)
+	_hud_mp.max_value = float(maxi(stats.max_mp, 1))
+	_hud_mp.value = float(view.run.mp)
+	_hud_gold.text = str(view.run.gold)
