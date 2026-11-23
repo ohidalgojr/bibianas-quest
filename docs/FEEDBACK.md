@@ -253,3 +253,14 @@ Tudo abaixo está **implementado e testado, mas ainda não jogado pelo Orlando**
 - **Status:** em verificação na `TASK-054` (`docs/design/ROAMING-BOSS-perseguidor-coroado.md`).
 - **Fala do Orlando:** pediu usar o Nano Banana no máximo para criar o **roaming boss** (GDD §13): um senhor da guerra imponente com elmo-coroa vertical pontiagudo, armadura toda negra com detalhes de crânios humanos visivelmente se desmanchando e expondo carne podre por baixo (aspecto corrompido e assustador), empunhando uma maça brutal em uma mão e uma espada pesada quebrada ao meio e super afiada na outra, tudo sob a atmosfera dark gótica do `ADR-0042`.
 - **Restrição aplicada:** em conformidade estrita com o GDD §18 e o `ADR-0042`, nenhum prompt enviado ao gerador citou jogos, personagens ou artistas reais — todas as inspirações mencionadas foram traduzidas em descritores originais de silhueta, corrosão anatômica, forja negra e arquitetura gótica.
+
+## 2026-11-23, pivot para sprites 2D HD-2D e remoção da mecha colorida
+
+### F-024: remover por completo a mecânica de mecha colorida da Bibiana e gerar pacote de prompts em lote no estilo HD-2D dark gótico
+
+- **Status:** Aceito (Orlando, 2026-11-23). Documentação canônica atualizada e pacote completo de 33 prompts IA-friendly entregue em `docs/design/PROMPTS-LOTE-HD2D.md` e `docs/design/prompts-lote-hd2d.json`; remoção dos vestígios de código legado 2D (`visual_theme.gd` / `map_screen.gd`) pendente na próxima tarefa de apresentação.
+- **Fala do Orlando:**
+  1. Pivot visual (`ADR-0052` no branch do Claude): modelos 3D procedurais ficaram toscos; personagens e inimigos passam a ser **sprites 2D HD-2D** sobre cenário com profundidade (estilo *Sword of Convallaria*, *Tactics Ogre*, *Triangle Strategy*, *Octopath Traveler*, *Ragnarok Online* e *Buriedbornes*, sob atmosfera dark gótica de *Bloodborne* e *Dark Souls*, `ADR-0042`).
+  2. Remoção da mecha: *"A mecha verde no cabelo da Bibiana ficou bem tosca. Vamos retirar e remover por completo essa mecanica de cor do cabelo."* A prancha de teste com mecha verde foi descartada; Bibiana passa a ter cabelo castanho-escuro natural gasto de sobrevivente, sem mecha colorida em nenhum estágio de Poder.
+  3. Geração em lote: *"Crie prompts completos de todas as imagens que você quer gerar. Eu vou gerá-las em outro algoritmo a parte. Além disso, a arte não deveria acompanhar o estilo dos jogos de referencia que definimos? Defina os prompts o mais completo possíveis e AI-friendly pra eu gerar as imagens em lote."*
+- **Correção de estilo aplicada nos prompts:** trocado o descritor anterior *"3D character concept"* (que gerava CGI liso) por **ilustração/sprite tático 2.5D artesanal de alta densidade pictórica/pixel-painterly com contorno de silhueta sutil, pincelada tátil, chiaroscuro gótico e zero brilho plástico 3D**, traduzido 100% em descritores originais sem citar nomes de jogos ou artistas (`GDD §18`, `ADR-0042`).

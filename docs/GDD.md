@@ -35,7 +35,7 @@ Bibiana's Quest (título de trabalho) é um RPG tático de turnos para celular, 
 
 - **Ciclo curto:** a morte devolve o jogador ao início em poucos segundos, com mapa novo.
 - **Dilema constante:** cada nó oferece três opções com riscos diferentes (o "só mais um nó").
-- **Progresso a cada vitória:** Poder, ouro, itens e a cor da mecha de cabelo mudam o tempo todo.
+- **Progresso a cada vitória:** Poder, nível, ouro, equipamentos e habilidades mudam o tempo todo.
 - **Variância controlada:** o acaso existe, mas é avisado e mitigável, então a derrota parece justa.
 
 ## 2. Referências: o que aproveitar de cada jogo
@@ -66,8 +66,7 @@ O mundo está dominado por uma doença chamada aqui de "a Febre", e o tom é de 
 
 ### Bibiana
 
-- Mulher adulta, sobrevivente, de cabelo curto castanho com uma mecha que muda de cor conforme o Poder. A mecha é o único ponto de cor saturada na paleta, então o jogador sempre acha a personagem na tela.
-- A mecha segue nove estágios: castanho, verde claro, azul claro, azul escuro, vermelho claro, vermelho escuro, roxo claro, roxo escuro e branco. A tabela de limiares está na seção 9.
+- Mulher adulta, sobrevivente cansada e sombria, de cabelo curto castanho-escuro natural (desalinhado e gasto pela estrada), sem traços cartoon nem mecha colorida (**a antiga mecânica de mecha colorida no cabelo foi removida por completo pelo Orlando em `F-024`**).
 - Sem classe fixa: ela escolhe clérigo, guerreiro, mago ou ladino no início de cada Descida (seção 8).
 
 ### Tom e linguagem visual
@@ -354,7 +353,7 @@ Cada classe começa com duas e pode aprender outras no fim dos cenários (seçã
 
 ## 9. Progressão
 
-Dentro da Descida, a Bibiana cresce por Poder, um número contínuo que sobe a cada vitória e controla tanto os atributos quanto a cor da mecha. Entre Descidas, o meta-progresso abre opções novas sem tornar o jogador muito mais forte.
+Dentro da Descida, a Bibiana cresce por Poder, um número contínuo que sobe a cada vitória e controla os atributos e o Nível. Entre Descidas, o meta-progresso abre opções novas sem tornar o jogador muito mais forte.
 
 ### Poder
 
@@ -368,23 +367,9 @@ Dentro da Descida, a Bibiana cresce por Poder, um número contínuo que sobe a c
 - Atributos crescem de forma contínua com o Poder: HP +10% por ponto acima de 1; FOR e MEN +8%; DEF e RES +6%; VEL +2%. PRE, ESQ e SORTE vêm dos equipamentos e do clima, não do Poder.
 - Comparando com o nível dos inimigos, uma Descida completa de 3 cenários termina com Poder em torno de 45 se o jogador vencer quase tudo. Valores de partida, a calibrar na seção 23.
 
-### Evolução da mecha de cabelo
+### Evolução visual (mecha de cabelo removida — `F-024`)
 
-A cor é definida por faixas de Poder e vira um parâmetro do shader do cabelo, então não precisa de modelos novos. A transição entre cores dura 1 segundo, com brilho curto, para o jogador notar a conquista.
-
-| Estágio | Cor da mecha | Poder mínimo | Marco aproximado em uma Descida |
-| --- | --- | --- | --- |
-| 1 | Castanho | 1 | Início |
-| 2 | Verde claro | 3 | Primeiras vitórias do cenário 1 |
-| 3 | Azul claro | 5 | Perto do chefe do cenário 1 |
-| 4 | Azul escuro | 8 | Início do cenário 2 |
-| 5 | Vermelho claro | 12 | Meio do cenário 2 |
-| 6 | Vermelho escuro | 17 | Chefe do cenário 2 |
-| 7 | Roxo claro | 23 | Início do cenário 3 |
-| 8 | Roxo escuro | 30 | Meio do cenário 3 |
-| 9 | Branco | 40 | Reta final, perto do chefe do cenário 3 |
-
-Com 5 cenários, os limiares sobem proporcionalmente. Branco é reservado para o fim, e isso dá ao jogador uma imagem do quanto avançou.
+A antiga mecânica de 9 cores de mecha de cabelo da Bibiana foi **removida por completo** por decisão do Orlando em 2026-11-23 (`docs/FEEDBACK.md`, `F-024`). A progressão dentro da Descida é expressa pelo Nível, pelos atributos, pelo equipamento equipado e pelo peso visual do combate, preservando a sobriedade dark gótica da protagonista.
 
 ### Meta-progresso no Santuário
 
@@ -770,7 +755,7 @@ A luta usa um fundo 3D menor, derivado do próprio nó (praça, passagem estreit
 
 ### Identidade de cada cenário
 
-- A paleta muda por bioma, mas a mecha da Bibiana continua como o ponto de cor mais saturado.
+- A paleta muda por bioma, mantendo a atmosfera dark gótica dessaturada (`ADR-0042`) com foco de leitura no ouro da moeda, no vermelho de perigo e nas luzes quentes pontuais.
 - Cada bioma tem uma música e um som ambiente próprios e um evento de natureza favorável ao tema.
 
 ## 18. Direção de arte e pipeline de assets com IA
@@ -820,7 +805,7 @@ Como usar os kits no jogo:
 - **Contorno e realce** por shader de pós-processamento, com paleta reduzida por cenário (24 a 32 cores).
 - **Luz:** baixa e dramática. Fontes quentes (fogo, vela) contra azul-acinzentado frio. Neblina e vinheta.
 - **Câmera fixa isométrica,** com leve profundidade de campo e efeito de miniatura (inspirado no HD-2D) nos modos de maior desempenho.
-- **Regra do acento:** só três elementos saturados na tela: a mecha da Bibiana, o ouro da moeda e o vermelho de perigo. O resto é dessaturado.
+- **Regra do acento:** só dois elementos saturados na tela: o ouro da moeda e o vermelho de perigo (mais o raro foco âmbar de lampião/fogueira). O resto é dessaturado. A antiga mecha colorida da Bibiana foi removida em `F-024`.
 - **Formas legíveis:** silhuetas distintas para cada tipo de inimigo; ícones de intenção grandes e com formas diferentes, não só cores.
 
 ### Orçamento de desempenho (metas)

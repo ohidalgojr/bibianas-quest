@@ -26,7 +26,7 @@ Leia nesta ordem antes de qualquer trabalho:
 11. **Não envie ao GitHub sem o Orlando pedir** e nunca reescreva histórico publicado. Branch `main`, histórico linear.
 12. **Uma revisão por outro modelo** (etapa 4, GDD §21): quem escreveu não revisa o próprio trabalho. `docs/REVIEW-CHECKLIST.md` lista o que conferir.
 13. **Primeiro mapa curto (sem facilitar) e dificuldade gradual:** o primeiro mapa/cenário deve ser curto, funcionando como gancho/tutorial ágil para chamar a atenção dos jogadores logo no início — **não deixe o mapa fácil, apenas mais curto em extensão**. Os demais mapas passam a ficar gradativamente mais longos e difíceis (`docs/FEEDBACK.md` F-020, `TASK-052`).
-14. **Cânone visual e atmosfera gótica obrigatórios em todo asset (`ADR-0042`, `F-022`):** **sempre que qualquer tipo de asset for criado, adaptado ou revisado** (modelo 3D, Blender, kit CC0 retingido, TRELLIS.2/Meshy, textura, cenário/profundidade, prop, personagem, inimigo, item, ícone, retrato, UI/HUD, iluminação, partículas ou shader), siga obrigatoriamente `docs/ART-DIRECTION.md` e o `ADR-0042`: grafismo, cenários e profundidade espacial de **Sword of Convallaria** (referência nº 1 de arte), **Tactics Ogre**, **Triangle Strategy**, **Octopath Traveler**, **Ragnarok Online** e **Buriedbornes**, sempre sob a atmosfera **bem dark e gótica** de **Bloodborne** (prioridade máxima) e **Dark Souls**. Prompts de IA **nunca** citam nomes de jogos, personagens ou artistas (GDD §18).
+14. **Cânone visual e atmosfera gótica obrigatórios em todo asset (`ADR-0042`, `F-022`, `F-024`):** **sempre que qualquer tipo de asset for criado, adaptado ou revisado** (sprite 2D HD-2D, fundo pintado, cenário/profundidade, prop, personagem, inimigo, item, ícone, retrato, UI/HUD, iluminação, partículas ou shader), siga obrigatoriamente `docs/ART-DIRECTION.md` e o `ADR-0042`: grafismo, cenários e profundidade espacial de **Sword of Convallaria** (referência nº 1 de arte), **Tactics Ogre**, **Triangle Strategy**, **Octopath Traveler**, **Ragnarok Online** e **Buriedbornes**, sempre sob a atmosfera **bem dark e gótica** de **Bloodborne** (prioridade máxima) e **Dark Souls**. Prompts de IA **nunca** citam nomes de jogos, personagens ou artistas (GDD §18). **A antiga mecânica de mecha colorida no cabelo da Bibiana foi removida por completo (`F-024`) — nunca desenhar ou implementar mecha colorida.**
 
 ### Como o repositório faz cumprir isto
 
@@ -88,7 +88,7 @@ assets_src/          fontes de arte (Blender, imagens), invisível para o Godot
 | Combate, ordem de turnos, fórmulas de dano e acerto | 6 |
 | Cara ou coroa, trapaça, limites de justiça | 7 |
 | Classes, atributos iniciais, skills | 8 |
-| Poder, mecha, meta-progresso | 9 |
+| Poder, meta-progresso | 9 |
 | Equipamentos, doenças, fogueira, chefes, clima | 10 a 14 |
 | Economia e loja | 15 |
 | Monetização e seus limites | 16 |

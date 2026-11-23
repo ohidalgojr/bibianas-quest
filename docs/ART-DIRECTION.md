@@ -85,7 +85,7 @@ Esta é a tela mais importante do jogo. Regras:
 4. **A câmera acompanha.** Ao escolher um destino, a Bibiana **caminha** pela estrada até a praça (1 a 2 s, pulável, GDD §6) e a câmera desliza junto. Ao chegar, **a névoa recua** em volta do novo nó (animação de 0,6 a 1 s: o escuro se dissolve e as peças novas "se acendem"). Ao tocar num destino ainda não escolhido, a câmera dá um pequeno puxão na direção dele (pré-visualização), sem se comprometer.
 5. **Gerar o tabuleiro a partir do grafo** (GDD §17, "Geração do tabuleiro"): posições em grade, estradas por busca de caminho com curvas, praças com props que dizem o tipo (fogueira acesa, baú, forca, altar), preenchimento temático por pesos, **os 3 destinos sempre livres de obstáculos**.
 6. **Legibilidade em retrato** (540×960): a Bibiana no terço inferior, os destinos no terço central, o que vem depois no terço superior, escurecendo para o topo. Toque mínimo de 48 px nos destinos (GDD §19).
-7. **Clima** (chuva ou névoa do cenário 1) em partículas à frente, e a **mecha** da Bibiana no estágio do Poder, como único acento saturado além do ouro e do vermelho de perigo.
+7. **Clima** (chuva ou névoa do cenário 1) em partículas à frente, mantendo a paleta sombria e dessaturada com apenas ouro da moeda, vermelho de perigo e raro foco âmbar de lampião/fogueira como acentos (a antiga mecânica de mecha colorida da Bibiana foi removida em `F-024`).
 
 ## 4. Tela de combate (inspirada levemente em Fear & Hunger)
 
@@ -103,7 +103,7 @@ Esta é a tela mais importante do jogo. Regras:
 - **Loja:** o comerciante (modelo do kit) numa praça iluminada por lampião, mercadoria em **cartões** com seta verde ou vermelha de comparação (GDD §19). Botão "equipar e vender o antigo".
 - **Baú:** o modelo do baú **abre em 3D** (referência 1), o ouro cai, e o multiplicador (Moeda da Sorte ou anúncio) aparece como `x2` sobre o baú.
 - **Recompensa e fim:** retratos e atributos antes e depois, com o número `+` subindo; tela de fim com o cenário ao fundo.
-- **Menu inicial e Santuário:** panorama do cenário com a Bibiana e a mecha em destaque; Santuário como cômodo em ruína com três estações (Biblioteca, Arsenal, Códice).
+- **Menu inicial e Santuário:** panorama do cenário gótico com a Bibiana em destaque; Santuário como cômodo em ruína com três estações (Biblioteca, Arsenal, Códice).
 
 ## 6. Como construir (decisões técnicas)
 
@@ -115,8 +115,8 @@ Ver ADR-0036. Resumo:
 | Núcleo | Intacto. As cenas só leem eventos e `MapView`/`CombatSession` (regra 6 do `CLAUDE.md`); o `MapView` ganha a posição 3D de cada nó **na apresentação**, nunca no núcleo |
 | Pixel-art em 3D | `SubViewport` com resolução interna baixa (480×270, ajustável), filtro `nearest`, ampliado em múltiplos inteiros; contorno e posterização por shader de pós-processamento (GDD §18). Se o contorno atrasar a primeira entrega, a primeira versão sai **sem contorno** e ele entra na TASK-039 |
 | Assets | Kits CC0 do GDD §18: **Kenney** (Graveyard Kit, Modular Dungeon Kit, Mini Dungeon) para terreno e props; **KayKit Adventurers** para a Bibiana e humanoides; **Quaternius Ultimate Monsters** para os monstros. Cada pacote entra com registro em `assets/LICENSES.md` (pacote, autor, link, licença, data) |
-| Blender | Para o que os kits não têm: mecha de cabelo da Bibiana, peças de ligação (escada, ponte) e **ajuste de escala e pivôs**. O servidor `blender` falhou ao conectar em 2026-11-18 (CONNECT_TIMEOUT); depende do addon aberto, ver `docs/MCP.md` |
-| Entidades | O campo `modelo` (GDD §20) aponta para a cena por id; trocar arte = trocar arquivo, sem tocar nas regras |
+| Blender / Sprites 2D | Peças de ligação (escada, ponte) e **ajuste de escala e pivôs** no 3D de cenário; personagens, inimigos e fundos de combate seguem a rota de **sprites 2D HD-2D e fundos pintados** (`F-024`, `docs/design/PROMPTS-LOTE-HD2D.md`) |
+| Entidades | O campo `modelo` (GDD §20) aponta para a cena ou sprite por id; trocar arte = trocar arquivo, sem tocar nas regras |
 | Névoa de guerra | Shader no chão e nas peças com um mapa de visibilidade por célula (revelado, visível, oculto); a TASK-036 define o formato |
 | Áudio | O sintetizador procedural (`SoundFx`, ADR-0035) **fica** como substituto de efeitos; música e ambiente entram na TASK-039 com bibliotecas CC0 (Kenney Audio e afins), registradas em `LICENSES.md` |
 | Desempenho | Metas do GDD §18 (60 mil triângulos no tabuleiro, 30 fps). **Medir no PC primeiro**; celular ao fim das tarefas (GDD §20) |
@@ -124,7 +124,7 @@ Ver ADR-0036. Resumo:
 ## 7. O que continua válido do trabalho anterior
 
 - Todo o **núcleo** (regras, mapa, combate, economia, save, Santuário) e seus testes.
-- O **`SoundFx`** (efeitos curtos) e a **paleta** (`VisualTheme`: cores da mecha, ouro, perigo), que servem de tema de interface.
+- O **`SoundFx`** (efeitos curtos) e a **paleta** (`VisualTheme`: ouro da moeda e vermelho de perigo; a antiga mecânica de mecha colorida foi removida em `F-024`), que servem de tema de interface.
 - Os **controladores sem nós** (`MapView`, `CombatSession`, `RunPanels`): a nova camada 3D os usa.
 - As telas 2D atuais ficam como **modo de depuração e de teste** (`GameScreen`), até a nova camada cobrir tudo. Elas **não são** a versão com gráficos.
 

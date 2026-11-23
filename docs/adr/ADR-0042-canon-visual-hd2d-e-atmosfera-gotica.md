@@ -65,7 +65,7 @@ Pela regra de originalidade do GDD §18, **prompts de IA (imagem, 3D, textura, s
 ### 5. Critérios de reprovação automática de assets
 
 Qualquer asset ou tela deve ser reprovado pelo autor ou revisor (`docs/REVIEW-CHECKLIST.md`) se apresentar:
-- Cores alegres, pastéis ou saturação alta fora dos três acentos permitidos (mecha da Bibiana, ouro da moeda, vermelho de perigo — GDD §18).
+- Cores alegres, pastéis ou saturação alta fora dos dois acentos permitidos (ouro da moeda e vermelho de perigo, além do raro foco âmbar de lampião/fogueira — GDD §18; **a antiga mecânica de mecha colorida no cabelo da Bibiana foi removida por completo em `F-024`**).
 - Vegetação verde viva ou aparência de maquete de brinquedo/cartoon/plástico liso (ex.: pinheiros verdes saturados sem tratamento).
 - Cenário plano sem escalonamento de profundidade, sem sombras projetadas nem hierarquia clara entre fundo escuro, palco iluminado e primeiro plano.
 - Iluminação ambiente alta e uniforme (tom lilás/lavado que apaga as sombras góticas).
