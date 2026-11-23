@@ -1,0 +1,3 @@
+Sprites 2D dos inimigos do Bibiana's Quest, recortados e pixelizados por tools/make_sprite.py a partir das
+pranchas de conceito que o Orlando gerou com IA de imagem (docs/design/refs/inimigos/), sem citar jogos
+nem artistas nos prompts (GDD 18). Material proprio do projeto, criado em 2026-11-23.

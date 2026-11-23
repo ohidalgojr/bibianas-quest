@@ -1,3 +1,18 @@
+# MUDANÇA DE RUMO (2026-11-23): sprites 2D HD-2D
+
+O Orlando reprovou tudo (modelos 3D procedurais e cenário). As referências dele são arte 2D sobre cenário com profundidade. Decisão (ADR-0052): **personagens e inimigos viram sprites 2D**, recortados das pranchas do Gemini. Ver TASK-065. **A parte abaixo sobre revisar os modelos 3D da TASK-062 deixou de ser prioridade**: eles são provisórios.
+
+## O que o Orlando precisa gerar no Gemini (roteiro)
+
+Formato de cada prancha: figura única de corpo inteiro, 3/4 de frente, pose neutra, **fundo escuro liso sem cenário**, 1376x768 ou maior, sem texto, sem moldura, prompt sem citar jogos nem artistas (GDD 18). Estilo das pranchas que já existem em `docs/design/refs/inimigos/`.
+
+1. **Bibiana** (prioridade 1): guerreira de capuz rasgado, armadura de malha, escudo e espada, adulta, sombria, 3/4 virada para a direita (como no mockup `refs/ui/bibiana-mockup-combate-mobile.jpg` e na pintura `refs/roaming-boss/04-...`). Ideal: variantes de cor/brilho da mecha (GDD 9), ao menos a primeira.
+2. Inimigos que já existem no jogo e ainda estão em 3D tosco: Cidadão Infectado, Rato Grande, Corvo Carniceiro, Cão de Peste, Sineiro Penado, Ossada Errante, Lodo de Esgoto, Sanguessuga de Beco, Enforcado, Costurado, Carrasco Apodrecido, Mãe das Ratazanas, Carcereiro do Sino e **O Coveiro (chefe)**. Fichas em `docs/enemies/`.
+3. Os 5 inimigos do estudo que ainda não têm código: 02, 03, 05, 06, 07 (as pranchas já existem; entram como inimigos novos quando o Orlando mandar).
+4. **Fundos pintados** (opcional, recomendado): a arena do combate pintada na proporção do palco (retrato), no estilo de `refs/roaming-boss/04-...` e do mockup, sem personagens, para usar como cenário em camadas (fundo, meio, primeiro plano com neblina).
+
+Salvar em `docs/design/refs/inimigos/` com o id do jogo no nome; o agente roda `python tools/make_sprite.py <prancha> assets/bibiana/sprites/<id>.png --box x0,y0,x1,y1 --height 240` e registra em `ModelRegistry` (chave `sprite`).
+
 # Próxima rodada de validação (parada em 2026-11-22, por cota)
 
 Tudo abaixo está **commitado e com a suíte verde (369/369)**, mas **nada de arte foi aprovado ainda**. A régua é o ADR-0050: só vale o print 540×960 do jogo contra o checklist E de `docs/design/IDENTIDADE-VISUAL.md`, revisado por um agente de direção de arte (12/12). Regras do dono no topo do mesmo arquivo: **nada fofo, nada tosco, mundo sombrio, siga as referências do Gemini à risca**.

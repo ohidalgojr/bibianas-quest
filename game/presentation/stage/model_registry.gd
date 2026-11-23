@@ -9,6 +9,8 @@ const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const KAYKIT: String = "res://assets/kaykit/adventurers/"
 const QUAT: String = "res://assets/quaternius/monsters/"
 const OWN: String = "res://assets/bibiana/enemies/"
+## Sprites 2D HD-2D (ADR-0052): recortes das pranchas de conceito, em pé no diorama 3D.
+const SPR: String = "res://assets/bibiana/sprites/"
 
 ## id -> {path, scale, idle, walk, attack, hit, death, placeholder}
 const MODELS: Dictionary = {
@@ -25,9 +27,9 @@ const MODELS: Dictionary = {
 	"rat_mother": {"path": OWN + "rat_mother.glb", "scale": 1.0, "yaw_offset": 55.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"sewer_slime": {"path": QUAT + "Slime.fbx", "scale": 30.0, "idle": "Armature|Slime_Idle", "walk": "Armature|Slime_Walk", "attack": "Armature|Slime_Attack", "hit": "Armature|Slime_Idle", "death": "Armature|Slime_Death", "placeholder": false},
 	"alley_leech": {"path": OWN + "alley_leech.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"blind_censer_bearer": {"path": OWN + "blind_censer_bearer.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"wax_physician": {"path": OWN + "wax_physician.glb", "scale": 1.0, "yaw_offset": -30.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"trench_crawler": {"path": OWN + "trench_crawler.glb", "scale": 1.0, "yaw_offset": -35.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"blind_censer_bearer": {"sprite": SPR + "blind_censer_bearer.png", "flip": false, "path": OWN + "blind_censer_bearer.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"wax_physician": {"sprite": SPR + "wax_physician.png", "flip": true, "path": OWN + "wax_physician.glb", "scale": 1.0, "yaw_offset": -30.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"trench_crawler": {"sprite": SPR + "trench_crawler.png", "flip": true, "path": OWN + "trench_crawler.glb", "scale": 1.0, "yaw_offset": -35.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"bell_warden": {"path": OWN + "bell_warden.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"gravedigger": {"path": OWN + "gravedigger.glb", "scale": 1.0, "yaw_offset": -35.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 }
@@ -38,6 +40,15 @@ static func yaw_offset(id: String) -> float:
 	return float((MODELS[id] as Dictionary).get("yaw_offset", 0.0))
 
 
+## Verdadeiro quando o inimigo é um sprite 2D (ADR-0052).
+static func has_sprite(id: String) -> bool:
+	return MODELS.has(id) and (MODELS[id] as Dictionary).has("sprite")
+
+
+static func sprite_texture(id: String) -> Texture2D:
+	return load((MODELS[id] as Dictionary)["sprite"] as String) as Texture2D
+
+
 static func has_model(id: String) -> bool:
 	return MODELS.has(id)
 
@@ -45,12 +56,35 @@ static func has_model(id: String) -> bool:
 ## Cria o modelo com a escala aplicada, dentro de um `Node3D` com o nome do id.
 static func spawn(id: String) -> Node3D:
 	var entry: Dictionary = MODELS[id]
+	if entry.has("sprite"):
+		return _spawn_sprite(id, entry)
 	var packed: PackedScene = load(entry["path"] as String) as PackedScene
 	var root: Node3D = Node3D.new()
 	root.name = id
 	var inst: Node3D = packed.instantiate() as Node3D
 	inst.scale = Vector3.ONE * float(entry["scale"])
 	root.add_child(inst)
+	return root
+
+
+## Sprite 2D em pé (billboard preso ao eixo Y, filtro nearest, recebe a luz da cena), com 1 unidade
+## de altura e os pés na origem, como os modelos 3D. `flip` vira a figura para o lado da Bibiana.
+static func _spawn_sprite(id: String, entry: Dictionary) -> Node3D:
+	var root: Node3D = Node3D.new()
+	root.name = id
+	var tex: Texture2D = load(entry["sprite"] as String) as Texture2D
+	var sprite: Sprite3D = Sprite3D.new()
+	sprite.texture = tex
+	sprite.pixel_size = 1.0 / float(maxi(tex.get_height(), 1))
+	sprite.offset = Vector2(0.0, float(tex.get_height()) * 0.5)
+	sprite.flip_h = bool(entry.get("flip", false))
+	sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	sprite.shaded = false
+	sprite.modulate = Color(0.92, 0.93, 1.0)
+	sprite.double_sided = true
+	root.add_child(sprite)
 	return root
 
 
