@@ -1,0 +1,1 @@
+Coloque aqui as pranchas da Bibiana (ver docs/design/PROMPTS-GEMINI-BIBIANA-E-COVEIRO.md).
