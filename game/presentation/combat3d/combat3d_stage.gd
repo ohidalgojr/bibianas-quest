@@ -15,7 +15,7 @@ const CAM_TARGET: Vector3 = Vector3(-0.5, 1.75, -0.4)
 const ENEMY_POS: Vector3 = Vector3(-0.9, 0.9, -1.0)
 const PLAYER_POS: Vector3 = Vector3(0.9, 0.9, 2.8)
 ## Alturas de pé em unidades (inimigo comum, elite, chefe e Bibiana).
-const HEIGHT_COMMON: float = 2.5
+const HEIGHT_COMMON: float = 2.3
 const HEIGHT_ELITE: float = 3.0
 const HEIGHT_BOSS: float = 3.6
 const HEIGHT_PLAYER: float = 1.45
@@ -85,7 +85,7 @@ func _build_environment() -> void:
 	Atmosphere.apply(env)
 	# O duelo precisa de mais ambiente que as outras cenas: o palco é fechado e as peças vêm tingidas.
 	env.ambient_light_energy = 0.62
-	env.fog_density = 0.007
+	env.fog_density = 0.002
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 0.56
 	env.adjustment_contrast = 1.2
@@ -246,8 +246,8 @@ func _apply_mutation(mutation: String) -> void:
 			red.position = Vector3(0, 1.4, 0)
 			enemy_node.add_child(red)
 		"phantom":
-			for mesh: Node in enemy_node.find_children("*", "MeshInstance3D", true, false):
-				(mesh as MeshInstance3D).transparency = 0.5
+			for mesh: Node in enemy_node.find_children("*", "GeometryInstance3D", true, false):
+				(mesh as GeometryInstance3D).transparency = 0.5
 		"thorny":
 			enemy_node.scale *= 1.15
 			var thorn: OmniLight3D = OmniLight3D.new()
@@ -267,6 +267,14 @@ func portrait(on_enemy: bool) -> Texture2D:
 	var id: String = _enemy_id if on_enemy else "bibiana"
 	if not ModelRegistry.has_model(id):
 		return null
+	if ModelRegistry.has_sprite(id):
+		# Retrato de sprite: o terço de cima da figura (cabeça e ombros), sem câmera extra.
+		var full: Texture2D = ModelRegistry.sprite_texture(id)
+		var atlas: AtlasTexture = AtlasTexture.new()
+		atlas.atlas = full
+		atlas.region = Rect2(0.0, 0.0, full.get_width(), full.get_height() * 0.4)
+		_portraits[key] = atlas
+		return atlas
 	var port: SubViewport = SubViewport.new()
 	port.size = Vector2i(64, 64)
 	port.own_world_3d = true
@@ -307,8 +315,8 @@ func portrait(on_enemy: bool) -> Texture2D:
 func _aabb(node: Node3D) -> AABB:
 	var out: AABB = AABB()
 	var first: bool = true
-	for found: Node in node.find_children("*", "MeshInstance3D", true, false):
-		var mesh: MeshInstance3D = found as MeshInstance3D
+	for found: Node in node.find_children("*", "GeometryInstance3D", true, false):
+		var mesh: GeometryInstance3D = found as GeometryInstance3D
 		var chain: Transform3D = mesh.transform
 		var parent: Node = mesh.get_parent()
 		while parent != null and parent != node:
