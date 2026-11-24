@@ -12,15 +12,15 @@ const SHRINK: int = 2
 const CAM_SIZE: float = 4.3
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.62, 1.0) * 16.0
 const CAM_TARGET: Vector3 = Vector3(-0.5, 1.75, -0.4)
-const ENEMY_POS: Vector3 = Vector3(-0.9, 0.9, -1.0)
+const ENEMY_POS: Vector3 = Vector3(-1.2, 0.9, -0.7)
 const PLAYER_POS: Vector3 = Vector3(1.5, 0.9, 2.3)
 ## Alturas de pé em unidades (inimigo comum, elite, chefe e Bibiana).
 const HEIGHT_COMMON: float = 2.3
 const HEIGHT_ELITE: float = 3.0
 const HEIGHT_BOSS: float = 3.6
 ## No palco pintado a moldura é menor: elite e chefe cabem inteiros com o aviso acima da cabeça.
-const PAINTED_HEIGHT_ELITE: float = 2.6
-const PAINTED_HEIGHT_BOSS: float = 2.9
+const PAINTED_HEIGHT_ELITE: float = 2.5
+const PAINTED_HEIGHT_BOSS: float = 2.7
 const HEIGHT_PLAYER: float = 2.0
 const ENEMY_YAW: float = 45.0
 const PLAYER_YAW: float = 225.0
@@ -167,13 +167,13 @@ func _build_arena(kind: int) -> void:
 
 
 func _spawn_actors(kind: int) -> void:
-	player_node = ModelRegistry.spawn("bibiana")
+	player_node = ModelRegistry.spawn(ModelRegistry.hero_id())
 	player_node.position = PLAYER_POS
 	player_node.rotation_degrees.y = PLAYER_YAW
 	_scene_root.add_child(player_node)
 	player_node.scale = Vector3.ONE * _scale_to_height(player_node, HEIGHT_PLAYER, 1.0)
 	_add_contact_shadow(player_node, 0.9)
-	ModelRegistry.play(player_node, "bibiana", "idle")
+	ModelRegistry.play(player_node, ModelRegistry.hero_id(), "idle")
 	if not ModelRegistry.has_model(_enemy_id):
 		return
 	enemy_node = ModelRegistry.spawn(_enemy_id)
@@ -186,7 +186,7 @@ func _spawn_actors(kind: int) -> void:
 		target = PAINTED_HEIGHT_BOSS if boss else (PAINTED_HEIGHT_ELITE if kind == MapNode.Kind.ELITE else HEIGHT_COMMON)
 	_scene_root.add_child(enemy_node)
 	# Criatura larga (cão, ratos) não pode passar da moldura do quadro pintado.
-	_enemy_scale = _scale_to_height(enemy_node, target, 1.2 if _painted else 1.7)
+	_enemy_scale = _scale_to_height(enemy_node, target, 1.0 if _painted else 1.7)
 	enemy_node.scale = Vector3.ONE * _enemy_scale
 	_enemy_height = target
 	_add_contact_shadow(enemy_node, 1.1)
@@ -250,7 +250,7 @@ func play(on_enemy: bool, key: String) -> void:
 	var node: Node3D = enemy_node if on_enemy else player_node
 	if node == null:
 		return
-	var id: String = _enemy_id if on_enemy else "bibiana"
+	var id: String = _enemy_id if on_enemy else ModelRegistry.hero_id()
 	ModelRegistry.play(node, id, key)
 	if time_scale <= 0.0 or not is_inside_tree():
 		return
@@ -330,7 +330,7 @@ func portrait(on_enemy: bool) -> Texture2D:
 	var key: String = "enemy" if on_enemy else "player"
 	if _portraits.has(key):
 		return _portraits[key]
-	var id: String = _enemy_id if on_enemy else "bibiana"
+	var id: String = _enemy_id if on_enemy else ModelRegistry.hero_id()
 	if not ModelRegistry.has_model(id):
 		return null
 	if ModelRegistry.has_sprite(id):

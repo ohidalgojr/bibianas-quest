@@ -79,6 +79,11 @@ var _buttons: Dictionary = {}
 var _drawers: Dictionary = {}
 var _drawer_tabs: Dictionary = {}
 var _open_drawer: String = ""
+var _sheet: PanelContainer
+var _sheet_holder: VBoxContainer
+## Folha das gavetas: altura e distância do rodapé (acima da fileira de abas).
+const SHEET_HEIGHT: float = 270.0
+const SHEET_BOTTOM: float = 78.0
 var _selected_action: String = ""
 ## Skill, item e Fugir pedem um segundo toque (D-UI-1); desligado nos testes e na depuração 2D.
 var confirm_taps: bool = DisplayServer.get_name() != "headless"
@@ -655,22 +660,46 @@ func _build() -> void:
 	var tab_row: HBoxContainer = HBoxContainer.new()
 	tab_row.add_theme_constant_override("separation", 6)
 	column.add_child(tab_row)
+	# Gavetas como folha sobreposta (TASK-067, crítica do diretor): sobem sobre o log e as ações sem
+	# redimensionar o palco, que fica fixo.
+	_sheet = PanelContainer.new()
+	var sheet_style: StyleBoxFlat = StyleBoxFlat.new()
+	sheet_style.bg_color = Color(0.082, 0.09, 0.11, 1.0)
+	sheet_style.border_color = Color(0.54, 0.42, 0.23)
+	sheet_style.set_border_width_all(2)
+	sheet_style.set_corner_radius_all(10)
+	sheet_style.set_content_margin_all(10)
+	_sheet.add_theme_stylebox_override("panel", sheet_style)
+	_sheet.anchor_left = 0.0
+	_sheet.anchor_right = 1.0
+	_sheet.anchor_top = 1.0
+	_sheet.anchor_bottom = 1.0
+	_sheet.offset_left = 10.0
+	_sheet.offset_right = -10.0
+	_sheet.offset_bottom = -SHEET_BOTTOM
+	_sheet.offset_top = -SHEET_BOTTOM - SHEET_HEIGHT
+	_sheet.visible = false
+	var sheet_box: VBoxContainer = VBoxContainer.new()
+	sheet_box.add_theme_constant_override("separation", 8)
+	_sheet.add_child(sheet_box)
+	_sheet_holder = sheet_box
+	add_child(_sheet)
 	for tab: String in DRAWER_ORDER:
 		var tab_button: Button = Button.new()
 		tab_button.text = str(DRAWER_TITLES[tab])
 		tab_button.toggle_mode = true
 		tab_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tab_button.custom_minimum_size = Vector2(0, 48)
+		tab_button.custom_minimum_size = Vector2(0, 52)
 		tab_button.add_theme_font_size_override("font_size", 15)
 		tab_button.pressed.connect(_select_drawer.bind(tab))
 		tab_row.add_child(tab_button)
 		_drawer_tabs[tab] = tab_button
 		var drawer: GridContainer = GridContainer.new()
-		drawer.columns = 2 if tab == "skills" else 3
+		drawer.columns = 1 if tab == "skills" else 2
 		drawer.add_theme_constant_override("h_separation", 8)
 		drawer.add_theme_constant_override("v_separation", 8)
 		drawer.visible = false
-		column.add_child(drawer)
+		_sheet_holder.add_child(drawer)
 		_drawers[tab] = drawer
 	for entry: Array in [["attack", "Atacar"], ["defend", "Defender"], ["skill_0", "Skill"], ["skill_1", "Skill"],
 			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["ether", "Éter Sujo"],
@@ -681,7 +710,7 @@ func _build() -> void:
 		button.text = str(entry[1])
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(0, (62 if use_stage else 76) if main_action else (52 if action.begins_with("skill_") else 46))
+		button.custom_minimum_size = Vector2(0, (62 if use_stage else 76) if main_action else (64 if action.begins_with("skill_") else 56))
 		button.add_theme_font_size_override("font_size", 16)
 		var ui_icon: Texture2D = IconRegistry.texture_for("ui", action if action != "luck" else "luck")
 		if action == "potion":
@@ -800,6 +829,7 @@ func _select_drawer(tab: String) -> void:
 	for tab_name: String in DRAWER_ORDER:
 		(_drawers[tab_name] as GridContainer).visible = tab_name == _open_drawer
 		(_drawer_tabs[tab_name] as Button).button_pressed = tab_name == _open_drawer
+	_sheet.visible = not _open_drawer.is_empty()
 	_clear_selection()
 
 
@@ -931,10 +961,10 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> PanelContainer:
 	_timeline_col.position = Vector2(4, 56)
 	_stage.add_child(_timeline_col)
 	var forecast_panel: PanelContainer = PanelContainer.new()
-	forecast_panel.add_theme_stylebox_override("panel", _box(Color(0.05, 0.09, 0.18, 0.86)))
+	forecast_panel.add_theme_stylebox_override("panel", _box(Color(0.082, 0.09, 0.11, 0.92)))
 	_forecast = Label.new()
-	_forecast.add_theme_font_size_override("font_size", 15)
-	_forecast.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	_forecast.add_theme_font_size_override("font_size", 16)
+	_forecast.add_theme_color_override("font_color", Color(0.93, 0.84, 0.58))
 	_forecast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	forecast_panel.add_child(_forecast)
 	column.add_child(forecast_panel)

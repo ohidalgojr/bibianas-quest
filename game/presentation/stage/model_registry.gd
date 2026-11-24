@@ -34,6 +34,8 @@ const MODELS: Dictionary = {
 	"gravedigger": {"sprite": SPR + "gravedigger.png", "flip": false, "path": OWN + "gravedigger.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	# Inimigos do estudo sem código ainda (TASK-051) e NPCs/props das pranchas HD-2D (F-024). Sem `path`:
 	# só existem como sprite; a cena que os usar chama `spawn` normalmente.
+	# Bibiana de costas (visão de combate), entra sozinha quando o arquivo existir (TASK-067).
+	"bibiana_back": {"sprite": SPR + "bibiana_back.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"reliquary_lady": {"sprite": SPR + "reliquary_lady.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"wheel_pilgrim": {"sprite": SPR + "wheel_pilgrim.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"bog_washerwoman": {"sprite": SPR + "bog_washerwoman.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
@@ -53,7 +55,13 @@ static func yaw_offset(id: String) -> float:
 
 ## Verdadeiro quando o inimigo é um sprite 2D (ADR-0052).
 static func has_sprite(id: String) -> bool:
-	return MODELS.has(id) and (MODELS[id] as Dictionary).has("sprite")
+	return MODELS.has(id) and (MODELS[id] as Dictionary).has("sprite") \
+		and ResourceLoader.exists((MODELS[id] as Dictionary)["sprite"] as String)
+
+
+## Id da Bibiana a usar em combate e no mapa: de costas se a arte existir, senão a de frente.
+static func hero_id() -> String:
+	return "bibiana_back" if has_sprite("bibiana_back") else "bibiana"
 
 
 static func sprite_texture(id: String) -> Texture2D:

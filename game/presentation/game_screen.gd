@@ -34,7 +34,7 @@ var telemetry_dir: String = "user://"
 var _thread: Thread
 var _content: Control
 var _map: MapScreen
-var _map3d: Map3DScreen
+var _map3d: Control
 ## Mapa 3D isométrico (ADR-0036). Em headless (testes) o mapa 2D de depuração continua valendo.
 var use_3d_map: bool = DisplayServer.get_name() != "headless"
 var _combat: CombatScreen
@@ -277,7 +277,7 @@ func _show_map() -> void:
 	ambience.set_mood("map")
 	_clear()
 	if use_3d_map:
-		_map3d = Map3DScreen.new()
+		_map3d = PaintedMapScreen.new()
 		_map3d.view = MapView.new(run)
 		_map3d.time_scale = time_scale
 		_map3d.node_chosen.connect(choose_node)
