@@ -1,7 +1,7 @@
 class_name VisualTheme
 extends RefCounted
-## Direção visual Dark Fantasy, regra do acento, 9 estágios da mecha da Bibiana (GDD §3, §9, §17,
-## §18, §19, TASK-031, ADR-0035), retratos vetoriais (Bibiana + 7 inimigos), brasões do tabuleiro
+## Direção visual Dark Fantasy e regra do acento (GDD §3, §17, §18, §19, TASK-031, ADR-0035;
+## mecha colorida removida em F-024), retratos vetoriais (Bibiana + 7 inimigos), brasões do tabuleiro
 ## e medalhão visual da moeda com símbolos distintos para Cara e Coroa.
 
 const COLOR_BG_DEEP: Color = Color(0.05, 0.055, 0.075, 1.0)
@@ -12,36 +12,8 @@ const COLOR_GOLD: Color = Color(0.92, 0.75, 0.26, 1.0)
 const COLOR_DANGER: Color = Color(0.86, 0.22, 0.20, 1.0)
 const COLOR_PARCHMENT: Color = Color(0.88, 0.85, 0.78, 1.0)
 
-## Tabela do GDD §9: 9 estágios da mecha de cabelo da Bibiana por Poder mínimo.
-const HAIR_STAGES: Array[Dictionary] = [
-	{"stage": 1, "min_power": 1.0, "name": "Castanho", "color": Color(0.58, 0.38, 0.22, 1.0)},
-	{"stage": 2, "min_power": 3.0, "name": "Verde claro", "color": Color(0.46, 0.86, 0.50, 1.0)},
-	{"stage": 3, "min_power": 5.0, "name": "Azul claro", "color": Color(0.38, 0.78, 0.96, 1.0)},
-	{"stage": 4, "min_power": 8.0, "name": "Azul escuro", "color": Color(0.22, 0.44, 0.90, 1.0)},
-	{"stage": 5, "min_power": 12.0, "name": "Vermelho claro", "color": Color(0.96, 0.42, 0.42, 1.0)},
-	{"stage": 6, "min_power": 17.0, "name": "Vermelho escuro", "color": Color(0.74, 0.14, 0.18, 1.0)},
-	{"stage": 7, "min_power": 23.0, "name": "Roxo claro", "color": Color(0.76, 0.48, 0.96, 1.0)},
-	{"stage": 8, "min_power": 30.0, "name": "Roxo escuro", "color": Color(0.50, 0.20, 0.78, 1.0)},
-	{"stage": 9, "min_power": 40.0, "name": "Branco", "color": Color(0.96, 0.97, 1.00, 1.0)},
-]
-
-
-static func hair_stage_for_power(power: float) -> int:
-	var best_stage: int = 1
-	for entry: Dictionary in HAIR_STAGES:
-		if power >= float(entry["min_power"]):
-			best_stage = int(entry["stage"])
-	return best_stage
-
-
-static func hair_color_for_power(power: float) -> Color:
-	var stage: int = hair_stage_for_power(power)
-	return HAIR_STAGES[stage - 1]["color"]
-
-
-static func hair_stage_name(power: float) -> String:
-	var stage: int = hair_stage_for_power(power)
-	return str(HAIR_STAGES[stage - 1]["name"])
+## Realce do nó atual no tabuleiro (bronze claro; sem relação com cor de cabelo, F-024).
+const COLOR_CURRENT_NODE: Color = Color(0.80, 0.68, 0.42, 1.0)
 
 
 static func styled_panel(bg: Color = COLOR_STONE_DARK, border: Color = COLOR_BORDER_BRONZE, radius: int = 8) -> StyleBoxFlat:
@@ -119,7 +91,7 @@ static func draw_node_emblem(canvas: CanvasItem, center: Vector2, kind: int, rad
 			canvas.draw_line(center + Vector2(-radius * 0.32, -radius * 0.15), center + Vector2(radius * 0.32, -radius * 0.15), COLOR_GOLD, 2.5)
 
 
-## Retrato vetorial 2D para a Bibiana (com mecha de cabelo reagindo ao Poder) e para os 7 inimigos
+## Retrato vetorial 2D para a Bibiana (cabelo castanho-escuro natural, F-024) e para os 7 inimigos
 ## (GDD §9, §18). Herda de ColorRect para manter compatibilidade total com CombatScreen.
 class PortraitCanvas extends ColorRect:
 	var subject_id: String = "bibiana"
@@ -157,9 +129,6 @@ class PortraitCanvas extends ColorRect:
 			_draw_enemy(subject_id, c, minf(w, h))
 
 	func _draw_bibiana(c: Vector2, s: float) -> void:
-		var hair_color: Color = VisualTheme.hair_color_for_power(power_level)
-		# Halo sutil da mecha
-		draw_circle(c + Vector2(-s * 0.05, -s * 0.16), s * 0.24, Color(hair_color.r, hair_color.g, hair_color.b, 0.18))
 		# Manto e ombros de malha
 		var torso: PackedVector2Array = PackedVector2Array([
 			c + Vector2(-s * 0.28, s * 0.38),
@@ -170,14 +139,8 @@ class PortraitCanvas extends ColorRect:
 		draw_colored_polygon(torso, Color(0.24, 0.27, 0.34))
 		# Cabeça e capuz
 		draw_circle(c + Vector2(0, -s * 0.17), s * 0.14, Color(0.76, 0.70, 0.64))
-		# Mecha de cabelo saturada (Regra do Acento, GDD §3 e §9)
-		var streak: PackedVector2Array = PackedVector2Array([
-			c + Vector2(-s * 0.04, -s * 0.30),
-			c + Vector2(-s * 0.22, -s * 0.10),
-			c + Vector2(-s * 0.14, s * 0.04),
-			c + Vector2(-s * 0.02, -s * 0.14),
-		])
-		draw_colored_polygon(streak, hair_color)
+		# Cabelo curto castanho-escuro natural (F-024)
+		draw_circle(c + Vector2(-s * 0.02, -s * 0.25), s * 0.10, Color(0.20, 0.14, 0.11))
 		# Escudo na esquerda
 		var shield_rect: Rect2 = Rect2(c + Vector2(-s * 0.34, -s * 0.02), Vector2(s * 0.22, s * 0.30))
 		draw_rect(shield_rect, Color(0.32, 0.35, 0.42), true)

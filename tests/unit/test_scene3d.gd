@@ -10,7 +10,8 @@ func test_every_backdrop_kind_builds_with_the_hero() -> void:
 		backdrop.time_scale = 0.0
 		add_child_autofree(backdrop)
 		assert_not_null(backdrop.hero, "%s: Bibiana no cenário" % kind)
-		assert_gt(backdrop.find_children("*", "MeshInstance3D", true, false).size(), 10, "%s: peças 3D" % kind)
+		# A Bibiana agora é um Sprite3D (TASK-066), não mais ~10 malhas do cavaleiro: conta qualquer geometria.
+		assert_gt(backdrop.find_children("*", "GeometryInstance3D", true, false).size(), 0, "%s: peças 3D" % kind)
 
 
 func test_run_panel_uses_the_backdrop_and_a_scroll_when_enabled() -> void:

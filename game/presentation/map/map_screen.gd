@@ -3,7 +3,7 @@ extends Control
 ## Tabuleiro visual da Cidade Abandonada (TASK-009, TASK-031, ADR-0013, ADR-0035):
 ## estradas curvas de calçamento, praças de pedra com brasões vetoriais por tipo de nó,
 ## neblina/vinheta nas camadas sob névoa, brilho quente nos 3 destinos disponíveis (GDD §17)
-## e peão da Bibiana com a cor da mecha do seu estágio de Poder atual (GDD §9).
+## e peão da Bibiana com a realce neutro do nó atual (mecha colorida removida, F-024).
 
 signal node_chosen(node_id: int)
 
@@ -26,7 +26,6 @@ const COLOR_FOG: Color = Color(0.13, 0.14, 0.17)
 
 var view: MapView
 var _header: Label
-var _hair_badge: Label
 var _board: Board
 var _buttons: Dictionary = {}
 
@@ -37,7 +36,7 @@ class Board extends Control:
 	var centers: Dictionary = {}
 	var nodes_meta: Array[Dictionary] = []
 	var current_id: int = -1
-	var hair_color: Color = VisualTheme.HAIR_STAGES[0]["color"]
+	var current_color: Color = VisualTheme.COLOR_CURRENT_NODE
 
 	func _draw() -> void:
 		if size.x <= 4.0 or size.y <= 4.0:
@@ -71,8 +70,8 @@ class Board extends Control:
 				var glow: Color = VisualTheme.COLOR_DANGER if bool(node.get("mini_boss", false)) else VisualTheme.COLOR_GOLD
 				draw_circle(c, 44.0, Color(glow.r, glow.g, glow.b, 0.14))
 			elif state == MapView.State.CURRENT:
-				draw_circle(c, 46.0, Color(hair_color.r, hair_color.g, hair_color.b, 0.24))
-				draw_arc(c, 42.0, 0.0, TAU, 28, hair_color, 2.5)
+				draw_circle(c, 46.0, Color(current_color.r, current_color.g, current_color.b, 0.24))
+				draw_arc(c, 42.0, 0.0, TAU, 28, current_color, 2.5)
 			var emblem_pos: Vector2 = c + Vector2(0, -MapScreen.NODE_SIZE.y * 0.56)
 			if emblem_pos.y >= 10.0 and state != MapView.State.PAST:
 				var emblem_tint: Color = VisualTheme.COLOR_GOLD if state == MapView.State.OPTION else Color(0.65, 0.66, 0.72)
@@ -122,10 +121,6 @@ func _ready() -> void:
 	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	header_box.add_child(_header)
 
-	_hair_badge = Label.new()
-	_hair_badge.add_theme_font_size_override("font_size", 14)
-	header_box.add_child(_hair_badge)
-
 	_board = Board.new()
 	_board.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_board.resized.connect(refresh)
@@ -138,12 +133,6 @@ func refresh() -> void:
 	if view == null or _board == null:
 		return
 	_header.text = view.header()
-	var power: float = view.run.power
-	var h_color: Color = VisualTheme.hair_color_for_power(power)
-	_hair_badge.text = "Mecha da Bibiana: Estágio %d — %s (Poder %.2f)" % [
-		VisualTheme.hair_stage_for_power(power), VisualTheme.hair_stage_name(power), power]
-	_hair_badge.add_theme_color_override("font_color", h_color)
-	_board.hair_color = h_color
 	_board.current_id = view.run.current_node_id
 
 	for button: Button in _buttons.values():
@@ -164,7 +153,7 @@ func refresh() -> void:
 		if layer == 0 or layer == rows - 1:
 			x = (area.x - NODE_SIZE.x) / 2.0
 		var y: float = step_y * (rows - 1 - layer)
-		var button: Button = _node_button(node, h_color)
+		var button: Button = _node_button(node, VisualTheme.COLOR_CURRENT_NODE)
 		button.position = Vector2(x, y)
 		_board.add_child(button)
 		_buttons[int(node["id"])] = button
@@ -177,7 +166,7 @@ func button_for(node_id: int) -> Button:
 	return _buttons.get(node_id)
 
 
-func _node_button(node: Dictionary, hair_color: Color) -> Button:
+func _node_button(node: Dictionary, current_color: Color) -> Button:
 	var button: Button = Button.new()
 	button.size = NODE_SIZE
 	button.custom_minimum_size = NODE_SIZE
@@ -203,7 +192,7 @@ func _node_button(node: Dictionary, hair_color: Color) -> Button:
 	box.border_color = VisualTheme.COLOR_BORDER_BRONZE.darkened(0.2)
 	box.set_border_width_all(1)
 	if state == MapView.State.CURRENT:
-		box.border_color = hair_color
+		box.border_color = current_color
 		box.set_border_width_all(3)
 	elif state == MapView.State.OPTION:
 		box.border_color = VisualTheme.COLOR_DANGER if bool(node.get("mini_boss", false)) else COLOR_EDGE_LIT

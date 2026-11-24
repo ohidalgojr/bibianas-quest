@@ -38,3 +38,18 @@ func test_proof_scene_builds_without_error() -> void:
 	add_child_autofree(instance)
 	assert_true(instance is ProofScene)
 	assert_gt(instance.find_children("*", "MeshInstance3D", true, false).size(), 20, "cenário tem peças 3D")
+
+
+func test_every_registered_sprite_file_loads() -> void:
+	for id: String in ModelRegistry.MODELS:
+		if not ModelRegistry.has_sprite(id):
+			continue
+		var tex: Texture2D = ModelRegistry.sprite_texture(id)
+		assert_not_null(tex, "%s: sprite não carrega (rode --import depois de gerar com tools/make_sprite.py)" % id)
+
+
+func test_hero_and_every_game_enemy_use_a_sprite() -> void:
+	var data: GameData = DataLoader.load_all()
+	assert_true(ModelRegistry.has_sprite("bibiana"))
+	for enemy_id: String in data.enemies:
+		assert_true(ModelRegistry.has_sprite(enemy_id), "%s sem sprite HD-2D (TASK-066)" % enemy_id)

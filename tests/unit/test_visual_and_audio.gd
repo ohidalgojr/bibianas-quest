@@ -1,28 +1,7 @@
 extends GutTest
-## TASK-031 (ADR-0035): Apresentação Dark Fantasy, 9 estágios da mecha da Bibiana (GDD §9),
+## TASK-031 (ADR-0035): Apresentação Dark Fantasy (mecha colorida removida em F-024),
 ## retratos vetoriais (PortraitCanvas), medalhão da moeda (CoinMedallion), tabuleiro visual
 ## com estradas curvas (MapScreen) e sintetizador de áudio procedural (SoundFx).
-
-
-func test_hair_streak_follows_all_nine_gdd_power_stages() -> void:
-	var expected: Array[Array] = [
-		[1.0, 1, "Castanho"],
-		[2.9, 1, "Castanho"],
-		[3.0, 2, "Verde claro"],
-		[5.0, 3, "Azul claro"],
-		[8.0, 4, "Azul escuro"],
-		[12.0, 5, "Vermelho claro"],
-		[17.0, 6, "Vermelho escuro"],
-		[23.0, 7, "Roxo claro"],
-		[30.0, 8, "Roxo escuro"],
-		[40.0, 9, "Branco"],
-		[55.0, 9, "Branco"],
-	]
-	for row: Array in expected:
-		var p: float = float(row[0])
-		assert_eq(VisualTheme.hair_stage_for_power(p), int(row[1]), "Poder %.1f -> estágio %d" % [p, int(row[1])])
-		assert_eq(VisualTheme.hair_stage_name(p), str(row[2]), "Poder %.1f -> %s" % [p, str(row[2])])
-	assert_ne(VisualTheme.hair_color_for_power(1.0), VisualTheme.hair_color_for_power(40.0))
 
 
 func test_sound_fx_synthesizes_valid_wav_streams_for_all_cues() -> void:
@@ -68,8 +47,6 @@ func test_map_screen_and_combat_screen_use_visual_theme_components() -> void:
 	var map_screen: MapScreen = MapScreen.new()
 	map_screen.view = MapView.new(run)
 	add_child_autofree(map_screen)
-	assert_string_contains(map_screen._hair_badge.text, "Estágio 3")
-	assert_string_contains(map_screen._hair_badge.text, "Azul claro")
 	var pts: PackedVector2Array = map_screen._board._road_points(Vector2(20, 200), Vector2(120, 100))
 	assert_gt(pts.size(), 5, "estrada curva tem pontos intermediários")
 

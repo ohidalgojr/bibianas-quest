@@ -13,15 +13,22 @@ const CAM_SIZE: float = 4.3
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.62, 1.0) * 16.0
 const CAM_TARGET: Vector3 = Vector3(-0.5, 1.75, -0.4)
 const ENEMY_POS: Vector3 = Vector3(-0.9, 0.9, -1.0)
-const PLAYER_POS: Vector3 = Vector3(0.9, 0.9, 2.8)
+const PLAYER_POS: Vector3 = Vector3(1.5, 0.9, 2.3)
 ## Alturas de pé em unidades (inimigo comum, elite, chefe e Bibiana).
 const HEIGHT_COMMON: float = 2.3
 const HEIGHT_ELITE: float = 3.0
 const HEIGHT_BOSS: float = 3.6
-const HEIGHT_PLAYER: float = 1.45
+## No palco pintado a moldura é menor: elite e chefe cabem inteiros com o aviso acima da cabeça.
+const PAINTED_HEIGHT_ELITE: float = 2.6
+const PAINTED_HEIGHT_BOSS: float = 2.9
+const HEIGHT_PLAYER: float = 2.0
 const ENEMY_YAW: float = 45.0
 const PLAYER_YAW: float = 225.0
 const ARENA_HALF: int = 5
+## Arenas pintadas 9:16 (ADR-0053, F-024): luta comum no beco; elite, mini boss e chefe na praça
+## (até existir `arena-cidade-chefe`).
+const ARENA_COMMON: String = "res://assets/bibiana/arenas/arena-cidade-rua.jpg"
+const ARENA_ELITE: String = "res://assets/bibiana/arenas/arena-cidade-praca.jpg"
 
 var time_scale: float = 1.0
 var camera: Camera3D
@@ -37,18 +44,32 @@ var _enemy_height: float = HEIGHT_COMMON
 var _shake: float = 0.0
 var _dim: ColorRect
 var _portraits: Dictionary = {}
+var _backdrop: TextureRect
+var _painted: bool = false
 
 
 func _ready() -> void:
+	_painted = ResourceLoader.exists(ARENA_COMMON)
+	clip_contents = true
+	if _painted:
+		_backdrop = TextureRect.new()
+		_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		_backdrop.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_backdrop)
 	var container: SubViewportContainer = SubViewportContainer.new()
 	container.stretch = true
-	container.stretch_shrink = SHRINK
-	container.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	container.stretch_shrink = 1 if _painted else SHRINK
+	container.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR if _painted else CanvasItem.TEXTURE_FILTER_NEAREST
 	container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(container)
-	PostFx.apply(container, PostFx.COMBAT_BLUR)
+	if not _painted:
+		PostFx.apply(container, PostFx.COMBAT_BLUR)
 	_viewport = SubViewport.new()
+	_viewport.transparent_bg = _painted
 	_viewport.size = Vector2i(270, 300)
 	_viewport.msaa_3d = Viewport.MSAA_DISABLED
 	container.add_child(_viewport)
@@ -73,6 +94,11 @@ func _ready() -> void:
 	add_child(_dim)
 
 
+## Fator entre pixels do viewport e pixels da tela (1 no palco pintado, SHRINK no diorama 3D).
+func _px() -> float:
+	return 1.0 if _painted else float(SHRINK)
+
+
 func _aim_camera(shake: Vector3) -> void:
 	camera.position = CAM_TARGET + CAM_OFFSET + shake
 	camera.look_at(CAM_TARGET + shake)
@@ -80,17 +106,17 @@ func _aim_camera(shake: Vector3) -> void:
 
 func _build_environment() -> void:
 	var env: Environment = Environment.new()
-	env.background_mode = Environment.BG_COLOR
+	env.background_mode = Environment.BG_CLEAR_COLOR if _painted else Environment.BG_COLOR
 	env.background_color = Color(0.02, 0.024, 0.038)
-	Atmosphere.apply(env)
+	Atmosphere.apply(env, not _painted)
 	# O duelo precisa de mais ambiente que as outras cenas: o palco é fechado e as peças vêm tingidas.
 	env.ambient_light_energy = 0.62
 	env.fog_density = 0.002
-	env.adjustment_enabled = true
+	env.adjustment_enabled = not _painted
 	env.adjustment_saturation = 0.56
 	env.adjustment_contrast = 1.2
 	env.adjustment_brightness = 0.9
-	env.glow_enabled = true
+	env.glow_enabled = not _painted
 	env.glow_intensity = 0.58
 	env.glow_bloom = 0.08
 	var holder: WorldEnvironment = WorldEnvironment.new()
@@ -111,7 +137,8 @@ func _build_environment() -> void:
 	fill.light_energy = 0.55
 	fill.rotation_degrees = Vector3(-30, 45, 0)
 	_world.add_child(fill)
-	_world.add_child(Atmosphere.make_focus_spot(ENEMY_POS + Vector3(0.0, 1.6, 0.0), 7.0))
+	if not _painted:
+		_world.add_child(Atmosphere.make_focus_spot(ENEMY_POS + Vector3(0.0, 1.6, 0.0), 7.0))
 
 
 ## Monta o palco de uma luta. `kind` é o [enum MapNode.Kind] do nó (usa -1 para a luta de teste).
@@ -130,7 +157,12 @@ func setup(enemy_id: String, kind: int, mutation: String = "") -> void:
 func _build_arena(kind: int) -> void:
 	var boss: bool = kind == MapNode.Kind.BOSS or kind == MapNode.Kind.MINI_BOSS
 	var focal_kind: String = "combat_boss" if boss else ("combat_elite" if kind == MapNode.Kind.ELITE else "combat_common")
-	# Arena de duelo composta (ADR-0050): canto de nave gótica, não o diorama procedural.
+	if _painted:
+		# Fundo pintado HD-2D (ADR-0053): beco para luta comum, praça para elite, mini boss e chefe.
+		var path: String = ARENA_ELITE if (boss or kind == MapNode.Kind.ELITE) else ARENA_COMMON
+		_backdrop.texture = load(path) as Texture2D
+		return
+	# Reserva sem textura: arena de duelo composta (ADR-0050), canto de nave gótica.
 	DuelArena.build(_scene_root, focal_kind)
 
 
@@ -140,6 +172,7 @@ func _spawn_actors(kind: int) -> void:
 	player_node.rotation_degrees.y = PLAYER_YAW
 	_scene_root.add_child(player_node)
 	player_node.scale = Vector3.ONE * _scale_to_height(player_node, HEIGHT_PLAYER, 1.0)
+	_add_contact_shadow(player_node, 0.9)
 	ModelRegistry.play(player_node, "bibiana", "idle")
 	if not ModelRegistry.has_model(_enemy_id):
 		return
@@ -149,11 +182,41 @@ func _spawn_actors(kind: int) -> void:
 	var boss: bool = kind == MapNode.Kind.BOSS or kind == MapNode.Kind.MINI_BOSS
 	# Escala pela altura de pé (a criatura alta lê alta), com teto para as largas (cão, rato).
 	var target: float = HEIGHT_BOSS if boss else (HEIGHT_ELITE if kind == MapNode.Kind.ELITE else HEIGHT_COMMON)
+	if _painted:
+		target = PAINTED_HEIGHT_BOSS if boss else (PAINTED_HEIGHT_ELITE if kind == MapNode.Kind.ELITE else HEIGHT_COMMON)
 	_scene_root.add_child(enemy_node)
-	_enemy_scale = _scale_to_height(enemy_node, target, 1.7)
+	# Criatura larga (cão, ratos) não pode passar da moldura do quadro pintado.
+	_enemy_scale = _scale_to_height(enemy_node, target, 1.2 if _painted else 1.7)
 	enemy_node.scale = Vector3.ONE * _enemy_scale
 	_enemy_height = target
+	_add_contact_shadow(enemy_node, 1.1)
 	ModelRegistry.play(enemy_node, _enemy_id, "idle")
+
+
+## Sombra de contato: elipse escura e achatada sob os pés, para o sprite não flutuar sobre o quadro
+## pintado (só no palco pintado). `width` é a largura em unidades locais do ator (pés em y = 0).
+func _add_contact_shadow(actor: Node3D, width: float) -> void:
+	if not _painted:
+		return
+	var gradient: Gradient = Gradient.new()
+	gradient.colors = PackedColorArray([Color(0, 0, 0, 0.72), Color(0, 0, 0, 0.0)])
+	gradient.offsets = PackedFloat32Array([0.0, 1.0])
+	var tex: GradientTexture2D = GradientTexture2D.new()
+	tex.gradient = gradient
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.0, 0.5)
+	tex.width = 128
+	tex.height = 128
+	var shadow: Sprite3D = Sprite3D.new()
+	shadow.name = "ContactShadow"
+	shadow.texture = tex
+	shadow.axis = Vector3.AXIS_Y
+	shadow.pixel_size = width / 128.0
+	shadow.shaded = false
+	shadow.transparent = true
+	shadow.position = Vector3(0.0, 0.02, 0.0)
+	actor.add_child(shadow)
 
 
 ## Fator de escala que leva a altura do modelo a [param height], sem deixar a maior dimensão passar de
@@ -170,7 +233,7 @@ func _scale_to_height(node: Node3D, height: float, max_ratio: float) -> float:
 func head_screen_pos() -> Vector2:
 	if enemy_node == null or camera == null or not camera.is_inside_tree():
 		return Vector2(size.x * 0.5, size.y * 0.3)
-	return camera.unproject_position(enemy_node.position + Vector3(0, _enemy_height, 0)) * float(SHRINK)
+	return camera.unproject_position(enemy_node.position + Vector3(0, _enemy_height, 0)) * _px()
 
 
 ## Posição de tela (coordenadas deste `Control`) do alvo, para números de dano e ícones.
@@ -179,7 +242,7 @@ func screen_pos(on_enemy: bool) -> Vector2:
 	if node == null or camera == null or not camera.is_inside_tree():
 		return size * 0.5
 	var head: float = 1.6 if on_enemy else 1.2
-	return camera.unproject_position(node.position + Vector3(0, head, 0)) * float(SHRINK)
+	return camera.unproject_position(node.position + Vector3(0, head, 0)) * _px()
 
 
 ## Toca uma animação do modelo: "attack", "hit", "death" ou "idle". `on_enemy` escolhe o lado.
@@ -247,7 +310,10 @@ func _apply_mutation(mutation: String) -> void:
 			enemy_node.add_child(red)
 		"phantom":
 			for mesh: Node in enemy_node.find_children("*", "GeometryInstance3D", true, false):
-				(mesh as GeometryInstance3D).transparency = 0.5
+				if mesh is Sprite3D and mesh.name != "ContactShadow":
+					(mesh as Sprite3D).modulate.a = 0.5
+				elif not mesh is Sprite3D:
+					(mesh as GeometryInstance3D).transparency = 0.5
 		"thorny":
 			enemy_node.scale *= 1.15
 			var thorn: OmniLight3D = OmniLight3D.new()

@@ -1,6 +1,6 @@
 class_name ModelRegistry
 extends RefCounted
-## Liga o id de uma entidade do jogo ao modelo 3D (campo "modelo", GDD §20; TASK-035).
+## Liga o id de uma entidade do jogo ao modelo 3D ou, desde a TASK-066, ao sprite 2D HD-2D (ADR-0053) (campo "modelo", GDD §20; TASK-035).
 ## Trocar a arte é trocar uma linha aqui, sem tocar nas regras. Todo caminho de `assets/`
 ## precisa estar em `assets/LICENSES.md`. Os inimigos sem kit próprio usam um substituto
 ## (`placeholder: true`) até o Blender (ver "Pendências de modelo" em LICENSES.md).
@@ -14,24 +14,35 @@ const SPR: String = "res://assets/bibiana/sprites/"
 
 ## id -> {path, scale, idle, walk, attack, hit, death, placeholder}
 const MODELS: Dictionary = {
-	"bibiana": {"path": KAYKIT + "Knight.glb", "scale": 0.3, "idle": "Idle", "walk": "Running_A", "attack": "1H_Melee_Attack_Slice_Diagonal", "hit": "Hit_A", "death": "Death_A", "placeholder": false},
-	"infected_citizen": {"path": K_GRAVE + "character-zombie.glb", "scale": 1.0, "idle": "idle", "walk": "walk", "attack": "attack-melee-right", "hit": "idle", "death": "die", "placeholder": false},
-	"giant_rat": {"path": OWN + "giant_rat.glb", "scale": 0.8, "yaw_offset": 55.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"carrion_crow": {"path": OWN + "carrion_crow.glb", "scale": 0.9, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"plague_hound": {"path": OWN + "plague_hound.glb", "scale": 0.7, "yaw_offset": -50.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"rotten_executioner": {"path": OWN + "rotten_executioner.glb", "scale": 0.85, "yaw_offset": -35.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"bell_ghost": {"path": OWN + "bell_ghost.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"wandering_bones": {"path": OWN + "wandering_bones.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"hanged_man": {"path": OWN + "hanged_man.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"stitched_horror": {"path": OWN + "stitched_horror.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"rat_mother": {"path": OWN + "rat_mother.glb", "scale": 1.0, "yaw_offset": 55.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"sewer_slime": {"path": QUAT + "Slime.fbx", "scale": 30.0, "idle": "Armature|Slime_Idle", "walk": "Armature|Slime_Walk", "attack": "Armature|Slime_Attack", "hit": "Armature|Slime_Idle", "death": "Armature|Slime_Death", "placeholder": false},
-	"alley_leech": {"path": OWN + "alley_leech.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana": {"sprite": SPR + "bibiana_warrior.png", "flip": false, "path": KAYKIT + "Knight.glb", "scale": 0.3, "idle": "Idle", "walk": "Running_A", "attack": "1H_Melee_Attack_Slice_Diagonal", "hit": "Hit_A", "death": "Death_A", "placeholder": false},
+	"infected_citizen": {"sprite": SPR + "infected_citizen.png", "flip": false, "path": K_GRAVE + "character-zombie.glb", "scale": 1.0, "idle": "idle", "walk": "walk", "attack": "attack-melee-right", "hit": "idle", "death": "die", "placeholder": false},
+	"giant_rat": {"sprite": SPR + "giant_rat.png", "flip": false, "path": OWN + "giant_rat.glb", "scale": 0.8, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"carrion_crow": {"sprite": SPR + "carrion_crow.png", "flip": false, "path": OWN + "carrion_crow.glb", "scale": 0.9, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"plague_hound": {"sprite": SPR + "plague_hound.png", "flip": false, "path": OWN + "plague_hound.glb", "scale": 0.7, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"rotten_executioner": {"sprite": SPR + "rotten_executioner.png", "flip": false, "path": OWN + "rotten_executioner.glb", "scale": 0.85, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bell_ghost": {"sprite": SPR + "bell_ghost.png", "flip": false, "path": OWN + "bell_ghost.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"wandering_bones": {"sprite": SPR + "wandering_bones.png", "flip": false, "path": OWN + "wandering_bones.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"hanged_man": {"sprite": SPR + "hanged_man.png", "flip": false, "path": OWN + "hanged_man.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"stitched_horror": {"sprite": SPR + "stitched_horror.png", "flip": false, "path": OWN + "stitched_horror.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"rat_mother": {"sprite": SPR + "rat_mother.png", "flip": false, "path": OWN + "rat_mother.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"sewer_slime": {"sprite": SPR + "sewer_slime.png", "flip": false, "path": QUAT + "Slime.fbx", "scale": 30.0, "idle": "Armature|Slime_Idle", "walk": "Armature|Slime_Walk", "attack": "Armature|Slime_Attack", "hit": "Armature|Slime_Idle", "death": "Armature|Slime_Death", "placeholder": false},
+	"alley_leech": {"sprite": SPR + "alley_leech.png", "flip": false, "path": OWN + "alley_leech.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"blind_censer_bearer": {"sprite": SPR + "blind_censer_bearer.png", "flip": false, "path": OWN + "blind_censer_bearer.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"wax_physician": {"sprite": SPR + "wax_physician.png", "flip": true, "path": OWN + "wax_physician.glb", "scale": 1.0, "yaw_offset": -30.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"trench_crawler": {"sprite": SPR + "trench_crawler.png", "flip": true, "path": OWN + "trench_crawler.glb", "scale": 1.0, "yaw_offset": -35.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"bell_warden": {"path": OWN + "bell_warden.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
-	"gravedigger": {"path": OWN + "gravedigger.glb", "scale": 1.0, "yaw_offset": -35.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"wax_physician": {"sprite": SPR + "wax_physician.png", "flip": false, "path": OWN + "wax_physician.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"trench_crawler": {"sprite": SPR + "trench_crawler.png", "flip": true, "path": OWN + "trench_crawler.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bell_warden": {"sprite": SPR + "bell_warden.png", "flip": false, "path": OWN + "bell_warden.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"gravedigger": {"sprite": SPR + "gravedigger.png", "flip": false, "path": OWN + "gravedigger.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	# Inimigos do estudo sem código ainda (TASK-051) e NPCs/props das pranchas HD-2D (F-024). Sem `path`:
+	# só existem como sprite; a cena que os usar chama `spawn` normalmente.
+	"reliquary_lady": {"sprite": SPR + "reliquary_lady.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"wheel_pilgrim": {"sprite": SPR + "wheel_pilgrim.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bog_washerwoman": {"sprite": SPR + "bog_washerwoman.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"shop_keeper": {"sprite": SPR + "shop_keeper.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"grave_scavenger": {"sprite": SPR + "grave_scavenger.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"iron_chest": {"sprite": SPR + "iron_chest.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"plague_lamppost": {"sprite": SPR + "plague_lamppost.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"gothic_tombstone": {"sprite": SPR + "gothic_tombstone.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"gallows_post": {"sprite": SPR + "gallows_post.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 }
 
 
@@ -82,7 +93,7 @@ static func _spawn_sprite(id: String, entry: Dictionary) -> Node3D:
 	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	sprite.shaded = false
-	sprite.modulate = Color(0.92, 0.93, 1.0)
+	sprite.modulate = Color(1.0, 1.0, 1.0)
 	sprite.double_sided = true
 	root.add_child(sprite)
 	return root
