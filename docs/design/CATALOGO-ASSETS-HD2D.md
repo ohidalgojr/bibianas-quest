@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | Atualizado em | 2026-11-24 |
-| Total organizado | 31 pranchas (1 Bibiana + 14 Inimigos Cenário 1 + 5 Inimigos Estudo + 2 NPCs + 4 Props + 5 Arenas `9:16`) |
+| Total organizado | 35 pranchas (1 Bibiana retrato + 4 pranchas Bibiana 4 poses em 4 classes `16:9` + 14 Inimigos Cenário 1 + 5 Inimigos Estudo + 2 NPCs + 4 Props + 5 Arenas `9:16`) |
 | Origem | Arquivos brutos sem nome movidos de `assets/` (zero sobras soltas em `assets/`) |
 | Mecha colorida | Removida (`F-024`); `bibiana-guerreira.jpg` usa cabelo castanho-escuro natural |
 
-## 1. Mapa completo dos 31 assets
+## 1. Mapa completo dos 35 assets
 
 | Tipo | ID | Nome | Caminho no repositório | Dimensões | Ajuste aplicado | `--box` `make_sprite.py` |
 | --- | --- | --- | --- | :---: | --- | --- |
@@ -37,6 +37,10 @@
 | Prop | `plague_lamppost` | Poste Gótico com Lampião e Placa | `docs/design/refs/props/plague_lamppost.jpg` | `2752×1536` | Movido | `912,11,1808,1513` (`96% alt.`) |
 | Prop | `gothic_tombstone` | Lápide Gótica com Grade e Crânio | `docs/design/refs/props/gothic_tombstone.jpg` | `2752×1536` | Movido | `857,36,1823,1493` (`93% alt.`) |
 | Prop | `gallows_post` | Forca Gótica com Lampião | `docs/design/refs/props/gallows_post.jpg` | `2752×1536` | Fundo cinza normalizado -> #10131A | `932,38,1826,1504` (`94% alt.`) |
+| Bibiana 4× | `bibiana_warrior_sheet` | Bibiana Guerreira — 4 poses (costas, esq., dir., fogueira) | `docs/design/refs/bibiana/bibiana-guerreira-sheet.jpg` | `1792×1008` | 4 colunas iguais de `448 px` (`hframes = 4`), `#10131A` liso | `0..448` / `448..896` / `896..1344` / `1344..1792` (`--thresh 8`) |
+| Bibiana 4× | `bibiana_cleric_sheet` | Bibiana Clérigo — 4 poses (costas, esq., dir., fogueira) | `docs/design/refs/bibiana/bibiana-clerigo-sheet.jpg` | `1792×1008` | 4 colunas iguais de `448 px` (`hframes = 4`), `#10131A` liso | `0..448` / `448..896` / `896..1344` / `1344..1792` (`--thresh 8`) |
+| Bibiana 4× | `bibiana_rogue_sheet` | Bibiana Ladino — 4 poses (costas, esq., dir., fogueira) | `docs/design/refs/bibiana/bibiana-ladino-sheet.jpg` | `1792×1008` | 4 colunas iguais de `448 px` (`hframes = 4`), `#10131A` liso | `0..448` / `448..896` / `896..1344` / `1344..1792` (`--thresh 8`) |
+| Bibiana 4× | `bibiana_mage_sheet` | Bibiana Mago — 4 poses (costas, esq., dir., fogueira) | `docs/design/refs/bibiana/bibiana-mago-sheet.jpg` | `1792×1008` | 4 colunas iguais de `448 px` (`hframes = 4`), `#10131A` liso | `0..448` / `448..896` / `896..1344` / `1344..1792` (`--thresh 8`) |
 | Arena 9:16 | `arena_cidade_rua` | Arena Comum — Beco da Cidade | `docs/design/refs/arenas/arena-cidade-rua.jpg` | `1536×2752` | Movido (9:16 vazio) | Fundo direto (`9:16`) |
 | Arena 9:16 | `arena_cidade_praca` | Arena Elite/Mini — Praça do Sino e Forca | `docs/design/refs/arenas/arena-cidade-praca.jpg` | `1536×2752` | Movido (9:16 vazio) | Fundo direto (`9:16`) |
 | Arena 9:16 | `arena_fogueira_acesa` | Fogueira Acesa — Refúgio | `docs/design/refs/arenas/arena-fogueira-acesa.jpg` | `1536×2752` | Movido (9:16 vazio) | Fundo direto (`9:16`) |
@@ -76,6 +80,29 @@ python tools/make_sprite.py docs/design/refs/props/gothic_tombstone.jpg assets/b
 python tools/make_sprite.py docs/design/refs/props/gallows_post.jpg assets/bibiana/sprites/gallows_post.png --box 932,38,1826,1504 --height 240
 ```
 
+### Bibiana — 4 Classes × 4 Poses (`1792×1008`, `4 × 448 px`)
+
+Cada prancha suporta uso direto em `Sprite2D` / `Sprite3D` com `hframes = 4, vframes = 1` (quadros: `0` costas combate, `1` esquerda, `2` direita, `3` sentada na fogueira) ou recorte individual via `tools/make_sprite.py` com `--thresh 8` para preservar contorno e cabelo escuro:
+
+```bash
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-sheet.jpg assets/bibiana/sprites/bibiana_warrior_back.png --box 0,0,448,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-sheet.jpg assets/bibiana/sprites/bibiana_warrior_left.png --box 448,0,896,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-sheet.jpg assets/bibiana/sprites/bibiana_warrior_right.png --box 896,0,1344,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-sheet.jpg assets/bibiana/sprites/bibiana_warrior_camp.png --box 1344,0,1792,1008 --height 175 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-clerigo-sheet.jpg assets/bibiana/sprites/bibiana_cleric_back.png --box 0,0,448,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-clerigo-sheet.jpg assets/bibiana/sprites/bibiana_cleric_left.png --box 448,0,896,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-clerigo-sheet.jpg assets/bibiana/sprites/bibiana_cleric_right.png --box 896,0,1344,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-clerigo-sheet.jpg assets/bibiana/sprites/bibiana_cleric_camp.png --box 1344,0,1792,1008 --height 175 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-ladino-sheet.jpg assets/bibiana/sprites/bibiana_rogue_back.png --box 0,0,448,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-ladino-sheet.jpg assets/bibiana/sprites/bibiana_rogue_left.png --box 448,0,896,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-ladino-sheet.jpg assets/bibiana/sprites/bibiana_rogue_right.png --box 896,0,1344,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-ladino-sheet.jpg assets/bibiana/sprites/bibiana_rogue_camp.png --box 1344,0,1792,1008 --height 175 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-mago-sheet.jpg assets/bibiana/sprites/bibiana_mage_back.png --box 0,0,448,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-mago-sheet.jpg assets/bibiana/sprites/bibiana_mage_left.png --box 448,0,896,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-mago-sheet.jpg assets/bibiana/sprites/bibiana_mage_right.png --box 896,0,1344,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-mago-sheet.jpg assets/bibiana/sprites/bibiana_mage_camp.png --box 1344,0,1792,1008 --height 175 --thresh 8
+```
+
 ## 3. O que ainda falta gerar (para completar 100% do lote)
 
 As especificações e prompts prontos estão em `docs/design/PROMPTS-LOTE-HD2D.md` e `docs/design/prompts-lote-hd2d.json`:
@@ -83,4 +110,3 @@ As especificações e prompts prontos estão em `docs/design/PROMPTS-LOTE-HD2D.m
 1. **3 inimigos restantes do estudo (`TASK-051`):** `lipless_choir` (O Coro Sem Lábios), `calcified_knight` (O Cavaleiro Calcificado), `trench_crawler` (O Rastejador da Vala).
 2. **1 Roaming Boss em sprite único (`TASK-054`):** `crowned_pursuer` (O Perseguidor Coroado — as 5 pranchas de key art/turnaround/diorama já estão em `docs/design/refs/roaming-boss/`).
 3. **2 fundos `9:16` faltantes:** `arena-cidade-chefe` (Cemitério e Capela do Coveiro) e `arena-fogueira-apagada` (ruína fria antes de usar Galho Seco).
-4. **Folhas Godot de 4 poses das classes da Bibiana** (costas combate, esquerda, direita, sentada na fogueira): Guerreira, Clérigo, Ladino e Mago (prompts entregues na conversa; `gemini-3.1-flash-image` esteve em `503 MODEL_CAPACITY_EXHAUSTED` no servidor).
