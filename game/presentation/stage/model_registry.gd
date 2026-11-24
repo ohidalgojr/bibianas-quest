@@ -34,8 +34,23 @@ const MODELS: Dictionary = {
 	"gravedigger": {"sprite": SPR + "gravedigger.png", "flip": false, "path": OWN + "gravedigger.glb", "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	# Inimigos do estudo sem código ainda (TASK-051) e NPCs/props das pranchas HD-2D (F-024). Sem `path`:
 	# só existem como sprite; a cena que os usar chama `spawn` normalmente.
-	# Bibiana de costas (visão de combate), entra sozinha quando o arquivo existir (TASK-067).
-	"bibiana_back": {"sprite": SPR + "bibiana_back.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	# Bibiana por classe em 4 poses (costas de combate, esquerda, direita, sentada na fogueira), TASK-069.
+	"bibiana_warrior_back": {"sprite": SPR + "bibiana_warrior_back.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_warrior_left": {"sprite": SPR + "bibiana_warrior_left.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_warrior_right": {"sprite": SPR + "bibiana_warrior_right.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_warrior_camp": {"sprite": SPR + "bibiana_warrior_camp.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_cleric_back": {"sprite": SPR + "bibiana_cleric_back.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_cleric_left": {"sprite": SPR + "bibiana_cleric_left.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_cleric_right": {"sprite": SPR + "bibiana_cleric_right.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_cleric_camp": {"sprite": SPR + "bibiana_cleric_camp.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_rogue_back": {"sprite": SPR + "bibiana_rogue_back.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_rogue_left": {"sprite": SPR + "bibiana_rogue_left.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_rogue_right": {"sprite": SPR + "bibiana_rogue_right.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_rogue_camp": {"sprite": SPR + "bibiana_rogue_camp.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_mage_back": {"sprite": SPR + "bibiana_mage_back.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_mage_left": {"sprite": SPR + "bibiana_mage_left.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_mage_right": {"sprite": SPR + "bibiana_mage_right.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"bibiana_mage_camp": {"sprite": SPR + "bibiana_mage_camp.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"reliquary_lady": {"sprite": SPR + "reliquary_lady.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"wheel_pilgrim": {"sprite": SPR + "wheel_pilgrim.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"bog_washerwoman": {"sprite": SPR + "bog_washerwoman.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
@@ -59,9 +74,11 @@ static func has_sprite(id: String) -> bool:
 		and ResourceLoader.exists((MODELS[id] as Dictionary)["sprite"] as String)
 
 
-## Id da Bibiana a usar em combate e no mapa: de costas se a arte existir, senão a de frente.
-static func hero_id() -> String:
-	return "bibiana_back" if has_sprite("bibiana_back") else "bibiana"
+## Id da Bibiana em combate e no mapa: de costas (visão do duelo) se a arte existir, senão a de frente.
+## Só a Guerreira existe em jogo; as outras classes já têm as 4 poses registradas.
+static func hero_id(class_id: String = "warrior", pose: String = "back") -> String:
+	var id: String = "bibiana_%s_%s" % [class_id, pose]
+	return id if has_sprite(id) else "bibiana"
 
 
 static func sprite_texture(id: String) -> Texture2D:

@@ -33,14 +33,14 @@ var _fire_light: OmniLight3D
 ## diorama 3D, com a Bibiana e o NPC como sprites. Posições em px de uma tela 540x960 (pés).
 const ARENAS: String = "res://assets/bibiana/arenas/"
 const PAINTED: Dictionary = {
-	"campfire": {"arena": "arena-fogueira-acesa.jpg", "shift": 300.0, "hero": Vector2(140, 405), "hero_h": 210.0},
-	"shop": {"arena": "arena-loja.jpg", "shift": 330.0, "hero": Vector2(120, 410), "hero_h": 210.0, "npc": "shop_keeper", "npc_at": Vector2(400, 345), "npc_h": 190.0},
-	"chest": {"arena": "arena-cidade-rua.jpg", "shift": 330.0, "hero": Vector2(170, 410), "hero_h": 210.0, "npc": "iron_chest", "npc_at": Vector2(370, 400), "npc_h": 120.0, "glow": Vector2(370, 360)},
-	"event": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(170, 410), "hero_h": 210.0, "npc": "gothic_tombstone", "npc_at": Vector2(380, 395), "npc_h": 150.0},
+	"campfire": {"arena": "arena-fogueira-acesa.jpg", "shift": 300.0, "hero": Vector2(150, 410), "hero_h": 155.0, "pose": "camp", "flip": true},
+	"shop": {"arena": "arena-loja.jpg", "shift": 330.0, "hero": Vector2(120, 410), "hero_h": 210.0, "pose": "right", "npc": "shop_keeper", "npc_at": Vector2(400, 345), "npc_h": 190.0},
+	"chest": {"arena": "arena-cidade-rua.jpg", "shift": 330.0, "hero": Vector2(170, 410), "hero_h": 210.0, "pose": "right", "npc": "iron_chest", "npc_at": Vector2(370, 400), "npc_h": 120.0, "glow": Vector2(370, 360)},
+	"event": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(170, 410), "hero_h": 210.0, "pose": "right", "npc": "gothic_tombstone", "npc_at": Vector2(380, 395), "npc_h": 150.0},
 	"reward": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(270, 410), "hero_h": 220.0},
 	"home": {"arena": "arena-home-santuario.jpg", "shift": 260.0, "hero": Vector2(270, 440), "hero_h": 240.0},
 	"victory": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(270, 410), "hero_h": 220.0},
-	"defeat": {"arena": "arena-cidade-rua.jpg", "shift": 330.0, "hero": Vector2(270, 410), "hero_h": 200.0, "cold": true},
+	"defeat": {"arena": "arena-cidade-rua.jpg", "shift": 330.0, "hero": Vector2(270, 415), "hero_h": 150.0, "pose": "camp", "cold": true},
 }
 
 var _painted: bool = false
@@ -110,7 +110,9 @@ func _build_painted() -> void:
 		_painted_glow(cfg["glow"] as Vector2, 110.0, Color(1.0, 0.7, 0.3), 0.6)
 	if kind == "campfire":
 		_painted_glow(Vector2(300.0, 330.0), 150.0, Color(1.0, 0.55, 0.2), 0.45)
-	hero = _painted_sprite(ModelRegistry.hero_id(), cfg["hero"] as Vector2, float(cfg["hero_h"]))
+	var pose: String = str(cfg.get("pose", ""))
+	var hero_sprite: String = ModelRegistry.hero_id("warrior", pose) if not pose.is_empty() else "bibiana"
+	hero = _painted_sprite(hero_sprite, cfg["hero"] as Vector2, float(cfg["hero_h"]), bool(cfg.get("flip", false)))
 	var weather: WeatherLayer = WeatherLayer.new()
 	weather.rain = kind == "home" or kind == "victory" or kind == "defeat" or kind == "event"
 	weather.embers = kind == "campfire" or kind == "victory"
@@ -119,7 +121,7 @@ func _build_painted() -> void:
 	set_fire_lit(fire_lit)
 
 
-func _painted_sprite(id: String, feet: Vector2, height: float) -> Control:
+func _painted_sprite(id: String, feet: Vector2, height: float, flip: bool = false) -> Control:
 	var tex: Texture2D = ModelRegistry.sprite_texture(id)
 	var factor: float = height / float(tex.get_height())
 	var size_px: Vector2 = Vector2(float(tex.get_width()), float(tex.get_height())) * factor
@@ -150,6 +152,7 @@ func _painted_sprite(id: String, feet: Vector2, height: float) -> Control:
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	pic.stretch_mode = TextureRect.STRETCH_SCALE
 	pic.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	pic.flip_h = flip
 	pic.size = size_px
 	pic.position = Vector2(-size_px.x * 0.5, -size_px.y)
 	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE

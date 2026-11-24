@@ -13,7 +13,7 @@ const CAM_SIZE: float = 4.3
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.62, 1.0) * 16.0
 const CAM_TARGET: Vector3 = Vector3(-0.5, 1.75, -0.4)
 const ENEMY_POS: Vector3 = Vector3(-1.2, 0.9, -0.7)
-const PLAYER_POS: Vector3 = Vector3(1.5, 0.9, 2.3)
+const PLAYER_POS: Vector3 = Vector3(1.8, 0.9, 2.1)
 ## Alturas de pé em unidades (inimigo comum, elite, chefe e Bibiana).
 const HEIGHT_COMMON: float = 2.3
 const HEIGHT_ELITE: float = 3.0
