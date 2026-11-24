@@ -10,8 +10,9 @@ func test_every_backdrop_kind_builds_with_the_hero() -> void:
 		backdrop.time_scale = 0.0
 		add_child_autofree(backdrop)
 		assert_not_null(backdrop.hero, "%s: Bibiana no cenário" % kind)
-		# A Bibiana agora é um Sprite3D (TASK-066), não mais ~10 malhas do cavaleiro: conta qualquer geometria.
-		assert_gt(backdrop.find_children("*", "GeometryInstance3D", true, false).size(), 0, "%s: peças 3D" % kind)
+		# Cenário pintado (TASK-068): arena de fundo e sprites; o modo 3D só vale sem a textura.
+		var pieces: int = backdrop.find_children("*", "TextureRect", true, false).size() + backdrop.find_children("*", "GeometryInstance3D", true, false).size()
+		assert_gt(pieces, 0, "%s: cenário com peças" % kind)
 
 
 func test_run_panel_uses_the_backdrop_and_a_scroll_when_enabled() -> void:

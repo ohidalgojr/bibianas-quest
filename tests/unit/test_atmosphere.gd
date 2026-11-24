@@ -42,12 +42,16 @@ func test_campfire_backdrop_lights_and_puts_out_the_fire() -> void:
 	add_child_autofree(backdrop)
 	await get_tree().process_frame
 	assert_false(backdrop.fire_lit)
-	for part: Node3D in backdrop._fire_parts:
-		assert_false(part.visible, "apagada: sem chama nem faísca")
+	# TASK-068: no cenário pintado, apagada = arena escurecida e halo desligado; acesa = sem véu.
+	assert_true(backdrop._painted)
+	assert_gt(backdrop._painted_cover.color.a, 0.3, "apagada: arena escurecida")
+	for glow: Control in backdrop._painted_glows:
+		assert_false(glow.visible, "apagada: sem halo de chama")
 	backdrop.set_fire_lit(true)
-	for part: Node3D in backdrop._fire_parts:
-		assert_true(part.visible)
-	assert_gt(backdrop._fire_parts.size(), 0)
+	assert_eq(backdrop._painted_cover.color.a, 0.0)
+	assert_gt(backdrop._painted_glows.size(), 0)
+	for glow: Control in backdrop._painted_glows:
+		assert_true(glow.visible)
 
 
 func test_no_game_scene_uses_green_pines() -> void:

@@ -83,19 +83,13 @@ func test_path_cells_tracks_actual_walkable_roads_between_linked_nodes() -> void
 				assert_lte(absi(bp.height_at(path[i]) - bp.height_at(path[i - 1])), 1, "degrau máximo de 1 bloco no trajeto")
 
 
-func test_shop_uses_hooded_merchant_instead_of_gravedigger_and_no_pine_trees_anywhere() -> void:
+func test_shop_uses_the_merchant_sprite_and_never_the_gravedigger() -> void:
 	var backdrop: Scene3DBackdrop = Scene3DBackdrop.new()
 	backdrop.kind = "shop"
 	backdrop.time_scale = 0.0
 	add_child_autofree(backdrop)
-	var has_keeper: bool = false
-	var has_gravedigger: bool = false
-	for child: Node in backdrop.find_children("*", "Node3D", true, false):
-		var cname: String = child.name.to_lower()
-		if cname.contains("merchant"):
-			has_keeper = true
-		if cname.contains("gravedigger"):
-			has_gravedigger = true
-		assert_false(cname.contains("pine"), "sem pinheiros verdes na cena 3D: %s" % child.name)
-	assert_true(has_keeper, "loja tem o mercador encapuzado próprio (sem personagem chibi do kit, TASK-063)")
-	assert_false(has_gravedigger, "loja não reutiliza o chefe O Coveiro")
+	# TASK-068: a loja é a alcova pintada com o sprite do mercador; o diorama 3D só vale sem a textura.
+	assert_true(backdrop._painted, "loja usa a arena pintada")
+	assert_eq(str((Scene3DBackdrop.PAINTED["shop"] as Dictionary)["npc"]), "shop_keeper")
+	assert_true(ModelRegistry.has_sprite("shop_keeper"))
+	assert_ne(str((Scene3DBackdrop.PAINTED["shop"] as Dictionary)["npc"]), "gravedigger", "loja não reutiliza o chefe O Coveiro")

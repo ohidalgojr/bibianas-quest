@@ -12,7 +12,8 @@ const KINDS: Array[String] = ["campfire", "shop", "chest", "event", "reward", "h
 var kind: String = "home"
 ## 0 deixa tudo parado (testes); 1 é a velocidade normal.
 var time_scale: float = 1.0
-var hero: Node3D
+## Bibiana do cenário (Node3D no modo 3D, Control no modo pintado).
+var hero: Node
 
 var _viewport: SubViewport
 var _world: Node3D
@@ -28,9 +29,32 @@ var _fire_parts: Array[Node3D] = []
 var _fire_light: OmniLight3D
 
 
+## Arena pintada e atores de cada tipo de cenário (TASK-068, ADR-0055): fundo HD-2D em vez de
+## diorama 3D, com a Bibiana e o NPC como sprites. Posições em px de uma tela 540x960 (pés).
+const ARENAS: String = "res://assets/bibiana/arenas/"
+const PAINTED: Dictionary = {
+	"campfire": {"arena": "arena-fogueira-acesa.jpg", "shift": 300.0, "hero": Vector2(140, 405), "hero_h": 210.0},
+	"shop": {"arena": "arena-loja.jpg", "shift": 330.0, "hero": Vector2(120, 410), "hero_h": 210.0, "npc": "shop_keeper", "npc_at": Vector2(400, 345), "npc_h": 190.0},
+	"chest": {"arena": "arena-cidade-rua.jpg", "shift": 330.0, "hero": Vector2(170, 410), "hero_h": 210.0, "npc": "iron_chest", "npc_at": Vector2(370, 400), "npc_h": 120.0, "glow": Vector2(370, 360)},
+	"event": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(170, 410), "hero_h": 210.0, "npc": "gothic_tombstone", "npc_at": Vector2(380, 395), "npc_h": 150.0},
+	"reward": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(270, 410), "hero_h": 220.0},
+	"home": {"arena": "arena-home-santuario.jpg", "shift": 260.0, "hero": Vector2(270, 440), "hero_h": 240.0},
+	"victory": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(270, 410), "hero_h": 220.0},
+	"defeat": {"arena": "arena-cidade-rua.jpg", "shift": 330.0, "hero": Vector2(270, 410), "hero_h": 200.0, "cold": true},
+}
+
+var _painted: bool = false
+var _painted_glows: Array[Control] = []
+var _painted_cover: ColorRect
+
+
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if PAINTED.has(kind) and ResourceLoader.exists(ARENAS + str((PAINTED[kind] as Dictionary)["arena"])):
+		_painted = true
+		_build_painted()
+		return
 	var container: SubViewportContainer = SubViewportContainer.new()
 	container.stretch = true
 	container.stretch_shrink = SHRINK
@@ -57,6 +81,105 @@ func _ready() -> void:
 	weather.embers = kind == "campfire" or kind == "victory"
 	add_child(weather)
 	_add_vignette()
+
+
+## Cenário pintado: arena em largura total deslocada para o chão aparecer sobre o painel, sprites com
+## sombra de contato e luz quente. Nada de objeto 3D solto.
+func _build_painted() -> void:
+	var cfg: Dictionary = PAINTED[kind]
+	var tex: Texture2D = load(ARENAS + str(cfg["arena"])) as Texture2D
+	var rect: TextureRect = TextureRect.new()
+	rect.texture = tex
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_SCALE
+	rect.size = Vector2(540.0, 540.0 * float(tex.get_height()) / float(tex.get_width()))
+	rect.position = Vector2(0.0, -float(cfg["shift"]))
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(rect)
+	var dim: float = 0.0
+	if bool(cfg.get("cold", false)):
+		dim = 0.45
+	_painted_cover = ColorRect.new()
+	_painted_cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_painted_cover.color = Color(0.03, 0.04, 0.08, dim)
+	_painted_cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_painted_cover)
+	if cfg.has("npc"):
+		_painted_sprite(str(cfg["npc"]), cfg["npc_at"] as Vector2, float(cfg["npc_h"]))
+	if cfg.has("glow"):
+		_painted_glow(cfg["glow"] as Vector2, 110.0, Color(1.0, 0.7, 0.3), 0.6)
+	if kind == "campfire":
+		_painted_glow(Vector2(300.0, 330.0), 150.0, Color(1.0, 0.55, 0.2), 0.45)
+	hero = _painted_sprite(ModelRegistry.hero_id(), cfg["hero"] as Vector2, float(cfg["hero_h"]))
+	var weather: WeatherLayer = WeatherLayer.new()
+	weather.rain = kind == "home" or kind == "victory" or kind == "defeat" or kind == "event"
+	weather.embers = kind == "campfire" or kind == "victory"
+	add_child(weather)
+	_add_vignette()
+	set_fire_lit(fire_lit)
+
+
+func _painted_sprite(id: String, feet: Vector2, height: float) -> Control:
+	var tex: Texture2D = ModelRegistry.sprite_texture(id)
+	var factor: float = height / float(tex.get_height())
+	var size_px: Vector2 = Vector2(float(tex.get_width()), float(tex.get_height())) * factor
+	var holder: Control = Control.new()
+	holder.position = feet
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(holder)
+	var gradient: Gradient = Gradient.new()
+	gradient.colors = PackedColorArray([Color(0, 0, 0, 0.75), Color(0, 0, 0, 0.0)])
+	gradient.offsets = PackedFloat32Array([0.0, 1.0])
+	var shadow_tex: GradientTexture2D = GradientTexture2D.new()
+	shadow_tex.gradient = gradient
+	shadow_tex.fill = GradientTexture2D.FILL_RADIAL
+	shadow_tex.fill_from = Vector2(0.5, 0.5)
+	shadow_tex.fill_to = Vector2(1.0, 0.5)
+	shadow_tex.width = 96
+	shadow_tex.height = 96
+	var shadow: TextureRect = TextureRect.new()
+	shadow.texture = shadow_tex
+	shadow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	shadow.stretch_mode = TextureRect.STRETCH_SCALE
+	shadow.size = Vector2(size_px.x * 1.0, maxf(size_px.y * 0.14, 16.0))
+	shadow.position = Vector2(-shadow.size.x * 0.5, -shadow.size.y * 0.5)
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(shadow)
+	var pic: TextureRect = TextureRect.new()
+	pic.texture = tex
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_SCALE
+	pic.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	pic.size = size_px
+	pic.position = Vector2(-size_px.x * 0.5, -size_px.y)
+	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(pic)
+	return holder
+
+
+func _painted_glow(center: Vector2, radius: float, color: Color, alpha: float) -> void:
+	var gradient: Gradient = Gradient.new()
+	gradient.colors = PackedColorArray([Color(color.r, color.g, color.b, alpha), Color(color.r, color.g, color.b, 0.0)])
+	gradient.offsets = PackedFloat32Array([0.0, 1.0])
+	var tex: GradientTexture2D = GradientTexture2D.new()
+	tex.gradient = gradient
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.0, 0.5)
+	tex.width = 128
+	tex.height = 128
+	var glow: TextureRect = TextureRect.new()
+	glow.texture = tex
+	glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	glow.stretch_mode = TextureRect.STRETCH_SCALE
+	glow.size = Vector2(radius * 2.0, radius * 2.0)
+	glow.position = center - glow.size * 0.5
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat: CanvasItemMaterial = CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	glow.material = mat
+	add_child(glow)
+	_painted_glows.append(glow)
 
 
 func _build_environment() -> void:
@@ -347,6 +470,12 @@ func set_fire_lit(lit: bool) -> void:
 	fire_lit = lit
 	if kind != "campfire":
 		return
+	if _painted:
+		# Sem a prancha da fogueira apagada (pendente), escurece a arena e apaga o halo.
+		_painted_cover.color = Color(0.03, 0.04, 0.08, 0.0 if lit else 0.55)
+		for glow: Control in _painted_glows:
+			glow.visible = lit
+		return
 	for part: Node3D in _fire_parts:
 		part.visible = lit
 	for part: Node3D in _cold_parts:
@@ -362,6 +491,11 @@ func set_fire_lit(lit: bool) -> void:
 
 func _process(delta: float) -> void:
 	if time_scale <= 0.0:
+		return
+	if _painted:
+		var k: float = 0.78 + 0.2 * sin(Time.get_ticks_msec() * 0.011)
+		for glow: Control in _painted_glows:
+			glow.modulate.a = k
 		return
 	_flicker_time += delta
 	for i: int in _lights.size():

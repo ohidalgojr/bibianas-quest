@@ -61,6 +61,8 @@ var _actors: Control
 var _overlay: Control
 var _hero: Control
 var _positions: Dictionary = {}
+## Topo do sprite (y no mundo) de cada nó desenhado, para ancorar seta e pílulas.
+var _tops: Dictionary = {}
 var _world_height: float = 1500.0
 var _taps: Dictionary = {}
 var _bubbles: Dictionary = {}
@@ -68,6 +70,7 @@ var _glows: Array[Control] = []
 var _walking: bool = false
 var _previewed: int = -1
 var _preview_card: PanelContainer
+var _marker: Control
 var _gear_row: HBoxContainer
 var _hud_hp: ProgressBar
 var _hud_mp: ProgressBar
@@ -81,6 +84,8 @@ class RoadLayer extends Control:
 	var edges: Array[Array] = []
 	var positions: Dictionary = {}
 	var discs: Array[Dictionary] = []
+	## Trecho escolhido para a prévia: [de, para] ou vazio.
+	var selected: Array[int] = []
 
 	func _draw() -> void:
 		for edge: Array in edges:
@@ -97,6 +102,14 @@ class RoadLayer extends Control:
 			draw_polyline(pts, Color(0.20, 0.22, 0.27, 0.9), 16.0, true)
 			if lit:
 				draw_polyline(pts, Color(0.93, 0.68, 0.30, 0.85), 3.0, true)
+		if selected.size() == 2:
+			var sel: PackedVector2Array = PaintedMapScreen.road_points(positions[selected[0]], positions[selected[1]])
+			draw_polyline(sel, Color(1.0, 0.75, 0.3, 0.35), 34.0, true)
+			draw_polyline(sel, Color(1.0, 0.85, 0.45, 1.0), 6.0, true)
+			var i: int = 1
+			while i < sel.size() - 1:
+				draw_circle(sel[i], 5.0, Color(1.0, 0.92, 0.6, 1.0))
+				i += 2
 		for disc: Dictionary in discs:
 			var c: Vector2 = disc["pos"]
 			var r: float = float(disc["radius"])
@@ -265,6 +278,7 @@ func refresh() -> void:
 	for child: Node in _overlay.get_children():
 		child.queue_free()
 	_glows.clear()
+	_tops.clear()
 	_taps.clear()
 	_bubbles.clear()
 	_refresh_hud()
@@ -353,6 +367,8 @@ func _build_node(info: Dictionary) -> void:
 				_add_glow(at + Vector2(0.0, -20.0), 110.0, Color(1.0, 0.55, 0.2), 0.7)
 			MapNode.Kind.EVENT:
 				holder = _add_sprite("gothic_tombstone", at + Vector2(0.0, 6.0), 96.0, 100.0, true)
+	if holder != null:
+		_tops[node.id] = float(holder.get_meta("top"))
 	if offered or state == MapView.State.BOSS:
 		_add_bubble(node, info, at, holder)
 	if offered:
@@ -502,8 +518,8 @@ func button_for(node_id: int) -> Button:
 
 
 ## Move a câmera (rolagem do mundo) para que o ponto do nó fique em [constant HERO_SCREEN_Y].
-func _focus_on(node_id: int, seconds: float) -> void:
-	var target_y: float = clampf(HERO_SCREEN_Y - world_pos(node_id).y, VIEW_HEIGHT - _world_height, 0.0)
+func _focus_on(node_id: int, seconds: float, screen_y: float = HERO_SCREEN_Y) -> void:
+	var target_y: float = clampf(screen_y - world_pos(node_id).y, VIEW_HEIGHT - _world_height, 0.0)
 	if seconds <= 0.0 or time_scale <= 0.0:
 		_world.position.y = target_y
 		return
@@ -590,10 +606,40 @@ func _show_preview(node_id: int) -> void:
 	go.pressed.connect(func() -> void: _on_pick(node_id))
 	row.add_child(go)
 	add_child(_preview_card)
-	_focus_on(node_id, 0.35)
+	# O card ocupa o rodapé: o destino sobe para a metade de cima, com seta e o trecho aceso.
+	_roads.selected = [view.run.current_node_id, node_id]
+	_roads.queue_redraw()
+	_add_marker(node_id)
+	_focus_on(node_id, 0.35, 440.0)
+
+
+func _add_marker(node_id: int) -> void:
+	if _marker != null:
+		_marker.queue_free()
+	_marker = Label.new()
+	(_marker as Label).text = "▼"
+	_marker.add_theme_font_size_override("font_size", 40)
+	_marker.add_theme_color_override("font_color", Color(1.0, 0.82, 0.35))
+	_marker.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.0, 1.0))
+	_marker.add_theme_constant_override("outline_size", 8)
+	_marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var at: Vector2 = world_pos(node_id)
+	var top: float = float(_tops.get(node_id, at.y - 130.0)) - 94.0
+	_marker.position = Vector2(at.x - 14.0, top)
+	_overlay.add_child(_marker)
+	if time_scale > 0.0:
+		var tween: Tween = _marker.create_tween().set_loops()
+		tween.tween_property(_marker, "position:y", top + 14.0, 0.45).set_trans(Tween.TRANS_SINE)
+		tween.tween_property(_marker, "position:y", top, 0.45).set_trans(Tween.TRANS_SINE)
 
 
 func _close_preview(recenter: bool) -> void:
+	if _marker != null:
+		_marker.queue_free()
+		_marker = null
+	if _roads != null:
+		_roads.selected = []
+		_roads.queue_redraw()
 	if _preview_card != null:
 		_preview_card.queue_free()
 		_preview_card = null
