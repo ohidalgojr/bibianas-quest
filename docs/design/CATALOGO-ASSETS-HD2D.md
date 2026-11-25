@@ -2,12 +2,12 @@
 
 | Campo | Valor |
 | --- | --- |
-| Atualizado em | 2026-11-24 |
-| Total organizado | 35 pranchas (1 Bibiana retrato + 4 pranchas Bibiana 4 poses em 4 classes `16:9` + 14 Inimigos Cenário 1 + 5 Inimigos Estudo + 2 NPCs + 4 Props + 5 Arenas `9:16`) |
-| Origem | Arquivos brutos sem nome movidos de `assets/` (zero sobras soltas em `assets/`) |
+| Atualizado em | 2026-11-25 |
+| Total organizado | 43 pranchas (1 Bibiana retrato + 4 pranchas Bibiana 4 poses `16:9` + 14 Inimigos Cenário 1 + 5 Inimigos Estudo + 2 NPCs + 4 Props + 8 Arenas/Cenários `9:16` + 4 Folhas de ícones `4×4` `1024×1024` + 1 Textura UI tileável `ui-noise-stone.jpg`) |
+| Origem | Arquivos brutos sem nome movidos de `assets/` (zero sobras soltas em `assets/`) e pranchas geradas pelo Guia de Arte (`docs/design/GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md`) |
 | Mecha colorida | Removida (`F-024`); `bibiana-guerreira.jpg` usa cabelo castanho-escuro natural |
 
-## 1. Mapa completo dos 35 assets
+## 1. Mapa completo dos 43 assets
 
 | Tipo | ID | Nome | Caminho no repositório | Dimensões | Ajuste aplicado | `--box` `make_sprite.py` |
 | --- | --- | --- | --- | :---: | --- | --- |
@@ -46,6 +46,14 @@
 | Arena 9:16 | `arena_fogueira_acesa` | Fogueira Acesa — Refúgio | `docs/design/refs/arenas/arena-fogueira-acesa.jpg` | `1536×2752` | Movido (9:16 vazio) | Fundo direto (`9:16`) |
 | Arena 9:16 | `arena_loja` | Loja — Alcova do Mercador | `docs/design/refs/arenas/arena-loja.jpg` | `1536×2752` | Movido (9:16 vazio) | Fundo direto (`9:16`) |
 | Arena 9:16 | `arena_home_santuario` | Home / Santuário — Catedral | `docs/design/refs/arenas/arena-home-santuario.jpg` | `1536×2752` | Movido (9:16 vazio) | Fundo direto (`9:16`) |
+| Arena 9:16 | `arena_fogueira_apagada` | Fogueira Apagada — Cinzas Frias | `docs/design/refs/arenas/arena-fogueira-apagada.jpg` | `768×1376` | Mesmo pátio de `arena-fogueira-acesa.jpg` com cinzas, 3 brasas fracas e fumaça | Fundo direto (`9:16`) |
+| Arena 9:16 | `arena_cidade_chefe` | Arena Chefe — Cemitério e Capela | `docs/design/refs/arenas/arena-cidade-chefe.jpg` | `768×1376` | Cemitério gótico com túmulo aberto, lampião e capela em ruína (9:16 vazio) | Fundo direto (`9:16`) |
+| Arena 9:16 | `bg_reward_shrine` | Recompensa / Level Up — Nicho de Relicário | `docs/design/refs/arenas/bg-reward-shrine.jpg` | `768×1376` | Nicho ogival de pedra com feixe de luar e candelabros (9:16 vazio) | Fundo direto (`9:16`) |
+| Ícones 4×4 | `ico_a_actions` | Folha ICO-A — 16 Ícones de Ações e UI | `docs/design/refs/ui/ico-a-actions.jpg` | `1024×1024` | 16 células exatas `256×256` em `#10131A` liso (fatiados `96×96` RGBA) | Grade `4×4` (`256×256` por célula) |
+| Ícones 4×4 | `ico_b_skills_intent` | Folha ICO-B — 9 Skills + 7 Selos de Intenção | `docs/design/refs/ui/ico-b-skills-intent.jpg` | `1024×1024` | 16 células exatas `256×256` em `#10131A` liso (fatiados `96×96` RGBA) | Grade `4×4` (`256×256` por célula) |
+| Ícones 4×4 | `ico_c_status` | Folha ICO-C — 12 Status e Doenças | `docs/design/refs/ui/ico-c-status.jpg` | `1024×1024` | 12 células `256×256` nas linhas 1–3; linha 4 vazia `#10131A` | Grade `4×4` (`256×256` por célula) |
+| Ícones 4×4 | `ico_d_weapons_slots` | Folha ICO-D — 9 Armas + 6 Slots Vazios | `docs/design/refs/ui/ico-d-weapons-slots.jpg` | `1024×1024` | 15 células `256×256` (`#2A2D33` nos slots vazios); `R4C4` vazio `#10131A` | Grade `4×4` (`256×256` por célula) |
+| UI Textura | `ui_noise_stone` | Ruído de Pedra Escura Tileável | `docs/design/refs/ui/ui-noise-stone.jpg` | `512×512` | Ruído procedural contínuo sem emenda (`v_seam=0,49`, `h_seam=0,46`) | Textura tileável direta (`ui_panel_stone`) |
 
 ## 2. Comandos prontos de recorte para o Claude (`tools/make_sprite.py`)
 
@@ -103,10 +111,34 @@ python tools/make_sprite.py docs/design/refs/bibiana/bibiana-mago-sheet.jpg asse
 python tools/make_sprite.py docs/design/refs/bibiana/bibiana-mago-sheet.jpg assets/bibiana/sprites/bibiana_mage_camp.png --box 1344,0,1792,1008 --height 175 --thresh 8
 ```
 
+### Folhas de Ícones P0 (`4×4` em `1024×1024`, células `256×256`, `#10131A` liso)
+
+Cada folha já está centralizada em células exatas `256×256` (`col*256, lin*256 .. +256`) e testada em `96×96` RGBA com descontaminação de borda (`assets/ui/icons/<categoria>/<id>.png`), seguindo `docs/design/GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` §3 e §11:
+
+- **`ico-a-actions.jpg` (`--thresh 10`, 16/16):**
+  - L1: `action/attack`, `action/defend`, `action/skills`, `action/items`
+  - L2: `action/tactical`, `action/flee` (bota + porta ogival), `action/speed_1x`, `action/speed_2x`
+  - L3: `ui/gold`, `ui/embers`, `ui/firewood`, `ui/luck`
+  - L4: `ui/echoes`, `ui/power`, `ui/hp`, `ui/mp`
+- **`ico-b-skills-intent.jpg` (`--thresh 10`, 16/16):**
+  - L1: `skill/shield_bash`, `skill/charge`, `skill/bulwark`, `skill/whirlwind`
+  - L2: `skill/war_cry`, `skill/second_wind`, `skill/sharpen_blade`, `skill/reinforce_shield`
+  - L3: `skill/sharpen_edge`, `intent/attack`, `intent/heavy`, `intent/debuff`
+  - L4: `intent/defend`, `intent/coin`, `intent/deadly`, `intent/unknown`
+- **`ico-c-status.jpg` (`--thresh 10`, 12/12 + L4 vazia):**
+  - L1: `status/defending`, `status/bulwark`, `status/armor_down`, `status/slowed`
+  - L2: `status/poison`, `status/weakened`, `status/empowered`, `status/blinded`
+  - L3: `status/cursed` (grafite + carmesim, sem roxo), `status/silenced`, `status/disease`, `status/bleeding`
+- **`ico-d-weapons-slots.jpg` (`--thresh 7.5`, 15/15 + R4C4 vazio):**
+  - L1: `item/sword_and_shield`, `item/worn_longsword`, `item/bone_dagger`, `item/rusty_axe`
+  - L2: `item/spiked_mace`, `item/reaper_sickle`, `item/bellringer_blade`, `item/executioner_axe`
+  - L3: `item/blood_stiletto`, `slot/weapon`, `slot/armor`, `slot/head`
+  - L4: `slot/offhand`, `slot/relic`, `slot/consumable`
+
 ## 3. O que ainda falta gerar (para completar 100% do lote)
 
-As especificações e prompts prontos estão em `docs/design/PROMPTS-LOTE-HD2D.md` e `docs/design/prompts-lote-hd2d.json`:
+As especificações e prompts estão em `docs/design/PROMPTS-LOTE-HD2D.md` (§30–33) e `docs/design/GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` (§11):
 
-1. **3 inimigos restantes do estudo (`TASK-051`):** `lipless_choir` (O Coro Sem Lábios), `calcified_knight` (O Cavaleiro Calcificado), `trench_crawler` (O Rastejador da Vala).
-2. **1 Roaming Boss em sprite único (`TASK-054`):** `crowned_pursuer` (O Perseguidor Coroado — as 5 pranchas de key art/turnaround/diorama já estão em `docs/design/refs/roaming-boss/`).
-3. **2 fundos `9:16` faltantes:** `arena-cidade-chefe` (Cemitério e Capela do Coveiro) e `arena-fogueira-apagada` (ruína fria antes de usar Galho Seco).
+1. **Guia de Arte §11 restantes (`503 UNAVAILABLE` em `gemini-3.1-flash-image` durante esta janela):** `ico-e-armor-head`, `ico-f-relics-consum`, `ico-g-nodes`, `bg-defeat`, `map-strip-01..03`, `coin-heads/tails`, `ui-node-disc`, `ui-panel-stone`, `ui-slot-frame`, `ui-banner-ribbon`, `ui-frame-illustration`, `ui-divider`, 3 folhas de poses/animações de costas da Bibiana (`combat`, `states`, `walk`), folhas de FX (`fx-flame`, `fx-slash`, `fx-coin-flip`, `fx-block`, `fx-crit-burst`, `fx-poison`), `sanctuary-interior`, overlays/props de mapa (`map-fg-ironfence`, `map-mist-band`, `road-cobble-tile`, `campfire-props`) e 6 ilustrações de eventos.
+2. **3 inimigos restantes do estudo (`TASK-051`):** `lipless_choir` (O Coro Sem Lábios), `calcified_knight` (O Cavaleiro Calcificado), `trench_crawler` (O Rastejador da Vala).
+3. **1 Roaming Boss em sprite único (`TASK-054`):** `crowned_pursuer` (O Perseguidor Coroado — as 5 pranchas de key art/turnaround/diorama já estão em `docs/design/refs/roaming-boss/`).
