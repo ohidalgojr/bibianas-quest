@@ -206,6 +206,9 @@ func _play(events: Array[CombatEvent]) -> void:
 	_busy = true
 	_refresh_buttons()
 	for event: CombatEvent in events:
+		# Golpe da Bibiana: caminha até o inimigo e só aplica o dano no instante do impacto (TASK-071).
+		if _stage != null and _is_player_swing(event):
+			await _stage.hero_strike(event.type == CombatEvent.Type.DAMAGE and event.flag)
 		_apply(event)
 		if event.type == CombatEvent.Type.COIN:
 			# O registro cita o lado escolhido, então só escreve depois da escolha.
@@ -223,11 +226,33 @@ func _play(events: Array[CombatEvent]) -> void:
 		var result: int = session.combat.outcome
 		if time_scale > 0.0:
 			SoundFx.play(self, "victory" if result == Combat.Outcome.VICTORY else "defeat")
+		if _stage != null and time_scale > 0.0 and result != Combat.Outcome.FLED:
+			if result == Combat.Outcome.VICTORY:
+				_stage.hero_victory()
+			else:
+				_stage.hero_defeat()
+			await _wait(0.8)
 		if session.run != null:
 			_open_result(session.outcome_text())
 		else:
 			_open_menu(session.outcome_text())
 		fight_finished.emit(result)
+
+
+## Verdadeiro para o golpe da Bibiana no inimigo (acerto ou erro); não conta veneno, reflexo nem espinhos.
+func _is_skill_id(label: String) -> bool:
+	for skill: CombatSkill in session.skills:
+		if skill.id == label:
+			return true
+	return false
+
+
+func _is_player_swing(event: CombatEvent) -> bool:
+	if event.side == Combatant.PLAYER:
+		return false
+	if event.type == CombatEvent.Type.MISS:
+		return true
+	return event.type == CombatEvent.Type.DAMAGE and not ["poison", "reflect", "thorny"].has(event.label)
 
 
 ## Atualiza o estado da tela a partir do evento, sem consultar regras.
@@ -238,6 +263,10 @@ func _apply(event: CombatEvent) -> void:
 		CombatEvent.Type.ACTION:
 			if event.side == Combatant.PLAYER:
 				_player_mp -= event.value
+				if _stage != null:
+					_stage.set_defending(event.label == "defend")
+					if event.label != "defend" and event.label != "attack" and event.label != "flee" and not _is_skill_id(event.label):
+						_stage.hero_use_item()
 				if event.label == "defend" and time_scale > 0.0:
 					SoundFx.play(self, "defend")
 			else:
@@ -247,8 +276,11 @@ func _apply(event: CombatEvent) -> void:
 		CombatEvent.Type.DAMAGE:
 			var on_enemy: bool = event.side != Combatant.PLAYER
 			if _stage != null:
-				_stage.play(not on_enemy, "attack")
+				if not on_enemy and not ["poison", "reflect", "thorny"].has(event.label):
+					_stage.play(true, "attack")
 				_stage.play(on_enemy, "hit")
+				if not on_enemy:
+					_stage.hero_react(true)
 				_stage.hit_stop(0.1 if event.flag else 0.07)
 			if on_enemy:
 				_enemy_hp = event.extra
@@ -1037,9 +1069,10 @@ func _fill_timeline_column() -> void:
 		row.add_child(number)
 		var portrait: TextureRect = TextureRect.new()
 		portrait.texture = _stage.portrait(side != Combatant.PLAYER) if _stage != null else null
-		portrait.custom_minimum_size = Vector2(30, 30)
+		portrait.custom_minimum_size = Vector2(46, 46)
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		row.add_child(portrait)
 		_timeline_col.add_child(chip)
 

@@ -27,6 +27,16 @@ const PLAYER_YAW: float = 225.0
 const ARENA_HALF: int = 5
 ## Arenas pintadas 9:16 (ADR-0053, F-024): luta comum no beco; elite, mini boss e chefe na praça
 ## (até existir `arena-cidade-chefe`).
+## Altura de referência (px) dos recortes das poses: todas têm a mesma escala de pixel.
+const HERO_REF_HEIGHT: float = 240.0
+const WALK_FRAMES: int = 4
+const FX_PATH: String = "res://assets/bibiana/fx/"
+## Linha do tempo do golpe (s): caminhada até o inimigo, preparação com a espada no alto, volta.
+const STRIKE_APPROACH: float = 0.38
+const STRIKE_WINDUP: float = 0.16
+const STRIKE_RECOVER: float = 0.2
+const STRIKE_RETURN: float = 0.34
+const WALK_FRAME_SECONDS: float = 0.09
 const ARENA_COMMON: String = "res://assets/bibiana/arenas/arena-cidade-rua.jpg"
 const ARENA_ELITE: String = "res://assets/bibiana/arenas/arena-cidade-praca.jpg"
 
@@ -45,6 +55,10 @@ var _shake: float = 0.0
 var _dim: ColorRect
 var _portraits: Dictionary = {}
 var _backdrop: TextureRect
+## Poses de combate da Bibiana (TASK-071): troca a textura do sprite de costas.
+var _hero_sprite: Sprite3D
+var _defending: bool = false
+var _hero_token: int = 0
 var _painted: bool = false
 
 
@@ -148,6 +162,9 @@ func setup(enemy_id: String, kind: int, mutation: String = "") -> void:
 		child.queue_free()
 	player_node = null
 	enemy_node = null
+	_hero_sprite = null
+	_defending = false
+	_hero_token += 1
 	_build_arena(kind)
 	_spawn_actors(kind)
 	_apply_mutation(mutation)
@@ -174,6 +191,10 @@ func _spawn_actors(kind: int) -> void:
 	player_node.scale = Vector3.ONE * _scale_to_height(player_node, HEIGHT_PLAYER, 1.0)
 	_add_contact_shadow(player_node, 0.9)
 	ModelRegistry.play(player_node, ModelRegistry.hero_id(), "idle")
+	for found: Node in player_node.find_children("*", "Sprite3D", true, false):
+		if found.name != "ContactShadow":
+			_hero_sprite = found as Sprite3D
+			break
 	if not ModelRegistry.has_model(_enemy_id):
 		return
 	enemy_node = ModelRegistry.spawn(_enemy_id)
@@ -245,6 +266,140 @@ func screen_pos(on_enemy: bool) -> Vector2:
 	return camera.unproject_position(node.position + Vector3(0, head, 0)) * _px()
 
 
+## Textura da pose da Bibiana (`attack`, `defend`, `hurt`, `item`, `victory`, `defeat`, `walk_0`..`walk_3`
+## ou `back` para a guarda de costas). Mantém a escala de pixel dos recortes.
+func hero_pose(pose: String) -> void:
+	if _hero_sprite == null:
+		return
+	var id: String = ModelRegistry.hero_id() if pose == "back" else "bibiana_warrior_%s" % pose
+	if not ModelRegistry.has_sprite(id):
+		return
+	var tex: Texture2D = ModelRegistry.sprite_texture(id)
+	_hero_sprite.texture = tex
+	_hero_sprite.pixel_size = 1.0 / HERO_REF_HEIGHT
+	_hero_sprite.offset = Vector2(0.0, float(tex.get_height()) * 0.5)
+
+
+func _idle_pose() -> String:
+	return "defend" if _defending else "back"
+
+
+## Escolhe a guarda: ao agir, a Bibiana sai da defesa; ao defender, fica com o escudo à frente.
+func set_defending(on: bool) -> void:
+	_defending = on
+	hero_pose(_idle_pose())
+
+
+## Golpe da Bibiana: caminha até o inimigo, ergue a espada e devolve o controle no instante do impacto
+## (a tela aplica dano e números nessa hora). A volta corre sozinha em seguida. Sem tempo, não anima.
+func hero_strike(crit: bool = false) -> void:
+	if _hero_sprite == null or enemy_node == null or time_scale <= 0.0 or not is_inside_tree():
+		return
+	_defending = false
+	_hero_token += 1
+	var token: int = _hero_token
+	var toward: Vector3 = (PLAYER_POS - ENEMY_POS).normalized()
+	var spot: Vector3 = ENEMY_POS + toward * 1.55
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.tween_property(player_node, "position", spot, STRIKE_APPROACH * time_scale).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_method(func(t: float) -> void:
+		if token == _hero_token:
+			hero_pose("walk_%d" % (int(t / WALK_FRAME_SECONDS) % WALK_FRAMES)), 0.0, STRIKE_APPROACH * time_scale, STRIKE_APPROACH * time_scale)
+	await tween.finished
+	if token != _hero_token:
+		return
+	hero_pose("attack")
+	await get_tree().create_timer(STRIKE_WINDUP * time_scale).timeout
+	if token != _hero_token:
+		return
+	_spawn_fx("slash", enemy_node.position + Vector3(0.0, _enemy_height * 0.55, 0.0), 6, 3.2 if not crit else 4.0, 0.3)
+	if crit:
+		_spawn_fx("crit", enemy_node.position + Vector3(0.0, _enemy_height * 0.55, 0.0), 1, 2.8, 0.35)
+	_hero_return(token)
+
+
+func _hero_return(token: int) -> void:
+	await get_tree().create_timer(STRIKE_RECOVER * time_scale).timeout
+	if token != _hero_token or player_node == null:
+		return
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.tween_property(player_node, "position", PLAYER_POS, STRIKE_RETURN * time_scale).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_method(func(t: float) -> void:
+		if token == _hero_token:
+			hero_pose("walk_%d" % (int(t / WALK_FRAME_SECONDS) % WALK_FRAMES)), 0.0, STRIKE_RETURN * time_scale, STRIKE_RETURN * time_scale)
+	await tween.finished
+	if token == _hero_token:
+		hero_pose(_idle_pose())
+
+
+## Reação da Bibiana a um golpe do inimigo: de escudo erguido (defendendo) solta faíscas, senão recua ferida.
+func hero_react(damage_taken: bool = true) -> void:
+	if _hero_sprite == null or time_scale <= 0.0 or not is_inside_tree():
+		return
+	_hero_token += 1
+	var token: int = _hero_token
+	var at: Vector3 = PLAYER_POS + Vector3(0.0, 1.1, 0.0)
+	if _defending:
+		hero_pose("defend")
+		_spawn_fx("block", at, 5, 2.4, 0.3)
+	elif damage_taken:
+		hero_pose("hurt")
+		_spawn_fx("slash", at, 6, 2.2, 0.26)
+	await get_tree().create_timer(0.38 * time_scale).timeout
+	if token == _hero_token:
+		hero_pose(_idle_pose())
+
+
+## Poção, éter e outros consumíveis: bebe e volta à guarda.
+func hero_use_item() -> void:
+	if _hero_sprite == null or time_scale <= 0.0 or not is_inside_tree():
+		return
+	_defending = false
+	_hero_token += 1
+	var token: int = _hero_token
+	hero_pose("item")
+	await get_tree().create_timer(0.7 * time_scale).timeout
+	if token == _hero_token:
+		hero_pose("back")
+
+
+func hero_victory() -> void:
+	_hero_token += 1
+	hero_pose("victory")
+
+
+func hero_defeat() -> void:
+	_hero_token += 1
+	hero_pose("defeat")
+
+
+## Animação de FX por quadros (folha em `assets/bibiana/fx/`), em pé na cena, sempre à frente.
+func _spawn_fx(fx_name: String, at: Vector3, frames: int, size: float, seconds: float) -> void:
+	var path: String = FX_PATH + fx_name + ".png"
+	if time_scale <= 0.0 or not is_inside_tree() or not ResourceLoader.exists(path):
+		return
+	var tex: Texture2D = load(path) as Texture2D
+	var fx: Sprite3D = Sprite3D.new()
+	fx.texture = tex
+	fx.hframes = frames
+	fx.frame = 0
+	fx.pixel_size = size / float(tex.get_width() / frames)
+	fx.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	fx.shaded = false
+	fx.no_depth_test = true
+	fx.render_priority = 5
+	fx.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+	fx.position = at
+	_scene_root.add_child(fx)
+	var tween: Tween = create_tween()
+	tween.tween_method(func(t: float) -> void:
+		if is_instance_valid(fx):
+			fx.frame = mini(int(t * float(frames)), frames - 1), 0.0, 0.999, seconds * time_scale)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(fx):
+			fx.queue_free())
+
+
 ## Toca uma animação do modelo: "attack", "hit", "death" ou "idle". `on_enemy` escolhe o lado.
 func play(on_enemy: bool, key: String) -> void:
 	var node: Node3D = enemy_node if on_enemy else player_node
@@ -253,6 +408,11 @@ func play(on_enemy: bool, key: String) -> void:
 	var id: String = _enemy_id if on_enemy else ModelRegistry.hero_id()
 	ModelRegistry.play(node, id, key)
 	if time_scale <= 0.0 or not is_inside_tree():
+		return
+	if not on_enemy and _hero_sprite != null:
+		# A Bibiana tem poses próprias (hero_strike, hero_react): aqui só a tremida da câmera.
+		if key == "hit":
+			_shake = 0.18
 		return
 	var home: Vector3 = ENEMY_POS if on_enemy else PLAYER_POS
 	var toward: Vector3 = (PLAYER_POS - ENEMY_POS).normalized() * (1.0 if on_enemy else -1.0)
@@ -334,13 +494,10 @@ func portrait(on_enemy: bool) -> Texture2D:
 	if not ModelRegistry.has_model(id):
 		return null
 	if ModelRegistry.has_sprite(id):
-		# Retrato de sprite: o terço de cima da figura (cabeça e ombros), sem câmera extra.
-		var full: Texture2D = ModelRegistry.sprite_texture(id)
-		var atlas: AtlasTexture = AtlasTexture.new()
-		atlas.atlas = full
-		atlas.region = Rect2(0.0, 0.0, full.get_width(), full.get_height() * 0.4)
-		_portraits[key] = atlas
-		return atlas
+		# Busto de sprite (TASK-071): recorte quadrado da cabeça, reduzido com Lanczos (sem borrão).
+		# A Bibiana usa a prancha de frente (rosto), não a de costas do palco.
+		_portraits[key] = _bust_texture("bibiana" if not on_enemy else id)
+		return _portraits[key]
 	var port: SubViewport = SubViewport.new()
 	port.size = Vector2i(64, 64)
 	port.own_world_3d = true
@@ -375,6 +532,37 @@ func portrait(on_enemy: bool) -> Texture2D:
 	var tex: Texture2D = port.get_texture()
 	_portraits[key] = tex
 	return tex
+
+
+## Recorte quadrado da cabeça de um sprite, centrado no centro de massa da região da cabeça (topo da
+## figura em pé; lado esquerdo em bichos largos, que olham para a esquerda) e reduzido com Lanczos.
+func _bust_texture(id: String) -> Texture2D:
+	var source: Texture2D = ModelRegistry.sprite_texture(id)
+	var image: Image = source.get_image()
+	if image.is_compressed():
+		image.decompress()
+	var w: int = image.get_width()
+	var h: int = image.get_height()
+	var wide: bool = float(w) > float(h) * 1.1
+	var region: Rect2i = Rect2i(0, 0, int(float(w) * 0.32), h) if wide else Rect2i(0, 0, w, int(float(h) * 0.28))
+	var sum_x: float = 0.0
+	var sum_y: float = 0.0
+	var count: float = 0.0
+	for y: int in range(region.position.y, region.end.y):
+		for x: int in range(region.position.x, region.end.x):
+			if image.get_pixel(x, y).a > 0.5:
+				sum_x += float(x)
+				sum_y += float(y)
+				count += 1.0
+	var cx: float = sum_x / count if count > 0.0 else float(w) * 0.5
+	var cy: float = sum_y / count if count > 0.0 else float(h) * 0.15
+	var side: int = int(float(h) * (0.8 if wide else 0.4))
+	side = mini(side, mini(w, h))
+	var x0: int = clampi(int(cx - float(side) * 0.5), 0, w - side)
+	var y0: int = clampi(int(cy - float(side) * (0.5 if wide else 0.42)), 0, h - side)
+	var crop: Image = image.get_region(Rect2i(x0, y0, side, side))
+	crop.resize(96, 96, Image.INTERPOLATE_LANCZOS)
+	return ImageTexture.create_from_image(crop)
 
 
 ## Caixa do modelo no espaço do próprio `node` (acumula as transformações da malha até ele).

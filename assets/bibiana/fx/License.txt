@@ -1,0 +1,3 @@
+Efeitos (FX) do Bibiana's Quest, com transparência por chave de cor a partir das
+pranchas de conceito que o Orlando gerou com IA de imagem (docs/design/refs/inimigos/), sem citar jogos
+nem artistas nos prompts (GDD 18). Material proprio do projeto, criado em 2026-11-23.
