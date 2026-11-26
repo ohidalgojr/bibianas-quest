@@ -56,6 +56,7 @@ const MODELS: Dictionary = {
 	"bog_washerwoman": {"sprite": SPR + "bog_washerwoman.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"shop_keeper": {"sprite": SPR + "shop_keeper.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"grave_scavenger": {"sprite": SPR + "grave_scavenger.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
+	"campfire": {"sprite": SPR + "campfire.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"iron_chest": {"sprite": SPR + "iron_chest.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"plague_lamppost": {"sprite": SPR + "plague_lamppost.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},
 	"gothic_tombstone": {"sprite": SPR + "gothic_tombstone.png", "flip": false, "scale": 1.0, "idle": "", "walk": "", "attack": "", "hit": "", "death": "", "placeholder": false},

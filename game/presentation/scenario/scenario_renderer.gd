@@ -9,12 +9,12 @@ const K_MINI: String = "res://assets/kenney/mini_dungeon/"
 const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const K_SCENERY: String = "res://assets/bibiana/scenery/"
 
-const TINT_CLIFF: Color = Color(0.1, 0.11, 0.14)
-const TINT_MOSS: Color = Color(0.11, 0.12, 0.15)
-const TINT_STONE_BASE: Color = Color(0.14, 0.15, 0.19)
-const TINT_PLAZA_TILE: Color = Color(0.4, 0.41, 0.46)
-const TINT_COURT_TILE: Color = Color(0.07, 0.075, 0.1)
-const TINT_ROAD: Color = Color(0.46, 0.47, 0.52)
+const TINT_CLIFF: Color = Color(0.42, 0.44, 0.52)
+const TINT_MOSS: Color = Color(0.62, 0.68, 0.62)
+const TINT_STONE_BASE: Color = Color(0.55, 0.57, 0.64)
+const TINT_PLAZA_TILE: Color = Color(1.25, 1.18, 1.05)
+const TINT_COURT_TILE: Color = Color(0.5, 0.5, 0.58)
+const TINT_ROAD: Color = Color(1.0, 1.0, 1.08)
 const TINT_STAIR: Color = Color(0.40, 0.39, 0.43)
 const TINT_WALL: Color = Color(0.36, 0.38, 0.46)
 const TINT_ROOF: Color = Color(0.24, 0.25, 0.32)
@@ -122,21 +122,28 @@ static func _render_terrain_and_water(parent: Node3D, bp: ScenarioBlueprint, bat
 			elif zone == ScenarioBlueprint.ZONE_ROAD and not bp.stairs.has(cell):
 				road_tiles.append(Transform3D(Basis.IDENTITY.scaled(Vector3(0.86, 1.0, 0.86)), Vector3(wx, surface_y, wz)))
 
-	_build_multimesh(parent, K_MINI + "dirt.glb", cliff_blocks, TINT_CLIFF, false)
-	_build_multimesh(parent, K_MINI + "dirt.glb", moss_tops, TINT_MOSS, bp.is_focal)
-	_build_multimesh(parent, K_MINI + "dirt.glb", stone_tops, TINT_STONE_BASE, bp.is_focal)
-	_build_multimesh(parent, K_MINI + "floor.glb", plaza_tiles, TINT_PLAZA_TILE, false)
-	_build_multimesh(parent, K_MINI + "floor.glb", court_tiles, TINT_COURT_TILE, false)
-	_build_multimesh(parent, K_MINI + "floor.glb", road_tiles, TINT_ROAD, false)
+	_build_multimesh(parent, K_MINI + "dirt.glb", cliff_blocks, TINT_CLIFF, false, true)
+	_build_multimesh(parent, K_MINI + "dirt.glb", moss_tops, TINT_MOSS, bp.is_focal, true)
+	_build_multimesh(parent, K_MINI + "dirt.glb", stone_tops, TINT_STONE_BASE, bp.is_focal, true)
+	_build_multimesh(parent, K_MINI + "floor.glb", plaza_tiles, TINT_PLAZA_TILE, false, true)
+	_build_multimesh(parent, K_MINI + "floor.glb", court_tiles, TINT_COURT_TILE, false, true)
+	_build_multimesh(parent, K_MINI + "floor.glb", road_tiles, TINT_ROAD, false, true)
 	_build_water_multimesh(parent, water_transforms)
 	var _b: Dictionary = batches
 
 
-static func _build_multimesh(parent: Node3D, path: String, transforms: Array[Transform3D], tint: Color, shadows: bool) -> void:
+const STONE_TEXTURE: String = "res://assets/bibiana/textures/stone_cobble.jpg"
+
+
+static func _stone() -> Texture2D:
+	return load(STONE_TEXTURE) as Texture2D if ResourceLoader.exists(STONE_TEXTURE) else null
+
+
+static func _build_multimesh(parent: Node3D, path: String, transforms: Array[Transform3D], tint: Color, shadows: bool, textured: bool = false) -> void:
 	if transforms.is_empty():
 		return
 	var before_count: int = parent.get_child_count()
-	StageKit.multimesh_from(parent, path, transforms, tint)
+	StageKit.multimesh_from(parent, path, transforms, tint, _stone() if textured else null)
 	if not shadows and parent.get_child_count() > before_count:
 		var holder: Node = parent.get_child(parent.get_child_count() - 1)
 		if holder is GeometryInstance3D:

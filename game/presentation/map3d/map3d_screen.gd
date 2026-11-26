@@ -9,8 +9,12 @@ signal node_chosen(node_id: int)
 
 const K_MINI: String = "res://assets/kenney/mini_dungeon/"
 const K_GRAVE: String = "res://assets/kenney/graveyard/"
-const SHRINK: int = 2
-const CAM_SIZE: float = 18.0
+## Mapa em resolução cheia (TASK-070): a miniatura 2x deixava sprites e pedra borrados.
+const SHRINK: int = 1
+## Desloca a vista para a Bibiana ficar na metade de baixo, com o caminho à frente em cima.
+const CAM_V_OFFSET: float = 3.2
+const SKYLINE: String = "res://assets/bibiana/arenas/map-strip-02-praca.jpg"
+const CAM_SIZE: float = 24.0
 const CAM_OFFSET: Vector3 = Vector3(1.0, 0.82, 1.0) * 22.0
 ## A câmera mira um pouco à frente da Bibiana, para mostrar o que vem pela névoa.
 const CAM_LOOKAHEAD: Vector3 = Vector3(0.0, 0.0, -2.5)
@@ -18,7 +22,7 @@ const FOG_SHEET_LIFT: float = 1.7
 const FOG_SPEED: float = 1.6
 const STEP_SECONDS: float = 0.2
 ## Neblina por situação da camada da célula (ART-DIRECTION §3, item 3).
-const FOG_BEHIND: float = 0.42
+const FOG_BEHIND: float = 0.25
 const FOG_AHEAD_BASE: float = 0.38
 const FOG_AHEAD_MAX: float = 0.7
 const FOG_BOSS: float = 0.4
@@ -55,20 +59,35 @@ var _bubbles: Dictionary = {}
 var _gear_row: HBoxContainer
 var _pulse_lights: Array[OmniLight3D] = []
 var _pulse_time: float = 0.0
+var _diamonds: Array[MeshInstance3D] = []
+## Seta e trilha da prévia do destino escolhido.
+var _selection: Array[Node] = []
+var _arrow: Label3D
+var _arrow_base_y: float = 0.0
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layout = Map3DLayout.new(view.run.map, view.run.streams.run_seed)
+	# Horizonte pintado atrás do tabuleiro (gótico, escurecido): o céu e as torres distantes (ADR-0057).
+	if ResourceLoader.exists(SKYLINE):
+		var sky: TextureRect = TextureRect.new()
+		sky.texture = load(SKYLINE) as Texture2D
+		sky.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		sky.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		sky.modulate = Color(0.6, 0.65, 0.8)
+		sky.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(sky)
 	var container: SubViewportContainer = SubViewportContainer.new()
 	container.stretch = true
 	container.stretch_shrink = SHRINK
-	container.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	container.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(container)
-	PostFx.apply(container)
 	_viewport = SubViewport.new()
+	_viewport.transparent_bg = true
 	_viewport.size = Vector2i(270, 480)
 	_viewport.msaa_3d = Viewport.MSAA_DISABLED
 	container.add_child(_viewport)
@@ -108,15 +127,15 @@ func _ready() -> void:
 
 func _build_environment() -> void:
 	var env: Environment = Environment.new()
-	env.background_mode = Environment.BG_COLOR
+	env.background_mode = Environment.BG_CLEAR_COLOR
 	env.background_color = Color(0.024, 0.028, 0.044)
 	Atmosphere.apply(env, false)
-	env.ambient_light_color = Color("1B2029")
-	env.ambient_light_energy = 2.2
+	env.ambient_light_color = Color("66728F")
+	env.ambient_light_energy = 1.9
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 0.56
-	env.adjustment_contrast = 1.18
-	env.adjustment_brightness = 0.92
+	env.adjustment_saturation = 0.85
+	env.adjustment_contrast = 1.12
+	env.adjustment_brightness = 1.05
 	env.glow_enabled = true
 	env.glow_intensity = 0.6
 	env.glow_bloom = 0.08
@@ -124,8 +143,8 @@ func _build_environment() -> void:
 	holder.environment = env
 	_world.add_child(holder)
 	var moon: DirectionalLight3D = DirectionalLight3D.new()
-	moon.light_color = Color("7E8FA8")
-	moon.light_energy = 0.95
+	moon.light_color = Color("A9B8D8")
+	moon.light_energy = 1.6
 	moon.rotation_degrees = Vector3(-55, 35, 0)
 	moon.shadow_enabled = true
 	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
@@ -139,6 +158,7 @@ func _build_camera() -> void:
 	camera.size = CAM_SIZE
 	camera.near = 0.1
 	camera.far = 120.0
+	camera.v_offset = CAM_V_OFFSET
 	_world.add_child(camera)
 	var here: Vector3 = layout.node_world(view.run.current_node_id)
 	_set_camera_target(_aim_point(view.run.current_node_id))
@@ -165,7 +185,7 @@ func _build_fog() -> void:
 	var sheet: PlaneMesh = PlaneMesh.new()
 	sheet.size = Vector2(1.0, 1.0)
 	var shader: Shader = Shader.new()
-	shader.code = "shader_type spatial;\nrender_mode unshaded, blend_mix, depth_draw_never, cull_disabled;\nvoid fragment() {\n\tALBEDO = vec3(0.012, 0.016, 0.03);\n\tALPHA = COLOR.a;\n}\n"
+	shader.code = "shader_type spatial;\nrender_mode unshaded, blend_mix, depth_draw_never, cull_disabled;\nvoid fragment() {\n\tALBEDO = vec3(0.05, 0.065, 0.1);\n\tALPHA = COLOR.a;\n}\n"
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = shader
 	sheet.material = material
@@ -260,6 +280,12 @@ func _process(delta: float) -> void:
 	for light: OmniLight3D in _pulse_lights:
 		if is_instance_valid(light):
 			light.light_energy = 2.4 * (0.7 + 0.3 * sin(_pulse_time * 3.2))
+	var beat: float = 0.75 + 0.25 * sin(_pulse_time * 3.0)
+	for diamond: MeshInstance3D in _diamonds:
+		if is_instance_valid(diamond):
+			((diamond.mesh as QuadMesh).material as ShaderMaterial).set_shader_parameter("pulse", beat)
+	if _arrow != null and is_instance_valid(_arrow):
+		_arrow.position.y = _arrow_base_y + 0.35 * sin(_pulse_time * 5.0)
 	_update_overlay()
 
 
@@ -286,6 +312,7 @@ func refresh() -> void:
 	for child: Node in _node_root.get_children():
 		child.queue_free()
 	_pulse_lights.clear()
+	_diamonds.clear()
 	_header.text = view.header()
 	_refresh_hud()
 	_fill_gear()
@@ -301,12 +328,15 @@ func refresh() -> void:
 
 func _build_node(info: Dictionary) -> void:
 	var state: MapView.State = info["state"]
-	if state == MapView.State.FOG or state == MapView.State.PAST:
+	# Nó já percorrido, abandonado ou ainda na névoa não mostra ator (o inimigo derrotado não volta).
+	if state == MapView.State.FOG or state == MapView.State.PAST or state == MapView.State.VISITED:
 		return
 	var node: MapNode = view.run.map.node_by_id(int(info["id"]))
 	var at: Vector3 = layout.node_world(node.id)
 	var kind: int = int(info["kind"])
 	if state == MapView.State.OPTION:
+		var diamond_color: Color = VisualTheme.COLOR_DANGER if bool(info.get("mini_boss", false)) else Color(1.0, 0.72, 0.28)
+		_diamonds.append(_add_diamond(at, diamond_color, 2.3))
 		var glow_color: Color = VisualTheme.COLOR_DANGER if bool(info.get("mini_boss", false)) else Color(1.0, 0.72, 0.3)
 		var glow: OmniLight3D = OmniLight3D.new()
 		glow.light_color = glow_color
@@ -320,42 +350,71 @@ func _build_node(info: Dictionary) -> void:
 		var foe: Node3D = ModelRegistry.spawn(node.enemy_id)
 		foe.position = at
 		foe.rotation_degrees.y = 0.0
-		var factor: float = 1.7
+		# Sprites HD-2D do tabuleiro (TASK-070): maiores que o modelo 3D antigo para ler a 540 px.
+		var factor: float = 2.8
 		if node.kind == MapNode.Kind.ELITE:
-			factor = 2.3
+			factor = 3.2
 		elif node.kind == MapNode.Kind.MINI_BOSS or node.kind == MapNode.Kind.BOSS:
-			factor = 2.3
+			factor = 3.5
 		foe.scale = Vector3.ONE * factor
 		_node_root.add_child(foe)
 		ModelRegistry.play(foe, node.enemy_id, "idle")
 		return
 	match node.kind:
 		MapNode.Kind.CHEST:
-			_place(K_MINI + "chest.glb", at, 20.0, 1.7, _node_root)
+			_place_sprite("iron_chest", at, 1.9)
 		MapNode.Kind.BONFIRE:
-			_place(K_GRAVE + "fire-basket.glb", at, 0.0, 2.0, _node_root)
+			_place_sprite("campfire", at, 1.9)
 			var fire: OmniLight3D = OmniLight3D.new()
 			fire.light_color = Color(1.0, 0.5, 0.18)
-			fire.light_energy = 3.2
-			fire.omni_range = 4.0
+			fire.light_energy = 3.6
+			fire.omni_range = 5.0
 			fire.position = at + Vector3(0, 1.0, 0)
 			_node_root.add_child(fire)
 		MapNode.Kind.EVENT:
-			_place(K_GRAVE + "altar-stone.glb", at, 0.0, 1.5, _node_root)
+			_place_sprite("gothic_tombstone", at, 2.4)
 		_:
 			pass
+
+
+## Prop do nó como sprite HD-2D em pé na praça (altura em unidades de mundo).
+func _place_sprite(id: String, at: Vector3, height: float) -> void:
+	var prop: Node3D = ModelRegistry.spawn(id)
+	prop.position = at
+	prop.scale = Vector3.ONE * height
+	_node_root.add_child(prop)
+
+
+## Losango de luz no chão da praça (destino disponível ou nó atual), como na tática isométrica.
+func _add_diamond(at: Vector3, color: Color, size: float, filled_only: bool = false) -> MeshInstance3D:
+	var quad: QuadMesh = QuadMesh.new()
+	quad.size = Vector2(size, size)
+	quad.orientation = PlaneMesh.FACE_Y
+	var shader: Shader = Shader.new()
+	shader.code = "shader_type spatial;\nrender_mode unshaded, blend_add, depth_draw_never, cull_disabled;\nuniform vec4 tint : source_color = vec4(1.0, 0.75, 0.3, 1.0);\nuniform float pulse = 1.0;\nuniform float border_on = 1.0;\nvoid fragment() {\n\tvec2 d = abs(UV - 0.5) * 2.0;\n\tfloat m = max(d.x, d.y);\n\tfloat border = smoothstep(0.80, 0.86, m) * (1.0 - smoothstep(0.93, 0.98, m)) * border_on;\n\tfloat fill = 0.22 * (1.0 - smoothstep(0.0, 0.95, m));\n\tALBEDO = tint.rgb * (border * 1.6 + fill) * pulse;\n}\n"
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = shader
+	material.set_shader_parameter("tint", color)
+	material.set_shader_parameter("border_on", 0.0 if filled_only else 1.0)
+	quad.material = material
+	var mesh: MeshInstance3D = MeshInstance3D.new()
+	mesh.mesh = quad
+	mesh.position = at + Vector3(0.0, 0.06, 0.0)
+	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_node_root.add_child(mesh)
+	return mesh
 
 
 func _build_hero() -> void:
 	if _hero != null:
 		_hero.queue_free()
 	_hero_cell = layout.node_cells[view.run.current_node_id]
-	_hero = ModelRegistry.spawn("bibiana")
+	_hero = ModelRegistry.spawn(ModelRegistry.hero_id())
 	_hero.position = layout.world_of(_hero_cell)
 	_hero.rotation_degrees.y = 180.0
-	_hero.scale = Vector3.ONE * 1.5
+	_hero.scale = Vector3.ONE * 2.9
 	_world.add_child(_hero)
-	ModelRegistry.play(_hero, "bibiana", "idle")
+	ModelRegistry.play(_hero, ModelRegistry.hero_id(), "idle")
 
 
 ## Bolhas de número (nível em vermelho, recompensa em dourado) e áreas de toque dos destinos.
@@ -456,7 +515,7 @@ func _on_pick(node_id: int) -> void:
 		return
 	_walking = true
 	var cells: Array[Vector2i] = layout.path_cells(from_cell, to_cell)
-	ModelRegistry.play(_hero, "bibiana", "walk")
+	ModelRegistry.play(_hero, ModelRegistry.hero_id(), "walk")
 	var duration: float = STEP_SECONDS * float(cells.size()) / time_scale
 	var tween: Tween = create_tween()
 	tween.set_parallel(true)
@@ -478,7 +537,7 @@ func _add_vignette() -> void:
 	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var shader: Shader = Shader.new()
-	shader.code = "shader_type canvas_item;\nvoid fragment() {\n\tvec2 uv = UV - vec2(0.5);\n\tfloat d = dot(uv, uv) * 2.2;\n\tCOLOR = vec4(0.0, 0.0, 0.02, clamp(d * d * 1.4, 0.0, 0.85));\n}\n"
+	shader.code = "shader_type canvas_item;\nvoid fragment() {\n\tvec2 uv = UV - vec2(0.5);\n\tfloat d = dot(uv, uv) * 2.2;\n\tCOLOR = vec4(0.0, 0.0, 0.02, clamp(d * d * 1.0, 0.0, 0.6));\n}\n"
 	var mat: ShaderMaterial = ShaderMaterial.new()
 	mat.shader = shader
 	rect.material = mat
@@ -501,7 +560,7 @@ func _aim_point(from_node_id: int) -> Vector3:
 		for node: MapNode in view.run.map.nodes:
 			if node.kind == MapNode.Kind.BOSS:
 				centroid = centroid.lerp(layout.node_world(node.id), 0.5)
-	return here.lerp(centroid, 0.75)
+	return here.lerp(centroid, 0.6)
 
 
 ## Marcador discreto no piso da praça disponível, destacando o destino sem postes avulsos.
@@ -621,6 +680,7 @@ func _show_preview(node_id: int) -> void:
 	go.pressed.connect(func() -> void: _on_pick(node_id))
 	row.add_child(go)
 	add_child(_preview_card)
+	_mark_selection(node_id)
 	if time_scale > 0.0:
 		var start: Vector3 = _cam_target
 		var finish: Vector3 = _aim_point(node_id)
@@ -628,7 +688,40 @@ func _show_preview(node_id: int) -> void:
 		tween.tween_method(func(t: float) -> void: _set_camera_target(start.lerp(finish, t)), 0.0, 1.0, 0.35 / time_scale)
 
 
+## Seta pulsante acima do destino e trilha de losangos acesos até ele (ADR-0057).
+func _mark_selection(node_id: int) -> void:
+	_clear_selection()
+	var from_cell: Vector2i = layout.node_cells[view.run.current_node_id]
+	var to_cell: Vector2i = layout.node_cells[node_id]
+	var cells: Array[Vector2i] = layout.path_cells(from_cell, to_cell)
+	for i: int in range(1, cells.size() - 1):
+		_selection.append(_add_diamond(layout.world_of(cells[i]) + Vector3(0.0, 0.0, 0.0), Color(1.0, 0.82, 0.4), 0.8))
+	var at: Vector3 = layout.node_world(node_id)
+	_arrow = Label3D.new()
+	_arrow.text = "▼"
+	_arrow.font_size = 200
+	_arrow.pixel_size = 0.0055
+	_arrow.modulate = Color(1.0, 0.82, 0.35)
+	_arrow.outline_modulate = Color(0.12, 0.05, 0.0)
+	_arrow.outline_size = 30
+	_arrow.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_arrow.no_depth_test = true
+	_arrow_base_y = at.y + 5.2
+	_arrow.position = Vector3(at.x, _arrow_base_y, at.z)
+	_node_root.add_child(_arrow)
+	_selection.append(_arrow)
+
+
+func _clear_selection() -> void:
+	for node: Node in _selection:
+		if is_instance_valid(node):
+			node.queue_free()
+	_selection.clear()
+	_arrow = null
+
+
 func _close_preview(recenter: bool) -> void:
+	_clear_selection()
 	if _preview_card != null:
 		_preview_card.queue_free()
 		_preview_card = null

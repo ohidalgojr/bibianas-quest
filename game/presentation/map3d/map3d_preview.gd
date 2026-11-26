@@ -22,7 +22,7 @@ func _ready() -> void:
 		run.choose_node(run.options()[0].id)
 		taken += 1
 		_settle(run)
-	var screen: PaintedMapScreen = PaintedMapScreen.new()
+	var screen: Map3DScreen = Map3DScreen.new()
 	screen.view = MapView.new(run)
 	screen.time_scale = 0.0
 	add_child(screen)

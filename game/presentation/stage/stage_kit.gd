@@ -40,7 +40,9 @@ static func apply_tint(root: Node, tint: Color) -> void:
 
 ## Junta todas as cópias de `path` (uma por transformação) numa `MultiMesh`. `tint` escurece todas
 ## as superfícies da peça (cor multiplicada), para lajes e estradas não brilharem.
-static func multimesh_from(parent: Node3D, path: String, transforms: Array[Transform3D], tint: Color = Color.WHITE) -> void:
+## Se [param texture] vier, a malha ganha um material de pedra pintada em triplanar de mundo (sem UV),
+## multiplicado por [param tint]; [param tex_scale] é quantas repetições por unidade de mundo.
+static func multimesh_from(parent: Node3D, path: String, transforms: Array[Transform3D], tint: Color = Color.WHITE, texture: Texture2D = null, tex_scale: float = 0.3) -> void:
 	if transforms.is_empty():
 		return
 	var source: Node = (load(path) as PackedScene).instantiate()
@@ -48,7 +50,20 @@ static func multimesh_from(parent: Node3D, path: String, transforms: Array[Trans
 	var multi: MultiMesh = MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	var mesh: Mesh = mesh_node.mesh
-	if tint != Color.WHITE:
+	if texture != null:
+		mesh = mesh.duplicate() as Mesh
+		var stone: StandardMaterial3D = StandardMaterial3D.new()
+		stone.albedo_texture = texture
+		stone.albedo_color = tint
+		stone.uv1_triplanar = true
+		stone.uv1_world_triplanar = true
+		stone.uv1_scale = Vector3.ONE * tex_scale
+		stone.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		stone.roughness = 0.95
+		stone.metallic_specular = 0.2
+		for s: int in mesh.get_surface_count():
+			mesh.surface_set_material(s, stone)
+	elif tint != Color.WHITE:
 		mesh = mesh.duplicate() as Mesh
 		for s: int in mesh.get_surface_count():
 			var base: Material = mesh.surface_get_material(s)

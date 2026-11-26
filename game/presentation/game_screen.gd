@@ -277,7 +277,7 @@ func _show_map() -> void:
 	ambience.set_mood("map")
 	_clear()
 	if use_3d_map:
-		_map3d = PaintedMapScreen.new()
+		_map3d = Map3DScreen.new()
 		_map3d.view = MapView.new(run)
 		_map3d.time_scale = time_scale
 		_map3d.node_chosen.connect(choose_node)
