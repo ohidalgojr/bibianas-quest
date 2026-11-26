@@ -2,12 +2,12 @@
 
 | Campo | Valor |
 | --- | --- |
-| Atualizado em | 2026-11-25 |
-| Total organizado | 43 pranchas (1 Bibiana retrato + 4 pranchas Bibiana 4 poses `16:9` + 14 Inimigos Cenário 1 + 5 Inimigos Estudo + 2 NPCs + 4 Props + 8 Arenas/Cenários `9:16` + 4 Folhas de ícones `4×4` `1024×1024` + 1 Textura UI tileável `ui-noise-stone.jpg`) |
+| Atualizado em | 2026-11-26 |
+| Total organizado | 75 pranchas (1 Bibiana retrato + 7 pranchas Bibiana 4 poses `16:9` + 14 Inimigos Cenário 1 + 5 Inimigos Estudo + 2 NPCs + 5 Props + 12 Arenas/Cenários `9:16` + 3 Sobreposições/Estrada de Mapa + 7 Folhas de Ícones `4×4` + 2 Moedas + 8 Peças/Texturas UI + 6 Folhas VFX + 3 Ilustrações de Eventos) |
 | Origem | Arquivos brutos sem nome movidos de `assets/` (zero sobras soltas em `assets/`) e pranchas geradas pelo Guia de Arte (`docs/design/GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md`) |
-| Mecha colorida | Removida (`F-024`); `bibiana-guerreira.jpg` usa cabelo castanho-escuro natural |
+| Mecha colorida | Removida (`F-024`); toda prancha da Bibiana usa cabelo castanho-escuro natural |
 
-## 1. Mapa completo dos 43 assets
+## 1. Mapa completo dos 75 assets
 
 | Tipo | ID | Nome | Caminho no repositório | Dimensões | Ajuste aplicado | `--box` `make_sprite.py` |
 | --- | --- | --- | --- | :---: | --- | --- |
@@ -54,6 +54,38 @@
 | Ícones 4×4 | `ico_c_status` | Folha ICO-C — 12 Status e Doenças | `docs/design/refs/ui/ico-c-status.jpg` | `1024×1024` | 12 células `256×256` nas linhas 1–3; linha 4 vazia `#10131A` | Grade `4×4` (`256×256` por célula) |
 | Ícones 4×4 | `ico_d_weapons_slots` | Folha ICO-D — 9 Armas + 6 Slots Vazios | `docs/design/refs/ui/ico-d-weapons-slots.jpg` | `1024×1024` | 15 células `256×256` (`#2A2D33` nos slots vazios); `R4C4` vazio `#10131A` | Grade `4×4` (`256×256` por célula) |
 | UI Textura | `ui_noise_stone` | Ruído de Pedra Escura Tileável | `docs/design/refs/ui/ui-noise-stone.jpg` | `512×512` | Ruído procedural contínuo sem emenda (`v_seam=0,49`, `h_seam=0,46`) | Textura tileável direta (`ui_panel_stone`) |
+| Ícones 4×4 | `ico_e_armor_head` | Folha ICO-E — 8 Armaduras + 6 Cabeça/Mão | `docs/design/refs/ui/ico-e-armor-head.jpg` | `1024×1024` | 14 células `256×256` em `#10131A` liso (fatiados `96×96` RGBA); `R4C3..4` vazios | Grade `4×4` (`256×256` por célula) |
+| Ícones 4×4 | `ico_f_relics_consum` | Folha ICO-F — 8 Relíquias + 7 Consumíveis | `docs/design/refs/ui/ico-f-relics-consum.jpg` | `1024×1024` | 15 células `256×256` em `#10131A` liso (fatiados `96×96` RGBA); `R4C4` vazio | Grade `4×4` (`256×256` por célula) |
+| Ícones 4×4 | `ico_g_nodes` | Folha ICO-G — 14 Ícones de Nós do Mapa | `docs/design/refs/ui/ico-g-nodes.jpg` | `1024×1024` | 14 células `256×256` em `#10131A` liso (fatiados `96×96` RGBA); `R4C3..4` vazios | Grade `4×4` (`256×256` por célula) |
+| Moeda | `coin_heads` | Moeda — Cara (Penitente Velada, Borda Serrilhada) | `docs/design/refs/ui/coin-heads.jpg` | `768×768` | Ouro velho `#D9AA32`, fundo `#10131A` liso (`d=0,00`) | Recorte direto (`512×512`) |
+| Moeda | `coin_tails` | Moeda — Coroa (Coroa de Espinhos, Borda Lisa) | `docs/design/refs/ui/coin-tails.jpg` | `768×768` | Ouro-prata `#B9B4A0`, fundo `#10131A` liso (`d=0,00`) | Recorte direto (`512×512`) |
+| UI Kit | `ui_node_disc` | 5 Discos de Pedra 2:1 para Nós do Mapa | `docs/design/refs/ui/ui-node-disc.jpg` | `1920×384` | 5 colunas iguais `384×384`, `#10131A` liso | `hframes = 5` (`384×384` por quadro) |
+| UI Kit | `ui_panel_stone` | Painel Base 9-Slice em Pedra + Rebites Bronze | `docs/design/refs/ui/ui-panel-stone.jpg` | `768×768` | Ortográfico simétrico, chanfrado 6 px, `#10131A` externo | 9-slice (`margin 24 px`) |
+| UI Kit | `ui_banner_ribbon` | Faixa-Título Bronze Cauda de Andorinha | `docs/design/refs/ui/ui-banner-ribbon.jpg` | `768×256` | Ortográfico vazio (texto no motor), `#10131A` liso | Banner recompensa / vitória |
+| UI Kit | `ui_divider` | Divisor Ornamental Simétrico de Bronze | `docs/design/refs/ui/ui-divider.jpg` | `768×128` | Ponta dupla simétrica com losango gótico central, `#10131A` | Separador ornamental |
+| UI Kit | `ui_slot_frame` | 4 Molduras de Slot por Raridade | `docs/design/refs/ui/ui-slot-frame.jpg` | `1024×256` | 4 colunas `256×256` (bronze, aço, ouro, sangue), `#10131A` | `hframes = 4` (`256×256` por quadro) |
+| UI Kit | `ui_frame_illustration` | Moldura Gótica de Ilustração de Evento | `docs/design/refs/ui/ui-frame-illustration.jpg` | `768×512` | Cantos em ogiva e bronze sobre `#10131A` liso | Moldura para `events/*.jpg` |
+| Arena 9:16 | `bg_defeat` | Cenário de Derrota — Lampião Caído | `docs/design/refs/arenas/bg-defeat.jpg` | `768×1376` | Beco dessaturado com névoa vermelha sutil nas bordas | Fundo direto (`9:16`) |
+| Mapa 9:16 | `map_strip_01_rua` | Faixa de Mapa 1 — Avenida Molhada | `docs/design/refs/arenas/map-strip-01-rua.jpg` | `768×1376` | Perspectiva isométrica alta, 3 lampiões âmbar, névoa no topo | Parallax mapa (`9:16`) |
+| Mapa 9:16 | `map_strip_02_praca` | Faixa de Mapa 2 — Praça e Igreja | `docs/design/refs/arenas/map-strip-02-praca.jpg` | `768×1376` | Poço seco, forca vazia com lampião, fachada gótica | Parallax mapa (`9:16`) |
+| Mapa 9:16 | `map_strip_03_escadaria` | Faixa de Mapa 3 — Escadaria do Chefe | `docs/design/refs/arenas/map-strip-03-escadaria.jpg` | `768×1376` | Escadaria de gárgulas até portão e vitral vermelho na torre | Parallax mapa (`9:16`) |
+| Arena 9:16 | `sanctuary_interior` | Santuário Interior — 3 Estações | `docs/design/refs/arenas/sanctuary-interior.jpg` | `768×1376` | Nave em ruínas com Biblioteca (esq.), Arsenal (dir.) e Códice (fundo) | Fundo direto (`9:16`) |
+| Overlay 16:9 | `map_fg_ironfence` | 1º Plano Mapa — Grade de Ferro e Galhos | `docs/design/refs/arenas/map-fg-ironfence.jpg` | `1376×768` | Silhueta no rodapé sobre `#10131A` acima | Parallax 1º plano (`1,25x`) |
+| Overlay 16:9 | `map_mist_band` | Faixa de Névoa Pintada com Agulhas | `docs/design/refs/arenas/map-mist-band.jpg` | `1376×768` | Névoa fria central com silhuetas de telhados sobre `#10131A` | Faixa de névoa / transição |
+| Textura 16:9 | `road_cobble_tile` | Calçamento Molhado com Juntas Douradas | `docs/design/refs/arenas/road-cobble-tile.jpg` | `1376×768` | Vista superior 90° em ardósia úmida e pó de ouro gasto | Textura de estrada do mapa |
+| Bibiana 4× | `bibiana_warrior_combat_sheet` | Bibiana Guerreira Costas — Combate | `docs/design/refs/bibiana/bibiana-guerreira-combat-sheet.jpg` | `1792×1008` | 4 colunas `448 px`: `attack \| defend \| hurt \| item` | `hframes = 4` / `--thresh 8` |
+| Bibiana 4× | `bibiana_warrior_states_sheet` | Bibiana Guerreira Costas — Estados | `docs/design/refs/bibiana/bibiana-guerreira-states-sheet.jpg` | `1792×1008` | 4 colunas `448 px`: `sit_fire \| defeat \| victory \| idle_guard` | `hframes = 4` / `--thresh 8` |
+| Bibiana 4× | `bibiana_warrior_walk_sheet` | Bibiana Guerreira Costas — Caminhada | `docs/design/refs/bibiana/bibiana-guerreira-walk-sheet.jpg` | `1792×1008` | 4 quadros de caminhada de costas (`walk_0..3`) | `hframes = 4` / `--thresh 8` |
+| FX Sheet | `fx_flame_sheet` | Chama da Fogueira (Loop 8 Quadros) | `docs/design/refs/fx/fx-flame-sheet.jpg` | `2048×256` | 8 células iguais `256×256` ancoradas na base, `#10131A` | `hframes = 8` (`256×256`) |
+| FX Sheet | `fx_slash_sheet` | Arco de Corte de Espada (6 Quadros) | `docs/design/refs/fx/fx-slash-sheet.jpg` | `1536×256` | 6 células iguais `256×256` (marfim + borda âmbar), `#10131A` | `hframes = 6` (`256×256`) |
+| FX Sheet | `fx_coin_flip_sheet` | Giro Completo da Moeda (8 Quadros) | `docs/design/refs/fx/fx-coin-flip-sheet.jpg` | `2048×256` | 8 células `256×256` (`0°..315°` combinando Cara e Coroa) | `hframes = 8` (`256×256`) |
+| FX Sheet | `fx_block_sheet` | Faíscas de Bloqueio de Escudo (5 Quadros) | `docs/design/refs/fx/fx-block-sheet.jpg` | `1280×256` | 5 células iguais `256×256` em `#10131A` liso | `hframes = 5` (`256×256`) |
+| FX Sprite | `fx_crit_burst` | Explosão Radial de Acerto Crítico | `docs/design/refs/fx/fx-crit-burst.jpg` | `512×512` | Raios pontiagudos ouro velho e marfim em `#10131A` | Sprite único `512×512` |
+| FX Sheet | `fx_poison_sheet` | Bolhas e Fumaça de Veneno (6 Quadros) | `docs/design/refs/fx/fx-poison-sheet.jpg` | `1536×256` | 6 células iguais `256×256` verde-musgo `#6E8F3F`, `#10131A` | `hframes = 6` (`256×256`) |
+| Prop 2× | `campfire_props` | Fogueira Acesa e Apagada para Nó de Mapa | `docs/design/refs/props/campfire-props.jpg` | `1024×512` | 2 colunas iguais `512×512` (`campfire_lit \| campfire_cold`) | `0..512` / `512..1024` (`--thresh 8`) |
+| Evento 16:9 | `event_weeping_bell` | Evento — O Sino Rachado da Praça | `docs/design/refs/events/event-weeping-bell.jpg` | `1376×768` | Sino rachado em poça d'água com lampião âmbar | Cartão de evento (`508×290`) |
+| Evento 16:9 | `event_plague_wagon` | Evento — Carroça do Boticário | `docs/design/refs/events/event-plague-wagon.jpg` | `1376×768` | Carroça tombada, frascos, cofre trancado e ratos | Cartão de evento (`508×290`) |
+| Evento 16:9 | `event_blind_herald` | Evento — O Arauto Cego | `docs/design/refs/events/event-blind-herald.jpg` | `1376×768` | Arauto cego de olhos costurados segurando balança de osso | Cartão de evento (`508×290`) |
 
 ## 2. Comandos prontos de recorte para o Claude (`tools/make_sprite.py`)
 
@@ -134,11 +166,55 @@ Cada folha já está centralizada em células exatas `256×256` (`col*256, lin*2
   - L2: `item/spiked_mace`, `item/reaper_sickle`, `item/bellringer_blade`, `item/executioner_axe`
   - L3: `item/blood_stiletto`, `slot/weapon`, `slot/armor`, `slot/head`
   - L4: `slot/offhand`, `slot/relic`, `slot/consumable`
+- **`ico-e-armor-head.jpg` (`--thresh 9.5`, 14/14 + R4C3..4 vazios):**
+  - L1: `item/old_chainmail`, `item/dented_plate`, `item/leather_vest`, `item/reinforced_mail`
+  - L2: `item/warden_plate`, `item/soaked_cloak`, `item/bone_cuirass`, `item/penitent_armor`
+  - L3: `item/plague_hood` (bico de peste), `item/bellringer_helm`, `item/thorn_crown`, `item/rotten_shield`
+  - L4: `item/traveler_lantern` (lanterna de ferro), `item/torn_prayer_book`
+- **`ico-f-relics-consum.jpg` (`--thresh 9.5`, 15/15 + R4C4 vazio):**
+  - L1: `item/worn_charm`, `item/iron_ring`, `item/sharp_claw`, `item/grave_bell`
+  - L2: `item/giant_rat_tooth` (incisivo de rato), `item/glass_eye`, `item/hanged_rope`, `item/penitent_medal`
+  - L3: `item/murky_potion`, `item/dirty_ether`, `item/lucky_coin`, `item/firewood`
+  - L4: `item/rotting_bread`, `item/rancid_elixir`, `item/sage_smoke`
+- **`ico-g-nodes.jpg` (`--thresh 9.5`, 14/14 + R4C3..4 vazios):**
+  - L1: `node/start`, `node/battle`, `node/ambush`, `node/elite`
+  - L2: `node/chest`, `node/event`, `node/bonfire`, `node/shop`
+  - L3: `node/mini_boss`, `node/boss`, `node/fog`, `node/visited`
+  - L4: `node/lock`, `node/danger`
+
+### Bibiana Costas (Combate, Estados e Caminhada) & Props de Fogueira (`tools/make_sprite.py`)
+
+```bash
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-combat-sheet.jpg assets/bibiana/sprites/bibiana_warrior_attack.png --box 0,0,448,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-combat-sheet.jpg assets/bibiana/sprites/bibiana_warrior_defend.png --box 448,0,896,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-combat-sheet.jpg assets/bibiana/sprites/bibiana_warrior_hurt.png --box 896,0,1344,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-combat-sheet.jpg assets/bibiana/sprites/bibiana_warrior_item.png --box 1344,0,1792,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-states-sheet.jpg assets/bibiana/sprites/bibiana_warrior_sit_fire.png --box 0,0,448,1008 --height 175 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-states-sheet.jpg assets/bibiana/sprites/bibiana_warrior_defeat.png --box 448,0,896,1008 --height 185 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-states-sheet.jpg assets/bibiana/sprites/bibiana_warrior_victory.png --box 896,0,1344,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-states-sheet.jpg assets/bibiana/sprites/bibiana_warrior_idle_guard.png --box 1344,0,1792,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-walk-sheet.jpg assets/bibiana/sprites/bibiana_warrior_walk_0.png --box 0,0,448,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-walk-sheet.jpg assets/bibiana/sprites/bibiana_warrior_walk_1.png --box 448,0,896,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-walk-sheet.jpg assets/bibiana/sprites/bibiana_warrior_walk_2.png --box 896,0,1344,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/bibiana/bibiana-guerreira-walk-sheet.jpg assets/bibiana/sprites/bibiana_warrior_walk_3.png --box 1344,0,1792,1008 --height 240 --thresh 8
+python tools/make_sprite.py docs/design/refs/props/campfire-props.jpg assets/bibiana/sprites/campfire_lit.png --box 0,0,512,512 --height 110 --thresh 8
+python tools/make_sprite.py docs/design/refs/props/campfire-props.jpg assets/bibiana/sprites/campfire_cold.png --box 512,0,1024,512 --height 85 --thresh 8
+```
+
+### Tiras Horizontais de UI e VFX (`#10131A` liso, quadros iguais)
+
+- `ui-node-disc.jpg` (`1920×384`): `hframes = 5, vframes = 1` (quadros `384×384`, 5 discos 2:1 de pedra gasta)
+- `ui-slot-frame.jpg` (`1024×256`): `hframes = 4, vframes = 1` (quadros `256×256`: `0` comum bronze, `1` incomum aço-azul, `2` raro ouro, `3` maldito sangue)
+- `fx-flame-sheet.jpg` (`2048×256`): `hframes = 8, vframes = 1` (quadros `256×256`, fogo ancorado na base)
+- `fx-slash-sheet.jpg` (`1536×256`): `hframes = 6, vframes = 1` (`256×256`)
+- `fx-coin-flip-sheet.jpg` (`2048×256`): `hframes = 8, vframes = 1` (`256×256`, `0°` a `315°`)
+- `fx-block-sheet.jpg` (`1280×256`): `hframes = 5, vframes = 1` (`256×256`)
+- `fx-poison-sheet.jpg` (`1536×256`): `hframes = 6, vframes = 1` (`256×256`)
 
 ## 3. O que ainda falta gerar (para completar 100% do lote)
 
-As especificações e prompts estão em `docs/design/PROMPTS-LOTE-HD2D.md` (§30–33) e `docs/design/GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` (§11):
+Apenas **7 itens P1/estudo** seguem pendentes após o bloqueio semanal de cota (`HTTP 429 RESOURCE_EXHAUSTED`, reset em ~`91h29m` em `gemini-3.1-flash-image`). As especificações e prompts prontos estão em `docs/design/GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` (§11.1) e `docs/design/PROMPTS-LOTE-HD2D.md` (§30–33):
 
-1. **Guia de Arte §11 restantes (`503 UNAVAILABLE` em `gemini-3.1-flash-image` durante esta janela):** `ico-e-armor-head`, `ico-f-relics-consum`, `ico-g-nodes`, `bg-defeat`, `map-strip-01..03`, `coin-heads/tails`, `ui-node-disc`, `ui-panel-stone`, `ui-slot-frame`, `ui-banner-ribbon`, `ui-frame-illustration`, `ui-divider`, 3 folhas de poses/animações de costas da Bibiana (`combat`, `states`, `walk`), folhas de FX (`fx-flame`, `fx-slash`, `fx-coin-flip`, `fx-block`, `fx-crit-burst`, `fx-poison`), `sanctuary-interior`, overlays/props de mapa (`map-fg-ironfence`, `map-mist-band`, `road-cobble-tile`, `campfire-props`) e 6 ilustrações de eventos.
-2. **3 inimigos restantes do estudo (`TASK-051`):** `lipless_choir` (O Coro Sem Lábios), `calcified_knight` (O Cavaleiro Calcificado), `trench_crawler` (O Rastejador da Vala).
-3. **1 Roaming Boss em sprite único (`TASK-054`):** `crowned_pursuer` (O Perseguidor Coroado — as 5 pranchas de key art/turnaround/diorama já estão em `docs/design/refs/roaming-boss/`).
+1. **3 ilustrações de eventos (`GUIA §11.1`):** `event-fountain-of-ash`, `event-gallows-tree`, `event-abandoned-armory`.
+2. **3 inimigos restantes do estudo (`TASK-051`):** `lipless_choir` (O Coro Sem Lábios), `calcified_knight` (O Cavaleiro Calcificado), `trench_crawler` (O Rastejador da Vala) — já possuem artes-conceito originais em `docs/design/refs/inimigos/06..08-*.jpg`.
+3. **1 Roaming Boss em sprite único (`TASK-054`):** `crowned_pursuer_sprite` (O Perseguidor Coroado — as 5 pranchas de key art/turnaround/diorama já estão em `docs/design/refs/roaming-boss/`).
