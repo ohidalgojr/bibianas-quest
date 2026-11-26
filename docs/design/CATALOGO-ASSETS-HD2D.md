@@ -213,8 +213,18 @@ python tools/make_sprite.py docs/design/refs/props/campfire-props.jpg assets/bib
 
 ## 3. O que ainda falta gerar (para completar 100% do lote)
 
-Apenas **7 itens P1/estudo** seguem pendentes após o bloqueio semanal de cota (`HTTP 429 RESOURCE_EXHAUSTED`, reset em ~`91h29m` em `gemini-3.1-flash-image`). As especificações e prompts prontos estão em `docs/design/GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` (§11.1) e `docs/design/PROMPTS-LOTE-HD2D.md` (§30–33):
+Apenas **7 itens P1/estudo** seguem pendentes após o bloqueio semanal de cota (`HTTP 429 RESOURCE_EXHAUSTED`, reset estimado em `~2026-11-30T18:27Z` em `gemini-3.1-flash-image`):
 
-1. **3 ilustrações de eventos (`GUIA §11.1`):** `event-fountain-of-ash`, `event-gallows-tree`, `event-abandoned-armory`.
-2. **3 inimigos restantes do estudo (`TASK-051`):** `lipless_choir` (O Coro Sem Lábios), `calcified_knight` (O Cavaleiro Calcificado), `trench_crawler` (O Rastejador da Vala) — já possuem artes-conceito originais em `docs/design/refs/inimigos/06..08-*.jpg`.
-3. **1 Roaming Boss em sprite único (`TASK-054`):** `crowned_pursuer_sprite` (O Perseguidor Coroado — as 5 pranchas de key art/turnaround/diorama já estão em `docs/design/refs/roaming-boss/`).
+| Arquivo alvo | Tipo / Formato | Fundo / Direção | Fonte do prompt | Âncora de referência |
+| --- | --- | --- | --- | --- |
+| `docs/design/refs/events/event-fountain-of-ash.jpg` | Evento `16:9` (`1376×768`) | Cenário completo | `GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` §11.1 | `arena-cidade-rua.jpg` |
+| `docs/design/refs/events/event-gallows-tree.jpg` | Evento `16:9` (`1376×768`) | Cenário (3 cordas vazias, sem corpos) | `GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` §11.1 | `arena-cidade-rua.jpg` |
+| `docs/design/refs/events/event-abandoned-armory.jpg` | Evento `16:9` (`1376×768`) | Cenário completo | `GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` §11.1 | `arena-cidade-rua.jpg` |
+| `docs/design/refs/inimigos/lipless_choir.jpg` | Inimigo Estudo #06 (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §30 | `09-o-coveiro.jpg` + `reliquary_lady.jpg` (conceito: `06-coro-sem-labios.jpg`) |
+| `docs/design/refs/inimigos/calcified_knight.jpg` | Inimigo Estudo #07 (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §31 | `09-o-coveiro.jpg` + `reliquary_lady.jpg` (conceito: `07-cavaleiro-calcificado.jpg`) |
+| `docs/design/refs/inimigos/trench_crawler.jpg` | Inimigo Estudo #08 (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §32 | `09-o-coveiro.jpg` + `reliquary_lady.jpg` (conceito: `08-rastejador-da-vala.jpg`) |
+| `docs/design/refs/roaming-boss/crowned_pursuer_sprite.jpg` | Roaming Boss `TASK-054` (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §33 | `docs/design/refs/roaming-boss/01-perseguidor-coroado-key-art.jpg` + `09-o-coveiro.jpg` |
+
+Entregáveis P0 de **script (sem IA)** previstos em `GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` (§11.1 e §13 #2), a cargo do código/ferramentas:
+- `enemy_bust_<id>` (17 bustos `96×96` / `192` via `tools/make_sprite.py --bust`).
+- Reentrega `*_2x` dos sprites existentes a partir dos masters `2752×1536` com `--decontaminate`.
