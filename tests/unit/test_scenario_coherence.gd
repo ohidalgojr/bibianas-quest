@@ -93,3 +93,123 @@ func test_shop_uses_the_merchant_sprite_and_never_the_gravedigger() -> void:
 	assert_eq(str((Scene3DBackdrop.PAINTED["shop"] as Dictionary)["npc"]), "shop_keeper")
 	assert_true(ModelRegistry.has_sprite("shop_keeper"))
 	assert_ne(str((Scene3DBackdrop.PAINTED["shop"] as Dictionary)["npc"]), "gravedigger", "loja não reutiliza o chefe O Coveiro")
+
+
+## TASK-073 (ADR-0060): gramática da cidade gótica. A planta do mapa precisa ser uma cidade que sobe
+## até a igreja: rua principal contínua, chefe no ponto mais alto, portão do adro, casas com porta
+## para a rua e nenhuma parede alta escondendo ruas na câmera isométrica.
+func _generated(layers: int, seed_value: int) -> Array:
+	var graph: MapGraph = MapGenerator.generate(MapConfig.for_layers(layers), RngStreams.new(seed_value).map())
+	return [graph, ScenarioGenerator.generate_map(graph, seed_value)]
+
+
+func test_city_grammar_validates_for_every_map_size() -> void:
+	for layers: int in [3, 4, 6, 8]:
+		for seed_value: int in range(1, 9):
+			var made: Array = _generated(layers, seed_value)
+			var graph: MapGraph = made[0] as MapGraph
+			var bp: ScenarioBlueprint = made[1] as ScenarioBlueprint
+			var violations: Array[String] = ScenarioValidator.validate(bp, graph)
+			assert_eq(violations, [], "%d camadas, semente %d: %s" % [layers, seed_value, ", ".join(violations)])
+
+
+func test_board_advances_along_the_camera_diagonal_toward_the_church() -> void:
+	# A câmera olha de +X +Z para -X -Z: avançar uma camada tira LAYER_STEP de Z e NORTH_SHEAR de X,
+	# então a rua principal sobe reto na tela, rumo à igreja pintada do horizonte (ADR-0060).
+	var made: Array = _generated(4, 5)
+	var graph: MapGraph = made[0] as MapGraph
+	var bp: ScenarioBlueprint = made[1] as ScenarioBlueprint
+	var start: Vector2i = bp.node_cells[graph.start_id] as Vector2i
+	var boss: Vector2i = bp.node_cells[graph.boss_id] as Vector2i
+	var layers_apart: int = graph.layer_count + 1
+	assert_eq(start.y - boss.y, layers_apart * ScenarioGenerator.LAYER_STEP, "o chefe fica ao norte")
+	assert_eq(start.x - boss.x, layers_apart * ScenarioGenerator.NORTH_SHEAR, "e deslocado na diagonal da câmera")
+	for node: MapNode in graph.nodes:
+		var cell: Vector2i = bp.node_cells[node.id] as Vector2i
+		assert_eq(bp.layer_at_row(cell.y), node.layer, "a camada do nó %d bate com a linha (névoa por linha)" % node.id)
+
+
+func test_boss_stands_on_the_highest_ground_in_front_of_the_church_gate() -> void:
+	for seed_value: int in range(1, 10):
+		var made: Array = _generated(4, seed_value)
+		var graph: MapGraph = made[0] as MapGraph
+		var bp: ScenarioBlueprint = made[1] as ScenarioBlueprint
+		var boss: Vector2i = bp.node_cells[graph.boss_id] as Vector2i
+		var boss_h: int = bp.height_at(boss)
+		for cell: Vector2i in bp.road_cells.keys():
+			assert_lt(bp.height_at(cell), boss_h, "rua %s abaixo do chefe" % cell)
+		for node: MapNode in graph.nodes:
+			if node.id != graph.boss_id:
+				assert_lt(int(bp.node_levels[node.id]), boss_h, "nó %d abaixo do chefe" % node.id)
+		var gate: Dictionary = {}
+		for comp: Dictionary in bp.compounds:
+			if int(comp["kind"]) == ScenarioBlueprint.COMPOUND_CHURCH_GATE:
+				gate = comp
+		assert_false(gate.is_empty(), "portão do adro")
+		assert_eq((gate["center"] as Vector2i).x, boss.x, "o portão fica no eixo do chefe")
+		assert_lt((gate["center"] as Vector2i).y, boss.y - 3, "o portão fica ao norte do chefe, com o adro no meio")
+		assert_true(bp.stairs.has(boss + Vector2i(0, 2)), "escadaria sobe do patamar à praça do chefe")
+		assert_true(bp.main_road.has(boss + Vector2i(0, 3)), "a rua principal chega pela escadaria")
+
+
+func test_main_road_is_continuous_from_start_to_boss() -> void:
+	for seed_value: int in range(1, 9):
+		var made: Array = _generated(6, seed_value)
+		var graph: MapGraph = made[0] as MapGraph
+		var bp: ScenarioBlueprint = made[1] as ScenarioBlueprint
+		var from_cell: Vector2i = bp.node_cells[graph.start_id] as Vector2i
+		var to_cell: Vector2i = bp.node_cells[graph.boss_id] as Vector2i
+		var seen: Dictionary = {from_cell: true}
+		var queue: Array[Vector2i] = [from_cell]
+		var head: int = 0
+		while head < queue.size():
+			var cur: Vector2i = queue[head]
+			head += 1
+			for d: int in ScenarioBlueprint.CARDINAL_DIRS:
+				var nb: Vector2i = cur + ScenarioBlueprint.dir_vec(d)
+				if bp.main_road.has(nb) and not seen.has(nb):
+					seen[nb] = true
+					queue.append(nb)
+		assert_true(seen.has(to_cell), "semente %d: a rua principal liga a partida ao chefe" % seed_value)
+
+
+func test_houses_face_the_street_and_tall_walls_never_hide_it() -> void:
+	var houses: int = 0
+	for seed_value: int in range(1, 9):
+		var made: Array = _generated(4, seed_value)
+		var bp: ScenarioBlueprint = made[1] as ScenarioBlueprint
+		var hidden: Dictionary = ScenarioGenerator.occluding_cells(bp)
+		for comp: Dictionary in bp.compounds:
+			var kind: int = int(comp["kind"])
+			if kind != ScenarioBlueprint.COMPOUND_HOUSE and kind != ScenarioBlueprint.COMPOUND_COTTAGE and kind != ScenarioBlueprint.COMPOUND_RUIN_HOUSE:
+				continue
+			houses += 1
+			var front: Vector2i = ScenarioValidator._door_front_cell(comp)
+			assert_true(bp.is_walkable(front), "a porta de %s dá para a rua" % comp["id"])
+			assert_eq(bp.height_at(front), int(comp["height"]), "a porta fica no nível da rua")
+			if kind == ScenarioBlueprint.COMPOUND_HOUSE:
+				for raw: Variant in comp["cells"]:
+					assert_false(hidden.has(raw as Vector2i), "casa alta %s não esconde a rua" % comp["id"])
+	assert_gt(houses, 40, "a cidade tem casas e ruínas suficientes ao longo das ruas")
+
+
+func test_each_kind_of_map_node_gets_its_own_place_in_the_city() -> void:
+	var roles: Dictionary = {}
+	for seed_value: int in range(1, 16):
+		var made: Array = _generated(6, seed_value)
+		var bp: ScenarioBlueprint = made[1] as ScenarioBlueprint
+		for piece: Dictionary in bp.plaza_dress:
+			roles[str(piece["role"])] = int(roles.get(str(piece["role"]), 0)) + 1
+	for role: String in ["chest_room", "camp_shelter", "campo_santo", "armory_fence", "plaza_prop", "stair_rail"]:
+		assert_gt(int(roles.get(role, 0)), 0, "existe cenografia '%s' (baú, fogueira, evento, elite...)" % role)
+
+
+func test_city_blueprint_is_deterministic_by_seed() -> void:
+	var a: ScenarioBlueprint = _generated(4, 21)[1] as ScenarioBlueprint
+	var b: ScenarioBlueprint = _generated(4, 21)[1] as ScenarioBlueprint
+	var c: ScenarioBlueprint = _generated(4, 22)[1] as ScenarioBlueprint
+	assert_eq(a.heights, b.heights)
+	assert_eq(a.compounds, b.compounds)
+	assert_eq(a.plaza_dress, b.plaza_dress)
+	assert_eq(a.main_road, b.main_road)
+	assert_ne(a.compounds, c.compounds, "semente diferente muda as casas")

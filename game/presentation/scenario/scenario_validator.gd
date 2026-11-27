@@ -1,8 +1,10 @@
 class_name ScenarioValidator
 extends RefCounted
-## Auditor determinístico de coerência espacial e arquitetônica (ADR-0041, TASK-053).
-## Verifica os 12 invariantes estruturais de uma [ScenarioBlueprint] antes de renderizar e nos
-## testes automatizados. Retorna uma lista de violações legíveis (vazia = cenário 100% coerente).
+## Auditor determinístico de coerência espacial e arquitetônica (ADR-0041, ADR-0060, TASK-053,
+## TASK-073). Verifica os invariantes estruturais de uma [ScenarioBlueprint] antes de renderizar e
+## nos testes automatizados, incluindo a gramática da cidade gótica (rua principal contínua até o
+## chefe, chefe no ponto mais alto, portas para a rua, paredes altas fora da diagonal da câmera).
+## Retorna uma lista de violações legíveis (vazia = cenário 100% coerente).
 
 
 static func validate(bp: ScenarioBlueprint, graph: MapGraph = null) -> Array[String]:
@@ -22,6 +24,9 @@ static func validate(bp: ScenarioBlueprint, graph: MapGraph = null) -> Array[Str
 	_check_wall_runs(bp, errors)
 	_check_lamps(bp, errors)
 	_check_props_and_destinations(bp, errors)
+	_check_dress(bp, errors)
+	if not bp.is_focal:
+		_check_city_grammar(bp, graph, errors)
 	return errors
 
 
@@ -171,6 +176,8 @@ static func _check_water_and_bridges(bp: ScenarioBlueprint, errors: Array[String
 
 static func _check_compounds_and_occlusion(bp: ScenarioBlueprint, errors: Array[String]) -> void:
 	var occupied: Dictionary = {}
+	var hidden: Dictionary = ScenarioGenerator.occluding_cells(bp) if not bp.is_focal else {}
+	var hidden_near: Dictionary = ScenarioGenerator.occluding_cells(bp, 1) if not bp.is_focal else {}
 	for comp: Dictionary in bp.compounds:
 		var cid: String = str(comp.get("id", "?"))
 		var kind: int = int(comp.get("kind", -1))
@@ -191,7 +198,11 @@ static func _check_compounds_and_occlusion(bp: ScenarioBlueprint, errors: Array[
 				errors.append("composto %s sobre praça/estrada/água em %s" % [cid, cell])
 			if bp.height_at(cell) != h:
 				errors.append("composto %s desnivelado em %s (%d != %d)" % [cid, cell, bp.height_at(cell), h])
+			if kind == ScenarioBlueprint.COMPOUND_COTTAGE and hidden_near.has(cell):
+				errors.append("casa baixa %s esconde rua/praça na câmera em %s" % [cid, cell])
 			if ScenarioBlueprint.is_tall_compound(kind):
+				if hidden.has(cell):
+					errors.append("composto alto %s esconde rua/praça na câmera em %s" % [cid, cell])
 				for node_id: int in bp.node_cells.keys():
 					var nc: Vector2i = bp.node_cells[node_id]
 					var dx: int = cell.x - nc.x
@@ -200,6 +211,8 @@ static func _check_compounds_and_occlusion(bp: ScenarioBlueprint, errors: Array[
 						errors.append("composto alto %s oclui nó %d em %s" % [cid, node_id, cell])
 		if door_dir >= 0:
 			var front: Vector2i = _door_front_cell(comp)
+			if (kind == ScenarioBlueprint.COMPOUND_HOUSE or kind == ScenarioBlueprint.COMPOUND_COTTAGE or kind == ScenarioBlueprint.COMPOUND_RUIN_HOUSE) and not bp.is_walkable(front):
+				errors.append("porta da casa %s não dá para a rua em %s" % [cid, front])
 			if bp.in_bounds(front):
 				var fz: int = bp.zone_at(front)
 				if fz == ScenarioBlueprint.ZONE_WATER or fz == ScenarioBlueprint.ZONE_BUILDING:
@@ -306,3 +319,64 @@ static func _check_props_and_destinations(bp: ScenarioBlueprint, errors: Array[S
 					if dx >= 0 and dz >= 0 and (bp.zone_at(c) == ScenarioBlueprint.ZONE_TERRACE or bp.zone_at(c) == ScenarioBlueprint.ZONE_EMBANKMENT):
 						if bp.height_at(c) > nl:
 							errors.append("terraço alto %s (%d > %d) oclui cone frontal do nó %d" % [c, bp.height_at(c), nl, node_id])
+
+
+## Peças de cenografia dos lugares: dentro da planta, fora da água e fora das ruas (só as peças de
+## praça `plaza_prop` podem ficar sobre a praça), e paredes altas fora da diagonal da câmera.
+static func _check_dress(bp: ScenarioBlueprint, errors: Array[String]) -> void:
+	for piece: Dictionary in bp.plaza_dress:
+		var cell: Vector2i = piece["cell"] as Vector2i
+		var role: String = str(piece.get("role", ""))
+		if not bp.is_solid(cell) or bp.water_cells.has(cell):
+			errors.append("peça '%s' em célula vazia ou água %s" % [role, cell])
+			continue
+		if bp.road_cells.has(cell):
+			errors.append("peça '%s' sobre a rua em %s" % [role, cell])
+		if bp.plaza_cells.has(cell) and role != "plaza_prop":
+			errors.append("peça '%s' sobre a praça em %s" % [role, cell])
+		if role.is_empty() or str(piece.get("asset", "")).is_empty():
+			errors.append("peça de cenografia sem papel ou asset em %s" % cell)
+
+
+## Gramática da cidade gótica (ADR-0060): a rua principal é contínua da partida até o chefe, o
+## chefe fica no ponto mais alto (nenhuma célula caminhável acima da praça dele), a escadaria do
+## chefe liga o patamar à praça, o canal existe e é cruzado por ponte, e todo nó tem acesso.
+static func _check_city_grammar(bp: ScenarioBlueprint, graph: MapGraph, errors: Array[String]) -> void:
+	if graph == null:
+		return
+	var boss_level: int = int(bp.node_levels.get(graph.boss_id, -1))
+	for cell: Vector2i in bp.road_cells.keys():
+		if bp.height_at(cell) >= boss_level:
+			errors.append("rua %s no nível do chefe ou acima (%d >= %d)" % [cell, bp.height_at(cell), boss_level])
+			break
+	for node: MapNode in graph.nodes:
+		if node.id != graph.boss_id and int(bp.node_levels.get(node.id, 99)) >= boss_level:
+			errors.append("nó %d na altura do chefe (o chefe deve ser o ponto mais alto)" % node.id)
+	if bp.main_road.is_empty():
+		errors.append("rua principal vazia")
+	for raw: Variant in bp.main_road.keys():
+		if not bp.is_walkable(raw as Vector2i):
+			errors.append("rua principal passa por célula não caminhável %s" % raw)
+			break
+	var boss_cell: Vector2i = bp.node_cells[graph.boss_id] as Vector2i
+	if not bp.main_road.has(boss_cell + Vector2i(0, 3)):
+		errors.append("a rua principal não chega ao chefe pela escadaria")
+	var stair_cell: Vector2i = boss_cell + Vector2i(0, 2)
+	if not bp.stairs.has(stair_cell) or absf(float(bp.stairs[stair_cell]) - ScenarioBlueprint.dir_yaw(ScenarioBlueprint.DIR_N)) > 0.1:
+		errors.append("a escadaria do chefe não sobe para o norte em %s" % stair_cell)
+	var gate_found: bool = false
+	for comp: Dictionary in bp.compounds:
+		if int(comp["kind"]) == ScenarioBlueprint.COMPOUND_CHURCH_GATE:
+			gate_found = true
+	if not gate_found:
+		errors.append("falta o portão do adro atrás do chefe")
+	if bp.water_cells.size() < ScenarioBlueprint.MIN_WATER_COMPONENT:
+		errors.append("falta o canal da cidade")
+	elif bp.bridge_cells.is_empty():
+		errors.append("o canal não tem ponte")
+	var houses: int = 0
+	for comp: Dictionary in bp.compounds:
+		if int(comp["kind"]) == ScenarioBlueprint.COMPOUND_HOUSE:
+			houses += 1
+	if houses < 2:
+		errors.append("a cidade tem menos de 2 casas de empena (%d)" % houses)

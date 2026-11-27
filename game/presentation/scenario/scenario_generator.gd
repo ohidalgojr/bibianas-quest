@@ -1,15 +1,28 @@
 class_name ScenarioGenerator
 extends RefCounted
-## Algoritmo próprio de geração coerente de cenários 3D: Terrace-Grammar-Constraint em 7 estágios
-## (ADR-0041, TASK-053). Gera tanto o tabuleiro completo do mapa quanto os 11 dioramas focais
-## (combate, fogueira, loja, baú, evento, recompensa, menu, vitória, derrota), mantendo 100% de
-## determinismo e respeitando a regra de não-oclusão da câmera isométrica.
+## Algoritmo próprio de geração coerente de cenários 3D (ADR-0041, ADR-0060, TASK-053, TASK-073).
+## O tabuleiro do mapa é uma **cidade gótica** que sobe até a igreja: a rua principal avança na
+## diagonal da câmera (a igreja pintada fica sempre no topo da tela), praças de nó viram lugares
+## (abrigo da fogueira, campo-santo do evento, casa em ruínas do baú), casas de empena ficam com a
+## porta voltada para a rua, escadas ligam os níveis e o chefe fica no ponto mais alto, no adro,
+## diante do portão da igreja. Também gera os 11 dioramas focais (combate, fogueira, loja, baú,
+## evento, recompensa, menu, vitória, derrota), tudo 100% determinístico por semente.
 
-const LAYER_STEP: int = 5
-const COLUMN_STEP: int = 4
+const LAYER_STEP: int = 8
+const COLUMN_STEP: int = 6
 const MARGIN: int = 8
+## A cada camada o tabuleiro avança LAYER_STEP em -Z e NORTH_SHEAR em -X: na câmera isométrica
+## (olhando de +X +Z para -X -Z) isso é "reto para cima", rumo à igreja pintada do horizonte.
+const NORTH_SHEAR: int = LAYER_STEP
+## Meia largura (em células) da cidade ao redor de cada camada e do adro do chefe.
+const CITY_HALF_WIDTH: int = 6
+const PRECINCT_HALF_WIDTH: int = 9
 const FOCAL_SIZE: int = 13
 const FOCAL_OFFSET: Vector2i = Vector2i(-6, -6)
+## Altura (em unidades de mundo) abaixo da qual uma parede não esconde a rua atrás dela na
+## câmera isométrica (cada passo diagonal sobe 0,82 do raio da câmera).
+const LOW_WALL_H: float = 0.72
+const TALL_WALL_H: float = 2.2
 
 
 static func generate_map(graph: MapGraph, seed_value: int) -> ScenarioBlueprint:
@@ -19,25 +32,32 @@ static func generate_map(graph: MapGraph, seed_value: int) -> ScenarioBlueprint:
 	bp.column_step = COLUMN_STEP
 	bp.margin = MARGIN
 	var layer_total: int = graph.layer_count + 2
-	var cols: int = (graph.width - 1) * COLUMN_STEP + MARGIN * 2 + 1
+	var cols: int = (graph.width - 1) * COLUMN_STEP + (layer_total - 1) * NORTH_SHEAR + MARGIN * 2 + 1
 	var rows: int = (layer_total - 1) * LAYER_STEP + MARGIN * 2 + 1
 	bp.configure(cols, rows, seed_value)
 
 	for node: MapNode in graph.nodes:
 		bp.node_cells[node.id] = _cell_of_node(node, graph)
+	bp.boss_cell = bp.node_cells[graph.boss_id] as Vector2i
 
 	_assign_node_levels(bp, graph)
 	_sculpt_map_silhouette(bp, graph)
-	_fill_smooth_terrain(bp, graph)
 	_stamp_plazas(bp, graph)
-	_route_roads_astar(bp, graph)
+	_prepare_boss_approach(bp, graph)
+	_route_streets(bp, graph)
+	_mark_main_road(bp, graph)
 	_smooth_roads_and_promote_landings(bp)
 	_place_stairs(bp)
-	_level_interstitial_spikes(bp)
-	_carve_water_and_bridges(bp)
-	_place_map_compounds(bp, graph)
+	_shape_terrain_from_streets(bp)
+	_carve_canal_and_bridges(bp)
+	_build_boss_precinct(bp)
+	_place_lamps(bp, true)
+	var reserved: Dictionary = _reserve_existing(bp)
+	_dress_node_plazas(bp, graph, reserved)
+	_place_city_gate(bp, graph, reserved)
+	_place_street_houses(bp, reserved)
+	_place_lamps(bp, false, true)
 	_build_retaining_wall_runs(bp)
-	_place_lamps(bp)
 	_place_contextual_props(bp)
 	return bp
 
@@ -247,226 +267,87 @@ static func _cell_of_node(node: MapNode, graph: MapGraph) -> Vector2i:
 	var column: float = float(node.column)
 	if node.layer == 0 or node.layer == layer_total - 1:
 		column = float(graph.width - 1) / 2.0
-	var x: int = MARGIN + int(round(column * COLUMN_STEP))
-	var z: int = MARGIN + (layer_total - 1 - node.layer) * LAYER_STEP
+	var behind: int = layer_total - 1 - node.layer
+	var x: int = MARGIN + behind * NORTH_SHEAR + int(round(column * float(COLUMN_STEP)))
+	var z: int = MARGIN + behind * LAYER_STEP
 	return Vector2i(x, z)
 
 
-static func _hash(seed_value: int, cell: Vector2i, salt: int = 0) -> int:
-	var h: int = (cell.x * 73856093) ^ (cell.y * 19349663) ^ ((seed_value + salt) * 83492791)
-	h = (h ^ (h >> 13)) * 1274126177
-	return absi(h ^ (h >> 16))
+## Linha (em Z) de uma camada do grafo.
+static func layer_row(bp: ScenarioBlueprint, layer: int) -> int:
+	return bp.margin + (bp.layer_count + 1 - layer) * bp.layer_step
 
 
-## Estágio 1A: níveis por caminhada suave, diferença entre camadas ligada por |Δh| <= 2,
-## garantindo descidas intermediárias e o chefe no platô mais alto.
+## Estágio 1: níveis por camada. A cidade sobe em rampa até o adro do chefe (nível 5) e há um
+## único desnível para baixo (`canal_layer`), onde o canal corta a cidade e as ruas descem até a
+## ponte. Todos os nós de uma camada ficam no mesmo socalco.
 static func _assign_node_levels(bp: ScenarioBlueprint, graph: MapGraph) -> void:
 	var layer_total: int = graph.layer_count + 2
-	var by_layer: Array[int] = []
-	var base: int = 3
+	var real_last: int = layer_total - 2
+	var lv: Array[int] = []
 	for layer: int in layer_total:
-		if layer == layer_total - 1:
-			base = ScenarioBlueprint.MAX_PLAZA_LEVEL
-		elif layer > 0:
-			var roll: int = _hash(bp.map_seed, Vector2i(layer, 11), 5) % 100
-			if roll < 38:
-				base -= 1
-			elif roll > 64:
-				base += 1
-			base = clampi(base, ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL - 1)
-		by_layer.append(base)
+		var ramp: float = 2.0 + 2.0 * float(layer) / float(maxi(real_last, 1))
+		lv.append(clampi(int(round(ramp)), ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL - 1))
+	lv[real_last] = ScenarioBlueprint.MAX_PLAZA_LEVEL - 1
+	lv[layer_total - 1] = ScenarioBlueprint.MAX_PLAZA_LEVEL
 
-	# Garante ao menos uma descida entre camadas iniciais/intermediárias.
-	if layer_total >= 4:
-		var has_dip: bool = false
+	# Desnível único: o canal. Nunca na primeira camada nem na última antes do chefe.
+	var candidates: Array[int] = []
+	for layer: int in range(2, layer_total - 2):
+		candidates.append(layer)
+	var dip: int = candidates[_hash(bp.map_seed, Vector2i(layer_total, 3), 5) % candidates.size()]
+	lv[dip - 1] = maxi(lv[dip - 1], ScenarioBlueprint.MIN_PLAZA_LEVEL + 1)
+	lv[dip] = lv[dip - 1] - 1
+	# Nenhum degrau entre camadas maior que 2 (a escada dupla já é o limite legível).
+	for _pass: int in 3:
 		for layer: int in range(1, layer_total - 1):
-			if by_layer[layer] < by_layer[layer - 1]:
-				has_dip = true
-				break
-		if not has_dip:
-			by_layer[1] = maxi(ScenarioBlueprint.MIN_PLAZA_LEVEL, by_layer[0] - 1)
-
-	# Mantém transição de no máximo 2 blocos até o platô do chefe.
-	for layer: int in range(layer_total - 2, -1, -1):
-		if by_layer[layer + 1] - by_layer[layer] > 2:
-			by_layer[layer] = clampi(by_layer[layer + 1] - 2, ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL)
-		elif by_layer[layer] - by_layer[layer + 1] > 2:
-			by_layer[layer] = clampi(by_layer[layer + 1] + 2, ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL)
-
+			if layer == dip:
+				continue
+			lv[layer] = clampi(lv[layer], lv[layer - 1] - 2, lv[layer - 1] + 2)
+		for layer: int in range(layer_total - 3, 0, -1):
+			if layer == dip:
+				continue
+			lv[layer] = clampi(lv[layer], lv[layer + 1] - 2, lv[layer + 1] + 2)
+	lv[dip] = mini(lv[dip], lv[dip - 1] - 1)
+	bp.canal_layer = dip
 	for node: MapNode in graph.nodes:
-		var level: int = by_layer[node.layer]
-		if node.layer > 0 and node.layer < layer_total - 1:
-			# Variação dentro da mesma camada limitada a 0 ou +1 para nunca conflitar vizinhos em X.
-			var delta: int = _hash(bp.map_seed, bp.node_cells[node.id] as Vector2i, 9) % 2
-			level = clampi(level + delta, ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL - 1)
-		elif node.layer == layer_total - 1:
-			level = ScenarioBlueprint.MAX_PLAZA_LEVEL
-		bp.node_levels[node.id] = level
-
-	# Passo de garantia por aresta: |node_levels[v] - node_levels[u]| <= 2 sempre.
-	for _pass: int in 4:
-		for node: MapNode in graph.nodes:
-			for next_id: int in node.next_ids:
-				var ha: int = int(bp.node_levels[node.id])
-				var hb: int = int(bp.node_levels[next_id])
-				if absi(hb - ha) > 2:
-					var next_node: MapNode = graph.node_by_id(next_id)
-					if next_node != null and next_node.kind != MapNode.Kind.BOSS:
-						bp.node_levels[next_id] = clampi(ha + signi(hb - ha) * 2, ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL - 1)
-					elif node.kind != MapNode.Kind.START:
-						bp.node_levels[node.id] = clampi(hb + signi(ha - hb) * 2, ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL - 1)
-
-	# Garante ao menos uma aresta descendente (test_map3d.gd e variedade FFT).
-	var descents: int = 0
-	for node: MapNode in graph.nodes:
-		for next_id: int in node.next_ids:
-			if int(bp.node_levels[next_id]) < int(bp.node_levels[node.id]):
-				descents += 1
-	if descents == 0:
-		for node: MapNode in graph.nodes:
-			if node.layer == 0 and not node.next_ids.is_empty():
-				var first_next: int = int(node.next_ids[0])
-				bp.node_levels[first_next] = clampi(int(bp.node_levels[node.id]) - 1, ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL - 1)
-				break
+		bp.node_levels[node.id] = lv[node.layer]
 
 
-## Estágio 0B: recorta a silhueta externa em formato orgânico de diorama isométrico,
-## preservando todo o corredor dos nós, área 5×3 do Mausoléu do Chefe e margens das praças.
+## Estágio 0: a silhueta da cidade é uma faixa diagonal que acompanha a rua principal (camada a
+## camada, em degraus de LAYER_STEP). O resto é VOID. O adro do chefe é mais largo e comprido, e a
+## partida tem um trecho extra ao sul para a estrada de chegada.
 static func _sculpt_map_silhouette(bp: ScenarioBlueprint, graph: MapGraph) -> void:
-	var row_min_x: PackedInt32Array = PackedInt32Array()
-	var row_max_x: PackedInt32Array = PackedInt32Array()
-	row_min_x.resize(bp.rows)
-	row_max_x.resize(bp.rows)
-	for z: int in bp.rows:
-		row_min_x[z] = bp.cols - 1
-		row_max_x[z] = 0
-
-	var reachable: PackedInt32Array = graph.reachable_ids()
+	var row_min: PackedInt32Array = PackedInt32Array()
+	var row_max: PackedInt32Array = PackedInt32Array()
+	row_min.resize(bp.rows)
+	row_max.resize(bp.rows)
+	row_min.fill(bp.cols)
+	row_max.fill(-1)
 	for node: MapNode in graph.nodes:
-		if not reachable.has(node.id) and node.kind != MapNode.Kind.BOSS and node.kind != MapNode.Kind.START:
-			continue
 		var c: Vector2i = bp.node_cells[node.id]
-		var span_z: int = 6 if node.kind == MapNode.Kind.BOSS else 5
-		var span_x: int = 6 if node.kind == MapNode.Kind.BOSS else 5
-		for dz: int in range(-span_z, span_z + 1):
-			var rz: int = clampi(c.y + dz, 0, bp.rows - 1)
-			row_min_x[rz] = mini(row_min_x[rz], maxi(1, c.x - span_x))
-			row_max_x[rz] = maxi(row_max_x[rz], mini(bp.cols - 2, c.x + span_x))
-
-	# Enche intervalos intermediários entre camadas para nunca cortar corredores verticais.
-	for _pass: int in 4:
-		for z: int in range(1, bp.rows - 1):
-			row_min_x[z] = mini(row_min_x[z], mini(row_min_x[z - 1], row_min_x[z + 1]))
-			row_max_x[z] = maxi(row_max_x[z], maxi(row_max_x[z - 1], row_max_x[z + 1]))
-
-	var min_valid_z: int = bp.rows - 1
-	var max_valid_z: int = 0
-	for node: MapNode in graph.nodes:
-		var nc: Vector2i = bp.node_cells[node.id]
-		min_valid_z = mini(min_valid_z, nc.y - 6)
-		max_valid_z = maxi(max_valid_z, nc.y + 4)
-
+		var half: int = CITY_HALF_WIDTH
+		var up: int = LAYER_STEP / 2
+		var down: int = LAYER_STEP / 2 - 1
+		if node.kind == MapNode.Kind.BOSS:
+			half = PRECINCT_HALF_WIDTH
+			up = 10
+		elif node.kind == MapNode.Kind.START:
+			down = 6
+		for z: int in range(c.y - up, c.y + down + 1):
+			if z < 1 or z > bp.rows - 2:
+				continue
+			row_min[z] = mini(row_min[z], maxi(1, c.x - half))
+			row_max[z] = maxi(row_max[z], mini(bp.cols - 2, c.x + half))
 	for z: int in bp.rows:
-		var jitter_l: int = (_hash(bp.map_seed, Vector2i(0, z / 3), 71) % 3) - 1
-		var jitter_r: int = (_hash(bp.map_seed, Vector2i(1, z / 3), 73) % 3) - 1
-		var left_x: int = maxi(1, row_min_x[z] + jitter_l)
-		var right_x: int = mini(bp.cols - 2, row_max_x[z] + jitter_r)
 		for x: int in bp.cols:
 			var cell: Vector2i = Vector2i(x, z)
-			if z < maxi(1, min_valid_z) or z > mini(bp.rows - 2, max_valid_z) or x < left_x or x > right_x:
+			if x < row_min[z] or x > row_max[z]:
 				bp.set_zone(cell, ScenarioBlueprint.ZONE_VOID)
+				bp.set_height(cell, 0)
 			else:
 				bp.set_zone(cell, ScenarioBlueprint.ZONE_TERRACE)
-
-	# Proteção absoluta: toda área 4 células em volta de qualquer nó (e 5×4 atrás do Chefe) nunca é VOID.
-	for node: MapNode in graph.nodes:
-		var nc: Vector2i = bp.node_cells[node.id]
-		for dz: int in range(-4, 5):
-			for dx: int in range(-4, 5):
-				var c: Vector2i = nc + Vector2i(dx, dz)
-				if bp.in_bounds(c):
-					bp.set_zone(c, ScenarioBlueprint.ZONE_TERRACE)
-		if node.kind == MapNode.Kind.BOSS:
-			for dz: int in range(-6, 3):
-				for dx: int in range(-4, 5):
-					var c: Vector2i = nc + Vector2i(dx, dz)
-					if bp.in_bounds(c):
-						bp.set_zone(c, ScenarioBlueprint.ZONE_TERRACE)
-
-
-## Estágio 1B: ruído bilinear contínuo (sem blocos 4×4 quebrados) + platôs escalonados estilo FFT.
-static func _fill_smooth_terrain(bp: ScenarioBlueprint, graph: MapGraph) -> void:
-	for z: int in bp.rows:
-		for x: int in bp.cols:
-			var cell: Vector2i = Vector2i(x, z)
-			if bp.zone_at(cell) == ScenarioBlueprint.ZONE_VOID:
-				bp.set_height(cell, 0)
-				continue
-			var w_sum: float = 0.0
-			var l_sum: float = 0.0
-			for node: MapNode in graph.nodes:
-				var nc: Vector2i = bp.node_cells[node.id]
-				var dx: float = float(nc.x - x)
-				var dz: float = float(nc.y - z)
-				var w: float = 1.0 / (dx * dx + dz * dz + 4.0)
-				w_sum += w
-				l_sum += w * float(int(bp.node_levels[node.id]))
-			var base: float = l_sum / maxf(w_sum, 0.0001)
-			var hill: float = _smooth_noise(bp.map_seed, float(x) * 0.22, float(z) * 0.22, 21) * 2.2 - 1.1
-			var h: int = clampi(int(round(base + hill)), 1, ScenarioBlueprint.MAX_PLAZA_LEVEL)
-			bp.set_height(cell, h)
-
-	# 2 passes celulares de platô para formar terraços limpos em vez de picos avulsos.
-	for _pass: int in 2:
-		var next_h: PackedInt32Array = bp.heights.duplicate()
-		for z: int in range(1, bp.rows - 1):
-			for x: int in range(1, bp.cols - 1):
-				var cell: Vector2i = Vector2i(x, z)
-				if bp.zone_at(cell) == ScenarioBlueprint.ZONE_VOID:
-					continue
-				var total: int = 0
-				var count: int = 0
-				for dz: int in range(-1, 2):
-					for dx: int in range(-1, 2):
-						var nb: Vector2i = Vector2i(x + dx, z + dz)
-						if bp.zone_at(nb) != ScenarioBlueprint.ZONE_VOID:
-							total += bp.height_at(nb)
-							count += 1
-				if count > 0:
-					next_h[bp.idx(cell)] = int(round(float(total) / float(count)))
-		bp.heights = next_h
-
-	# Rebaixamento suave das bordas coladas ao VOID para criar degraus de falésia.
-	for z: int in bp.rows:
-		for x: int in bp.cols:
-			var cell: Vector2i = Vector2i(x, z)
-			if bp.zone_at(cell) == ScenarioBlueprint.ZONE_VOID:
-				continue
-			if _touches_void(bp, cell):
-				bp.set_height(cell, maxi(1, bp.height_at(cell) - 1))
-
-
-static func _touches_void(bp: ScenarioBlueprint, cell: Vector2i) -> bool:
-	for d: int in ScenarioBlueprint.CARDINAL_DIRS:
-		if bp.zone_at(cell + ScenarioBlueprint.dir_vec(d)) == ScenarioBlueprint.ZONE_VOID:
-			return true
-	return false
-
-
-static func _smooth_noise(seed_value: int, fx: float, fz: float, salt: int) -> float:
-	var x0: int = int(floor(fx))
-	var z0: int = int(floor(fz))
-	var tx: float = fx - float(x0)
-	var tz: float = fz - float(z0)
-	tx = tx * tx * (3.0 - 2.0 * tx)
-	tz = tz * tz * (3.0 - 2.0 * tz)
-	var n00: float = float(_hash(seed_value, Vector2i(x0, z0), salt) % 1000) / 1000.0
-	var n10: float = float(_hash(seed_value, Vector2i(x0 + 1, z0), salt) % 1000) / 1000.0
-	var n01: float = float(_hash(seed_value, Vector2i(x0, z0 + 1), salt) % 1000) / 1000.0
-	var n11: float = float(_hash(seed_value, Vector2i(x0 + 1, z0 + 1), salt) % 1000) / 1000.0
-	var nx0: float = lerpf(n00, n10, tx)
-	var nx1: float = lerpf(n01, n11, tx)
-	return lerpf(nx0, nx1, tz)
+				bp.set_height(cell, ScenarioBlueprint.MIN_PLAZA_LEVEL)
 
 
 static func _stamp_plazas(bp: ScenarioBlueprint, graph: MapGraph) -> void:
@@ -479,134 +360,256 @@ static func _stamp_plazas(bp: ScenarioBlueprint, graph: MapGraph) -> void:
 				bp.set_zone(cell, ScenarioBlueprint.ZONE_PLAZA)
 				bp.set_height(cell, level)
 				bp.plaza_cells[cell] = true
-		# Platô elevado do Chefe expandido no anel externo atrás (deixa frente livre).
-		if node.kind == MapNode.Kind.BOSS:
-			for dz: int in range(-5, -1):
-				for dx: int in range(-2, 3):
-					var c: Vector2i = Vector2i(nc.x + dx, nc.y + dz)
-					if bp.in_bounds(c) and not bp.plaza_cells.has(c):
-						bp.set_zone(c, ScenarioBlueprint.ZONE_TERRACE)
-						bp.set_height(c, level)
 
 
-## Estágio 2A: A* determinístico conectando cada aresta alcançável com reaproveitamento de estradas
-## já abertas para formar bifurcações reais em Y sem invadir praças alheias.
-static func _route_roads_astar(bp: ScenarioBlueprint, graph: MapGraph) -> void:
-	var owner_of_plaza: Dictionary = {}
+## A escadaria monumental do chefe: 3 células de largura, patamar de duas linhas e um degrau até a
+## praça do chefe (nível 5). Todas as ruas que chegam ao chefe desembocam nela.
+static func _prepare_boss_approach(bp: ScenarioBlueprint, _graph: MapGraph) -> void:
+	var b: Vector2i = bp.boss_cell
+	var landing: int = ScenarioBlueprint.MAX_PLAZA_LEVEL - 1
+	for dz: int in range(2, 5):
+		for dx: int in range(-1, 2):
+			var cell: Vector2i = Vector2i(b.x + dx, b.y + dz)
+			if not bp.is_solid(cell):
+				continue
+			bp.road_cells[cell] = true
+			bp.set_zone(cell, ScenarioBlueprint.ZONE_ROAD)
+			bp.set_height(cell, landing)
+
+
+## Linha da rua transversal ("travessa") de cada intervalo entre camadas: uma por intervalo, para
+## que as ruas formem pentes limpos. O intervalo do canal usa a linha junto à praça de saída.
+static func _bus_offset(bp: ScenarioBlueprint, from_layer: int) -> int:
+	if from_layer == bp.canal_layer - 1:
+		return -2
+	var options: Array[int] = [-2, -3, -4]
+	return options[_hash(bp.map_seed, Vector2i(from_layer, 17), 19) % options.size()]
+
+
+## Rua em Z: sobe da praça de origem até a travessa, corre ao longo dela até a coluna da praça de
+## destino e sobe de novo. Ruas que saem do mesmo nó dividem o tronco e viram bifurcações em T.
+static func _street_path(start: Vector2i, goal: Vector2i, bus_z: int) -> Array[Vector2i]:
+	var path: Array[Vector2i] = [start]
+	var cur: Vector2i = start
+	while cur.y != bus_z:
+		cur.y += signi(bus_z - cur.y)
+		path.append(cur)
+	while cur.x != goal.x:
+		cur.x += signi(goal.x - cur.x)
+		path.append(cur)
+	while cur.y != goal.y:
+		cur.y += signi(goal.y - cur.y)
+		path.append(cur)
+	return path
+
+
+## Estágio 2A: ruas de cada aresta do grafo. A altura da rua é o patamar de origem até o último
+## trecho junto à praça mais alta (a escada fica colada na praça: "degrau diante da praça").
+static func _route_streets(bp: ScenarioBlueprint, graph: MapGraph) -> void:
+	# Todas as arestas viram rua, inclusive as de praças que a partida não alcança: elas são "praças
+	# de bairro" ligadas à travessa, nunca ilhas soltas.
 	for node: MapNode in graph.nodes:
-		var nc: Vector2i = bp.node_cells[node.id]
-		for dz: int in range(-1, 2):
-			for dx: int in range(-1, 2):
-				owner_of_plaza[Vector2i(nc.x + dx, nc.y + dz)] = node.id
-
-	var reachable: PackedInt32Array = graph.reachable_ids()
-	var edges: Array[Vector2i] = []
-	for node: MapNode in graph.nodes:
-		if not reachable.has(node.id):
-			continue
 		for next_id: int in node.next_ids:
-			edges.append(Vector2i(node.id, next_id))
-
-	for edge: Vector2i in edges:
-		var from_id: int = edge.x
-		var to_id: int = edge.y
-		var start: Vector2i = bp.node_cells[from_id]
-		var goal: Vector2i = bp.node_cells[to_id]
-		var path: Array[Vector2i] = _astar_edge(bp, start, goal, from_id, to_id, owner_of_plaza)
-		if path.is_empty():
-			path = _fallback_manhattan_path(start, goal)
-		bp.edge_paths["%d:%d" % [from_id, to_id]] = path
-		var ha: int = int(bp.node_levels[from_id])
-		var hb: int = int(bp.node_levels[to_id])
-		for i: int in path.size():
-			var cell: Vector2i = path[i]
-			if bp.plaza_cells.has(cell):
-				continue
-			if not bp.road_cells.has(cell):
-				bp.road_cells[cell] = true
-				bp.set_zone(cell, ScenarioBlueprint.ZONE_ROAD)
-				var t: float = float(i) / float(maxi(path.size() - 1, 1))
-				bp.set_height(cell, clampi(int(round(lerpf(float(ha), float(hb), smoothstep(0.15, 0.85, t)))), ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL))
-
-
-static func _astar_edge(bp: ScenarioBlueprint, start: Vector2i, goal: Vector2i, from_id: int, to_id: int, owner_of_plaza: Dictionary) -> Array[Vector2i]:
-	var open: Array[Vector2i] = [start]
-	var in_open: Dictionary = {start: true}
-	var closed: Dictionary = {}
-	var came_from: Dictionary = {}
-	var g_score: Dictionary = {start: 0.0}
-	var f_score: Dictionary = {start: float(absi(goal.x - start.x) + absi(goal.y - start.y))}
-
-	while not open.is_empty():
-		var best_idx: int = 0
-		var best_f: float = float(f_score.get(open[0], 1e9))
-		for i: int in range(1, open.size()):
-			var fi: float = float(f_score.get(open[i], 1e9))
-			if fi < best_f:
-				best_f = fi
-				best_idx = i
-		var current: Vector2i = open[best_idx]
-		open.remove_at(best_idx)
-		in_open.erase(current)
-		if current == goal:
-			return _reconstruct_path(came_from, current)
-		closed[current] = true
-
-		var cur_h: int = bp.height_at(current)
-		var prev_dir: Vector2i = Vector2i.ZERO
-		if came_from.has(current):
-			prev_dir = current - (came_from[current] as Vector2i)
-
-		for d: int in ScenarioBlueprint.CARDINAL_DIRS:
-			var step_vec: Vector2i = ScenarioBlueprint.dir_vec(d)
-			var nb: Vector2i = current + step_vec
-			if closed.has(nb) or not bp.in_bounds(nb) or bp.zone_at(nb) == ScenarioBlueprint.ZONE_VOID:
-				continue
-			if owner_of_plaza.has(nb):
-				var pid: int = int(owner_of_plaza[nb])
-				if pid != from_id and pid != to_id:
+			var start: Vector2i = bp.node_cells[node.id]
+			var goal: Vector2i = bp.node_cells[next_id]
+			var path: Array[Vector2i] = _street_path(start, goal, start.y + _bus_offset(bp, node.layer))
+			bp.edge_paths["%d:%d" % [node.id, next_id]] = path
+			var ha: int = int(bp.node_levels[node.id])
+			var hb: int = int(bp.node_levels[next_id])
+			var road_total: int = 0
+			for cell: Vector2i in path:
+				if not bp.plaza_cells.has(cell):
+					road_total += 1
+			var road_idx: int = 0
+			for cell: Vector2i in path:
+				if bp.plaza_cells.has(cell):
 					continue
-			var step_cost: float = 0.45 if bp.road_cells.has(nb) else 1.0
-			if bp.plaza_cells.has(nb):
-				step_cost = 0.5
-			var dh: int = absi(bp.height_at(nb) - cur_h)
-			step_cost += float(dh) * 0.75 + (4.0 if dh > 1 else 0.0)
-			if prev_dir != Vector2i.ZERO and step_vec != prev_dir:
-				step_cost += 0.25
-			if _touches_other_plaza(nb, from_id, to_id, owner_of_plaza):
-				step_cost += 3.5
-
-			var tentative_g: float = float(g_score[current]) + step_cost
-			if tentative_g < float(g_score.get(nb, 1e9)):
-				came_from[nb] = current
-				g_score[nb] = tentative_g
-				var h_est: float = float(absi(goal.x - nb.x) + absi(goal.y - nb.y)) * 0.9
-				f_score[nb] = tentative_g + h_est
-				if not in_open.has(nb):
-					open.append(nb)
-					in_open[nb] = true
-
-	return []
+				var h: int = ha
+				if hb > ha:
+					h = maxi(ha, hb - 1 - (road_total - 1 - road_idx))
+				elif ha > hb:
+					h = maxi(hb, ha - 1 - road_idx)
+				road_idx += 1
+				if not bp.road_cells.has(cell):
+					bp.road_cells[cell] = true
+					bp.set_zone(cell, ScenarioBlueprint.ZONE_ROAD)
+					bp.set_height(cell, clampi(h, ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL))
 
 
-static func _touches_other_plaza(cell: Vector2i, from_id: int, to_id: int, owner_of_plaza: Dictionary) -> bool:
+## A rua principal liga a partida ao chefe pelas colunas mais centrais (a "via sacra" da cidade):
+## recebe os postes primeiro e o lajeado mais claro.
+static func _mark_main_road(bp: ScenarioBlueprint, graph: MapGraph) -> void:
+	bp.main_road.clear()
+	var middle: float = float(graph.width - 1) / 2.0
+	var id: int = graph.start_id
+	var guard: int = 0
+	while id != graph.boss_id and guard < 64:
+		guard += 1
+		var node: MapNode = graph.node_by_id(id)
+		var best: int = -1
+		var best_dist: float = 99.0
+		for next_id: int in node.next_ids:
+			var other: MapNode = graph.node_by_id(next_id)
+			var dist: float = absf(float(other.column) - middle)
+			if other.kind == MapNode.Kind.BOSS:
+				dist = 0.0
+			if dist < best_dist:
+				best_dist = dist
+				best = next_id
+		if best < 0:
+			break
+		var key: String = "%d:%d" % [id, best]
+		if bp.edge_paths.has(key):
+			for raw: Variant in bp.edge_paths[key]:
+				bp.main_road[raw as Vector2i] = true
+		id = best
+
+
+## Estágio 1B: o terreno nasce das ruas. Cada lote tem a altura da rua mais próxima (casa rente à
+## rua, sem degrau), os fundos descem e a borda da cidade cai em arrimo. Nada acima da rua fica
+## na diagonal da câmera (esconderia a rua), como na regra do cone de oclusão.
+static func _shape_terrain_from_streets(bp: ScenarioBlueprint) -> void:
+	var dist: Dictionary = {}
+	var source_h: Dictionary = {}
+	var queue: Array[Vector2i] = []
+	for cell: Vector2i in _sorted_cells(bp.road_cells):
+		dist[cell] = 0
+		source_h[cell] = bp.height_at(cell)
+		queue.append(cell)
+	for cell: Vector2i in _sorted_cells(bp.plaza_cells):
+		dist[cell] = 0
+		source_h[cell] = bp.height_at(cell)
+		queue.append(cell)
+	var head: int = 0
+	while head < queue.size():
+		var cur: Vector2i = queue[head]
+		head += 1
+		for d: int in ScenarioBlueprint.CARDINAL_DIRS:
+			var nb: Vector2i = cur + ScenarioBlueprint.dir_vec(d)
+			if not bp.is_solid(nb) or dist.has(nb):
+				continue
+			dist[nb] = int(dist[cur]) + 1
+			source_h[nb] = source_h[cur]
+			queue.append(nb)
+	for z: int in bp.rows:
+		for x: int in bp.cols:
+			var cell: Vector2i = Vector2i(x, z)
+			if bp.zone_at(cell) != ScenarioBlueprint.ZONE_TERRACE:
+				continue
+			var h: int = int(source_h.get(cell, ScenarioBlueprint.MIN_PLAZA_LEVEL))
+			if int(dist.get(cell, 0)) >= 6:
+				h -= 1
+			if _touches_void(bp, cell):
+				h -= 1
+			bp.set_height(cell, clampi(h, 1, ScenarioBlueprint.MAX_PLAZA_LEVEL))
+	for source: Dictionary in [bp.road_cells, bp.plaza_cells]:
+		for w: Vector2i in _sorted_cells(source):
+			var wh: int = bp.height_at(w)
+			for k: int in range(1, 3):
+				var c: Vector2i = w + Vector2i(k, k)
+				if bp.zone_at(c) == ScenarioBlueprint.ZONE_TERRACE and bp.height_at(c) > wh + k - 1:
+					bp.set_height(c, wh + k - 1)
+
+
+## Células que uma parede alta esconderia na câmera isométrica: a diagonal sudeste (+X +Z) de
+## qualquer célula caminhável (2 passos: o raio da câmera sobe 0,82 por passo e a casa alta tem
+## cerca de 2,3). Paredes altas só ficam fora desse conjunto; a casa baixa (cerca de 1,5) só esconde
+## o primeiro passo (`max_k` = 1) e as ruínas (0,72) cabem em qualquer lugar.
+static func occluding_cells(bp: ScenarioBlueprint, max_k: int = 2) -> Dictionary:
+	var hidden: Dictionary = {}
+	for source: Dictionary in [bp.road_cells, bp.plaza_cells]:
+		for w: Vector2i in source.keys():
+			for k: int in range(1, max_k + 1):
+				hidden[w + Vector2i(k, k)] = true
+	return hidden
+
+
+## Estágio 3: o canal. Corta a cidade de lado a lado no intervalo em que as ruas descem, e cada
+## rua que o cruza vira ponte (2 células). Margens em arrimo (EMBANKMENT), nada de poças soltas.
+static func _carve_canal_and_bridges(bp: ScenarioBlueprint) -> void:
+	bp.water_cells.clear()
+	bp.bridge_cells.clear()
+	if bp.canal_layer < 1:
+		return
+	var base_z: int = layer_row(bp, bp.canal_layer)
+	for z: int in [base_z + 3, base_z + 4]:
+		for x: int in range(1, bp.cols - 1):
+			var c: Vector2i = Vector2i(x, z)
+			if bp.zone_at(c) == ScenarioBlueprint.ZONE_VOID or bp.plaza_cells.has(c):
+				continue
+			if bp.road_cells.has(c):
+				if _is_clean_bridge_candidate(bp, c):
+					bp.bridge_cells[c] = ScenarioBlueprint.DIR_N
+					bp.set_zone(c, ScenarioBlueprint.ZONE_BRIDGE)
+			else:
+				bp.water_cells[c] = true
+				bp.set_zone(c, ScenarioBlueprint.ZONE_WATER)
+				bp.set_height(c, 0)
+	_prune_small_water_components(bp)
+	var bridges_to_drop: Array[Vector2i] = []
+	for bcell: Vector2i in bp.bridge_cells.keys():
+		if not bp.water_cells.has(bcell + Vector2i(-1, 0)) and not bp.water_cells.has(bcell + Vector2i(1, 0)):
+			bridges_to_drop.append(bcell)
+	for bcell: Vector2i in bridges_to_drop:
+		bp.bridge_cells.erase(bcell)
+		bp.set_zone(bcell, ScenarioBlueprint.ZONE_ROAD)
+	for wcell: Vector2i in _sorted_cells(bp.water_cells):
+		for d: int in ScenarioBlueprint.CARDINAL_DIRS:
+			var nb: Vector2i = wcell + ScenarioBlueprint.dir_vec(d)
+			if bp.in_bounds(nb) and bp.zone_at(nb) == ScenarioBlueprint.ZONE_TERRACE:
+				bp.set_zone(nb, ScenarioBlueprint.ZONE_EMBANKMENT)
+
+
+## O adro: pátio de pedra diante do portão da igreja, com campo-santo dos dois lados e o muro com
+## portão ao fundo (a igreja pintada do horizonte fica logo atrás). O chefe está no ponto mais alto.
+static func _build_boss_precinct(bp: ScenarioBlueprint) -> void:
+	var b: Vector2i = bp.boss_cell
+	var lvl: int = ScenarioBlueprint.MAX_PLAZA_LEVEL
+	for dz: int in range(-5, -1):
+		for dx: int in range(-4, 5):
+			var cell: Vector2i = b + Vector2i(dx, dz)
+			if bp.is_solid(cell) and bp.zone_at(cell) == ScenarioBlueprint.ZONE_TERRACE:
+				bp.set_zone(cell, ScenarioBlueprint.ZONE_FORECOURT)
+				bp.set_height(cell, lvl)
+	var reserved: Dictionary = {}
+	_try_register_compound(bp, reserved, "church_gate", ScenarioBlueprint.COMPOUND_CHURCH_GATE, Vector2i(b.x - 4, b.y - 6), Vector2i(9, 1), ScenarioBlueprint.DIR_S, lvl)
+	_try_register_compound(bp, reserved, "adro_cem_w", ScenarioBlueprint.COMPOUND_CEMETERY, Vector2i(b.x - 8, b.y - 3), Vector2i(4, 3), ScenarioBlueprint.DIR_E, lvl)
+	_try_register_compound(bp, reserved, "adro_cem_e", ScenarioBlueprint.COMPOUND_CEMETERY, Vector2i(b.x + 5, b.y - 3), Vector2i(4, 3), ScenarioBlueprint.DIR_W, lvl)
+	# Balaustradas dos dois lados da escadaria.
+	for dz: int in range(2, 5):
+		for side: int in [-2, 2]:
+			var cell: Vector2i = b + Vector2i(side, dz)
+			if bp.zone_at(cell) == ScenarioBlueprint.ZONE_TERRACE:
+				bp.set_height(cell, ScenarioBlueprint.MAX_PLAZA_LEVEL - 1)
+				_add_dress(bp, cell, "graveyard/stone-wall.glb", 90.0, Vector3.ONE, Color(0.36, 0.38, 0.46), "stair_rail")
+
+
+## Registra uma peça de cenografia de um lugar (poço, abrigo, muro de ruína, banco...).
+static func _add_dress(bp: ScenarioBlueprint, cell: Vector2i, asset: String, yaw: float, scale_vec: Vector3, tint: Color, role: String, lift: float = 0.0) -> void:
+	bp.plaza_dress.append({
+		"cell": cell,
+		"asset": asset,
+		"yaw": yaw,
+		"scale": scale_vec,
+		"tint": tint,
+		"role": role,
+		"lift": lift,
+	})
+
+
+static func _hash(seed_value: int, cell: Vector2i, salt: int = 0) -> int:
+	var h: int = (cell.x * 73856093) ^ (cell.y * 19349663) ^ ((seed_value + salt) * 83492791)
+	h = (h ^ (h >> 13)) * 1274126177
+	return absi(h ^ (h >> 16))
+
+
+
+static func _touches_void(bp: ScenarioBlueprint, cell: Vector2i) -> bool:
 	for d: int in ScenarioBlueprint.CARDINAL_DIRS:
-		var nb: Vector2i = cell + ScenarioBlueprint.dir_vec(d)
-		if owner_of_plaza.has(nb):
-			var pid: int = int(owner_of_plaza[nb])
-			if pid != from_id and pid != to_id:
-				return true
+		if bp.zone_at(cell + ScenarioBlueprint.dir_vec(d)) == ScenarioBlueprint.ZONE_VOID:
+			return true
 	return false
 
-
-static func _reconstruct_path(came_from: Dictionary, current: Vector2i) -> Array[Vector2i]:
-	var rev: Array[Vector2i] = [current]
-	var cur: Vector2i = current
-	while came_from.has(cur):
-		cur = came_from[cur] as Vector2i
-		rev.append(cur)
-	rev.reverse()
-	return rev
 
 
 static func _fallback_manhattan_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i]:
@@ -705,127 +708,6 @@ static func _place_stairs(bp: ScenarioBlueprint) -> void:
 			bp.stairs[cell] = ScenarioBlueprint.dir_yaw(higher_dirs[0])
 
 
-## Achata cristas isoladas entre praças/estradas e impede que o terraço no cone frontal
-## sudeste dos nós suba acima da praça, garantindo leitura limpa das rotas e personagens.
-static func _level_interstitial_spikes(bp: ScenarioBlueprint) -> void:
-	for z: int in range(1, bp.rows - 1):
-		for x: int in range(1, bp.cols - 1):
-			var cell: Vector2i = Vector2i(x, z)
-			if bp.zone_at(cell) != ScenarioBlueprint.ZONE_TERRACE:
-				continue
-			var h: int = bp.height_at(cell)
-			for node_id: int in bp.node_cells.keys():
-				var nc: Vector2i = bp.node_cells[node_id]
-				var dx: int = cell.x - nc.x
-				var dz: int = cell.y - nc.y
-				if dx >= 0 and dz >= 0 and dx <= 2 and dz <= 2:
-					var nl: int = int(bp.node_levels[node_id])
-					if h > nl:
-						h = nl
-						bp.set_height(cell, h)
-
-			var walk_nbs: int = 0
-			var min_walk_h: int = 99
-			for dz_o: int in range(-1, 2):
-				for dx_o: int in range(-1, 2):
-					if dx_o == 0 and dz_o == 0:
-						continue
-					var nb: Vector2i = Vector2i(x + dx_o, z + dz_o)
-					if bp.is_walkable(nb):
-						walk_nbs += 1
-						min_walk_h = mini(min_walk_h, bp.height_at(nb))
-			if walk_nbs >= 2 and h > min_walk_h:
-				bp.set_height(cell, min_walk_h)
-
-
-## Estágio 3: canais contínuos de água (>= 6 células por BFS), pontes sobre cruzamentos planos
-## retos de estrada e poda absoluta de poças isoladas.
-static func _carve_water_and_bridges(bp: ScenarioBlueprint) -> void:
-	bp.water_cells.clear()
-	bp.bridge_cells.clear()
-
-	# Tenta primeiro cruzar um canal contínuo E-W numa faixa entre camadas com travessia por ponte.
-	var best_z: int = -1
-	var best_score: int = -999
-	for layer_gap: int in range(1, bp.layer_count):
-		var gz: int = bp.margin + layer_gap * bp.layer_step + 2
-		if gz < 3 or gz >= bp.rows - 3:
-			continue
-		var score: int = 0
-		for x: int in range(2, bp.cols - 2):
-			var c: Vector2i = Vector2i(x, gz)
-			if bp.zone_at(c) == ScenarioBlueprint.ZONE_VOID or bp.plaza_cells.has(c):
-				continue
-			if bp.stairs.has(c) or bp.stairs.has(c + Vector2i(0, 1)) or bp.stairs.has(c + Vector2i(0, -1)):
-				score -= 4
-			elif bp.road_cells.has(c):
-				score += 2 if _is_clean_bridge_candidate(bp, c) else -5
-			else:
-				score += 1
-		if score > best_score:
-			best_score = score
-			best_z = gz
-
-	if best_z >= 3:
-		var cur_z: int = best_z
-		for x: int in range(2, bp.cols - 2):
-			var drift: int = int((_hash(bp.map_seed, Vector2i(x / 4, best_z), 41) % 3) - 1)
-			cur_z = clampi(best_z + drift, 3, bp.rows - 4)
-			for dz: int in 2:
-				var c: Vector2i = Vector2i(x, cur_z + dz)
-				if not bp.in_bounds(c) or bp.zone_at(c) == ScenarioBlueprint.ZONE_VOID:
-					continue
-				if bp.plaza_cells.has(c) or _near_stair_or_plaza(bp, c):
-					continue
-				if bp.road_cells.has(c):
-					if dz == 0 and _is_clean_bridge_candidate(bp, c) and not bp.bridge_cells.has(c + Vector2i(0, -1)):
-						bp.bridge_cells[c] = ScenarioBlueprint.DIR_N
-						bp.set_zone(c, ScenarioBlueprint.ZONE_BRIDGE)
-				else:
-					bp.water_cells[c] = true
-					bp.set_zone(c, ScenarioBlueprint.ZONE_WATER)
-					bp.set_height(c, 0)
-
-	# Também aproveita baixios laterais longe de praças/escadas/estradas.
-	for z: int in range(2, bp.rows - 2):
-		for x: int in range(2, bp.cols - 2):
-			var c: Vector2i = Vector2i(x, z)
-			if bp.zone_at(c) != ScenarioBlueprint.ZONE_TERRACE:
-				continue
-			if bp.height_at(c) <= 1 and not _near_walkable_any(bp, c):
-				bp.water_cells[c] = true
-				bp.set_zone(c, ScenarioBlueprint.ZONE_WATER)
-				bp.set_height(c, 0)
-
-	_prune_small_water_components(bp)
-
-	# Fallback garantido caso o mapa não tenha produzido nenhum canal >= 6 células.
-	if bp.water_cells.size() < ScenarioBlueprint.MIN_WATER_COMPONENT:
-		_carve_guaranteed_flank_canal(bp)
-		_prune_small_water_components(bp)
-
-	# Revalida pontes: só permanecem se houver água contínua adjacente em Leste/Oeste.
-	var bridges_to_drop: Array[Vector2i] = []
-	for bcell: Vector2i in bp.bridge_cells.keys():
-		var w_adj: int = 0
-		if bp.water_cells.has(bcell + Vector2i(-1, 0)):
-			w_adj += 1
-		if bp.water_cells.has(bcell + Vector2i(1, 0)):
-			w_adj += 1
-		if w_adj == 0:
-			bridges_to_drop.append(bcell)
-	for bcell: Vector2i in bridges_to_drop:
-		bp.bridge_cells.erase(bcell)
-		bp.set_zone(bcell, ScenarioBlueprint.ZONE_ROAD)
-
-	# Margens secas ortogonais à água viram EMBANKMENT para transição natural.
-	for wcell: Vector2i in bp.water_cells.keys():
-		for d: int in ScenarioBlueprint.CARDINAL_DIRS:
-			var nb: Vector2i = wcell + ScenarioBlueprint.dir_vec(d)
-			if bp.in_bounds(nb) and bp.zone_at(nb) == ScenarioBlueprint.ZONE_TERRACE:
-				bp.set_zone(nb, ScenarioBlueprint.ZONE_EMBANKMENT)
-				bp.set_height(nb, maxi(1, bp.height_at(nb)))
-
 
 static func _is_clean_bridge_candidate(bp: ScenarioBlueprint, cell: Vector2i) -> bool:
 	if not bp.road_cells.has(cell) or bp.plaza_cells.has(cell) or bp.stairs.has(cell):
@@ -862,6 +744,7 @@ static func _near_walkable_any(bp: ScenarioBlueprint, cell: Vector2i) -> bool:
 	return false
 
 
+
 static func _prune_small_water_components(bp: ScenarioBlueprint) -> void:
 	var visited: Dictionary = {}
 	var drop: Array[Vector2i] = []
@@ -888,154 +771,6 @@ static func _prune_small_water_components(bp: ScenarioBlueprint) -> void:
 		bp.set_height(c, 1)
 
 
-static func _carve_guaranteed_flank_canal(bp: ScenarioBlueprint) -> void:
-	# Tenta encaixar um canal contínuo 2×5 (10 células >= 6) num flanco livre.
-	for start_z: int in range(2, bp.rows - 6):
-		for start_x: int in range(2, bp.cols - 3):
-			var cells: Array[Vector2i] = []
-			var ok: bool = true
-			for dz: int in 5:
-				for dx: int in 2:
-					var c: Vector2i = Vector2i(start_x + dx, start_z + dz)
-					if bp.zone_at(c) != ScenarioBlueprint.ZONE_TERRACE or _near_walkable_any(bp, c):
-						ok = false
-						break
-					cells.append(c)
-				if not ok:
-					break
-			if ok:
-				for c: Vector2i in cells:
-					bp.water_cells[c] = true
-					bp.set_zone(c, ScenarioBlueprint.ZONE_WATER)
-					bp.set_height(c, 0)
-				return
-
-	# Último recurso em mapas muito compactos: 1×6 contínuo.
-	for start_z: int in range(2, bp.rows - 7):
-		for start_x: int in range(2, bp.cols - 2):
-			var cells: Array[Vector2i] = []
-			var ok: bool = true
-			for dz: int in 6:
-				var c: Vector2i = Vector2i(start_x, start_z + dz)
-				if bp.zone_at(c) != ScenarioBlueprint.ZONE_TERRACE or _near_walkable_any(bp, c):
-					ok = false
-					break
-				cells.append(c)
-			if ok:
-				for c: Vector2i in cells:
-					bp.water_cells[c] = true
-					bp.set_zone(c, ScenarioBlueprint.ZONE_WATER)
-					bp.set_height(c, 0)
-				return
-
-
-## Estágio 4: aloca Mausoléu do Chefe ao norte da sala final + compostos de distrito nivelados,
-## orientados para a rua e proibidos no cone frontal sudeste de qualquer nó.
-static func _place_map_compounds(bp: ScenarioBlueprint, graph: MapGraph) -> void:
-	bp.compounds.clear()
-	var reserved: Dictionary = {}
-
-	# 4A: Mausoléu do Chefe imediatamente atrás (-Z) da praça do Chefe.
-	var boss: MapNode = graph.boss_node()
-	if boss != null and bp.node_cells.has(boss.id):
-		var bc: Vector2i = bp.node_cells[boss.id]
-		var boss_origin: Vector2i = Vector2i(bc.x - 2, bc.y - 5)
-		var boss_sz: Vector2i = Vector2i(5, 3)
-		if _try_register_compound(bp, reserved, "boss_mausoleum", ScenarioBlueprint.COMPOUND_BOSS_MAUSOLEUM, boss_origin, boss_sz, ScenarioBlueprint.DIR_S, ScenarioBlueprint.MAX_PLAZA_LEVEL):
-			pass
-
-	# 4B: Compostos de distrito (marcos arquitetônicos com telhado antes de cemitérios;
-	# espaçamento >= 2 células entre compostos e máx. 2 cemitérios com distância >= 8 entre iguais).
-	var shapes: Array[Dictionary] = [
-		{"sz": Vector2i(4, 3), "kinds": [ScenarioBlueprint.COMPOUND_CHAPEL, ScenarioBlueprint.COMPOUND_CEMETERY]},
-		{"sz": Vector2i(3, 3), "kinds": [ScenarioBlueprint.COMPOUND_CHAPEL, ScenarioBlueprint.COMPOUND_WATCHTOWER, ScenarioBlueprint.COMPOUND_COURTYARD_RUIN]},
-		{"sz": Vector2i(2, 2), "kinds": [ScenarioBlueprint.COMPOUND_SHRINE]},
-	]
-	var max_compounds: int = 8
-	var count: int = bp.compounds.size()
-	var cemetery_count: int = 0
-
-	for shape: Dictionary in shapes:
-		if count >= max_compounds:
-			break
-		var sz: Vector2i = shape["sz"] as Vector2i
-		var kinds: Array = shape["kinds"] as Array
-		var step: int = 2
-		for z: int in range(2, bp.rows - sz.y - 1, step):
-			for x: int in range(2, bp.cols - sz.x - 1, step):
-				if count >= max_compounds:
-					break
-				var origin: Vector2i = Vector2i(x, z)
-				if (_hash(bp.map_seed, origin, 31) % 100) < 25:
-					continue
-				var pick_idx: int = _hash(bp.map_seed, origin, 37) % kinds.size()
-				var kind: int = int(kinds[pick_idx])
-				if kind == ScenarioBlueprint.COMPOUND_CEMETERY and cemetery_count >= 2:
-					continue
-				if _too_close_to_same_kind(bp, origin, sz, kind):
-					continue
-				var door_dir: int = _best_door_dir(bp, origin, sz)
-				if door_dir < 0:
-					continue
-				if _can_place_compound(bp, reserved, origin, sz, kind, door_dir):
-					var pad_h: int = _median_height(bp, origin, sz)
-					var front: Vector2i = _front_of_pad(origin, sz, door_dir)
-					if bp.in_bounds(front) and bp.height_at(front) > pad_h + 1:
-						pad_h = clampi(bp.height_at(front), ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL)
-					var cid: String = "cmp_%d_%d" % [origin.x, origin.y]
-					if _try_register_compound(bp, reserved, cid, kind, origin, sz, door_dir, pad_h):
-						count += 1
-						if kind == ScenarioBlueprint.COMPOUND_CEMETERY:
-							cemetery_count += 1
-
-
-static func _too_close_to_same_kind(bp: ScenarioBlueprint, origin: Vector2i, sz: Vector2i, kind: int) -> bool:
-	var c: Vector2i = origin + Vector2i(sz.x / 2, sz.y / 2)
-	for existing: Dictionary in bp.compounds:
-		if int(existing["kind"]) == kind:
-			var ec: Vector2i = existing["center"] as Vector2i
-			if absi(ec.x - c.x) + absi(ec.y - c.y) < 8:
-				return true
-	return false
-
-
-static func _can_place_compound(bp: ScenarioBlueprint, reserved: Dictionary, origin: Vector2i, sz: Vector2i, kind: int, door_dir: int) -> bool:
-	var tall: bool = ScenarioBlueprint.is_tall_compound(kind)
-	var min_h: int = 99
-	var max_h: int = -99
-	for dz: int in sz.y:
-		for dx: int in sz.x:
-			var c: Vector2i = origin + Vector2i(dx, dz)
-			if not bp.in_bounds(c):
-				return false
-			var z: int = bp.zone_at(c)
-			if z != ScenarioBlueprint.ZONE_TERRACE and z != ScenarioBlueprint.ZONE_EMBANKMENT:
-				return false
-			if _near_walkable_any(bp, c):
-				return false
-			# Margem de 2 células entre compostos distintos e >= 1 célula da água.
-			for mz: int in range(-2, 3):
-				for mx: int in range(-2, 3):
-					var check: Vector2i = c + Vector2i(mx, mz)
-					if reserved.has(check):
-						return false
-					if absi(mx) <= 1 and absi(mz) <= 1 and bp.water_cells.has(check):
-						return false
-			if tall and _in_any_node_occlusion_cone(bp, c):
-				return false
-			var ch: int = bp.height_at(c)
-			min_h = mini(min_h, ch)
-			max_h = maxi(max_h, ch)
-	if max_h - min_h > 2:
-		return false
-	var front: Vector2i = _front_of_pad(origin, sz, door_dir)
-	if not bp.in_bounds(front):
-		return false
-	var fz: int = bp.zone_at(front)
-	if fz == ScenarioBlueprint.ZONE_VOID or fz == ScenarioBlueprint.ZONE_WATER or reserved.has(front):
-		return false
-	return true
-
 
 static func _in_any_node_occlusion_cone(bp: ScenarioBlueprint, cell: Vector2i) -> bool:
 	for node_id: int in bp.node_cells.keys():
@@ -1045,28 +780,6 @@ static func _in_any_node_occlusion_cone(bp: ScenarioBlueprint, cell: Vector2i) -
 		if dx >= 0 and dz >= 0 and dx <= 2 and dz <= 2:
 			return true
 	return false
-
-
-static func _best_door_dir(bp: ScenarioBlueprint, origin: Vector2i, sz: Vector2i) -> int:
-	var best_d: int = -1
-	var best_dist: int = 999
-	# Prefere Sul (+Z) e Leste (+X) em empate, para a fachada olhar para a câmera.
-	for d: int in [ScenarioBlueprint.DIR_S, ScenarioBlueprint.DIR_E, ScenarioBlueprint.DIR_W, ScenarioBlueprint.DIR_N]:
-		var front: Vector2i = _front_of_pad(origin, sz, d)
-		if not bp.in_bounds(front):
-			continue
-		var fz: int = bp.zone_at(front)
-		if fz == ScenarioBlueprint.ZONE_VOID or fz == ScenarioBlueprint.ZONE_WATER or fz == ScenarioBlueprint.ZONE_BUILDING or fz == ScenarioBlueprint.ZONE_COURTYARD:
-			continue
-		var min_d: int = 999
-		for cell: Vector2i in bp.road_cells.keys():
-			min_d = mini(min_d, absi(front.x - cell.x) + absi(front.y - cell.y))
-		for cell: Vector2i in bp.plaza_cells.keys():
-			min_d = mini(min_d, absi(front.x - cell.x) + absi(front.y - cell.y))
-		if min_d < best_dist:
-			best_dist = min_d
-			best_d = d
-	return best_d
 
 
 static func _front_of_pad(origin: Vector2i, sz: Vector2i, door_dir: int) -> Vector2i:
@@ -1083,16 +796,6 @@ static func _front_of_pad(origin: Vector2i, sz: Vector2i, door_dir: int) -> Vect
 			return Vector2i(origin.x + sz.x, cz)
 		_:
 			return Vector2i(cx, cz)
-
-
-static func _median_height(bp: ScenarioBlueprint, origin: Vector2i, sz: Vector2i) -> int:
-	var vals: Array[int] = []
-	for dz: int in sz.y:
-		for dx: int in sz.x:
-			vals.append(bp.height_at(origin + Vector2i(dx, dz)))
-	vals.sort()
-	var mid: int = vals[vals.size() / 2]
-	return clampi(mid, ScenarioBlueprint.MIN_PLAZA_LEVEL, ScenarioBlueprint.MAX_PLAZA_LEVEL)
 
 
 static func _try_register_compound(bp: ScenarioBlueprint, reserved: Dictionary, cid: String, kind: int, origin: Vector2i, sz: Vector2i, door_dir: int, pad_h: int) -> bool:
@@ -1207,20 +910,30 @@ static func _flush_wall_run(bp: ScenarioBlueprint, cells: Array[Vector2i], edge_
 	})
 
 
+
 ## Estágio 6A: postes aterrados no exato nível da rua/praça vizinha, espaçamento Manhattan >= 5,
 ## braço apontado para a via e jamais no cone frontal imediato da câmera.
-static func _place_lamps(bp: ScenarioBlueprint) -> void:
-	bp.lamps.clear()
+## Com `only_main` só a rua principal ganha postes (feito antes das casas, para acender o caminho
+## até a igreja); com `keep_existing` os postes anteriores ficam e o espaçamento os respeita.
+static func _place_lamps(bp: ScenarioBlueprint, only_main: bool = false, keep_existing: bool = false) -> void:
+	if not keep_existing:
+		bp.lamps.clear()
 	var front_cells: Dictionary = {}
 	for comp: Dictionary in bp.compounds:
 		front_cells[_front_of_pad(comp["origin"] as Vector2i, comp["size"] as Vector2i, int(comp["door_dir"]))] = true
 
 	var placed_cells: Array[Vector2i] = []
-	var road_keys: Array[Vector2i] = _sorted_cells(bp.road_cells)
 	var lit_count: int = 0
+	for lamp_def: Dictionary in bp.lamps:
+		placed_cells.append(lamp_def["cell"] as Vector2i)
+		if bool(lamp_def.get("lit", false)):
+			lit_count += 1
+	var road_keys: Array[Vector2i] = _lamp_order(bp)
 
 	for road_cell: Vector2i in road_keys:
 		if bp.stairs.has(road_cell) or bp.bridge_cells.has(road_cell):
+			continue
+		if only_main and not bp.main_road.has(road_cell):
 			continue
 		var rh: int = bp.height_at(road_cell)
 		# Preferência para lados norte/oeste primeiro para não tampar viajante nem estrada.
@@ -1235,7 +948,7 @@ static func _place_lamps(bp: ScenarioBlueprint) -> void:
 				continue
 			if _in_any_node_occlusion_cone(bp, side):
 				continue
-			if _wall_uses_cell(bp, side):
+			if _wall_uses_cell(bp, side) or _dress_uses_cell(bp, side):
 				continue
 			var too_close: bool = false
 			for prev: Vector2i in placed_cells:
@@ -1260,6 +973,13 @@ static func _place_lamps(bp: ScenarioBlueprint) -> void:
 			break
 
 
+static func _dress_uses_cell(bp: ScenarioBlueprint, cell: Vector2i) -> bool:
+	for piece: Dictionary in bp.plaza_dress:
+		if (piece["cell"] as Vector2i) == cell:
+			return true
+	return false
+
+
 static func _wall_uses_cell(bp: ScenarioBlueprint, cell: Vector2i) -> bool:
 	for run: Dictionary in bp.wall_runs:
 		var cells: Array = run.get("cells", [])
@@ -1267,6 +987,249 @@ static func _wall_uses_cell(bp: ScenarioBlueprint, cell: Vector2i) -> bool:
 			if (rc as Vector2i) == cell:
 				return true
 	return false
+
+
+## Ordem dos postes: a rua principal primeiro (acende o caminho até a igreja), depois as outras.
+static func _lamp_order(bp: ScenarioBlueprint) -> Array[Vector2i]:
+	var ordered: Array[Vector2i] = []
+	var others: Array[Vector2i] = []
+	for cell: Vector2i in _sorted_cells(bp.road_cells):
+		if bp.main_road.has(cell):
+			ordered.append(cell)
+		else:
+			others.append(cell)
+	ordered.append_array(others)
+	return ordered
+
+
+## Células já tomadas por compostos, postes e peças de cenografia (nada se sobrepõe).
+static func _reserve_existing(bp: ScenarioBlueprint) -> Dictionary:
+	var reserved: Dictionary = {}
+	for comp: Dictionary in bp.compounds:
+		for raw: Variant in comp["cells"]:
+			reserved[raw as Vector2i] = true
+	for lamp: Dictionary in bp.lamps:
+		reserved[lamp["cell"] as Vector2i] = true
+	for piece: Dictionary in bp.plaza_dress:
+		reserved[piece["cell"] as Vector2i] = true
+	return reserved
+
+
+static func _ring_free(bp: ScenarioBlueprint, cell: Vector2i, reserved: Dictionary) -> bool:
+	return bp.is_solid(cell) and bp.zone_at(cell) == ScenarioBlueprint.ZONE_TERRACE and not reserved.has(cell) and not bp.is_walkable(cell)
+
+
+## Parede de ruína rente à praça: alta se não esconder rua na câmera, senão baixa (mureta caída).
+static func _ruin_wall(bp: ScenarioBlueprint, cell: Vector2i, level: int, hidden: Dictionary, reserved: Dictionary, role: String, yaw: float, tint: Color = Color(0.34, 0.36, 0.44)) -> void:
+	bp.set_height(cell, level)
+	bp.set_zone(cell, ScenarioBlueprint.ZONE_BUILDING)
+	reserved[cell] = true
+	var tall: bool = not hidden.has(cell)
+	var broken: bool = _hash(bp.map_seed, cell, 233) % 100 < 22
+	var wall_h: float = TALL_WALL_H * 0.85 if tall else LOW_WALL_H
+	if broken:
+		wall_h = LOW_WALL_H * 0.7
+	_add_dress(bp, cell, "graveyard/stone-wall.glb", yaw, Vector3(1.0, wall_h / 0.73, 1.6), tint, role)
+	if broken:
+		_add_dress(bp, cell, "graveyard/debris.glb", yaw, Vector3.ONE * 1.5, Color(0.5, 0.5, 0.55), role + "_debris")
+
+
+## O "L" noroeste da praça (muro ao norte e a oeste), lado oposto ao da câmera: abrigo, sala em
+## ruínas. Ruas que chegam à praça abrem passagem no muro.
+static func _nw_ring(c: Vector2i) -> Array[Vector2i]:
+	var ring: Array[Vector2i] = []
+	for dx: int in range(-2, 3):
+		ring.append(Vector2i(c.x + dx, c.y - 2))
+	for dz: int in range(-1, 3):
+		ring.append(Vector2i(c.x - 2, c.y + dz))
+	return ring
+
+
+## Estágio 4A: cada tipo de nó vira um lugar da cidade (peças só de apresentação, o centro da praça
+## fica livre para o sprite do nó). Baú: sala em ruínas. Fogueira: abrigo com banco. Evento:
+## campo-santo menor. Elite e mini boss: praça de armas com grade e braseiros. Luta: pátio com restos.
+static func _dress_node_plazas(bp: ScenarioBlueprint, graph: MapGraph, reserved: Dictionary) -> void:
+	var hidden: Dictionary = occluding_cells(bp)
+	for node: MapNode in graph.nodes:
+		if node.kind == MapNode.Kind.BOSS or node.kind == MapNode.Kind.START:
+			continue
+		var c: Vector2i = bp.node_cells[node.id]
+		var level: int = int(bp.node_levels[node.id])
+		match node.kind:
+			MapNode.Kind.CHEST:
+				for cell: Vector2i in _nw_ring(c):
+					if _ring_free(bp, cell, reserved):
+						_ruin_wall(bp, cell, level, hidden, reserved, "chest_room", 0.0 if cell.y == c.y - 2 else 90.0)
+				_add_dress(bp, c + Vector2i(1, -1), "mini_dungeon/barrel.glb", 0.0, Vector3.ONE * 1.3, Color(0.5, 0.42, 0.36), "plaza_prop")
+			MapNode.Kind.BONFIRE:
+				for cell: Vector2i in _nw_ring(c):
+					if _ring_free(bp, cell, reserved):
+						_ruin_wall(bp, cell, level, hidden, reserved, "camp_shelter", 0.0 if cell.y == c.y - 2 else 90.0, Color(0.30, 0.31, 0.38))
+				_add_dress(bp, c + Vector2i(-1, -1), "graveyard/bench.glb", 0.0, Vector3.ONE * 1.35, Color(0.45, 0.38, 0.32), "plaza_prop")
+				_add_dress(bp, c + Vector2i(1, -1), "mini_dungeon/barrel.glb", 0.0, Vector3.ONE * 1.3, Color(0.5, 0.42, 0.36), "plaza_prop")
+			MapNode.Kind.EVENT:
+				var stones: Array[String] = ["graveyard/gravestone-round.glb", "graveyard/gravestone-bevel.glb", "graveyard/gravestone-cross.glb", "graveyard/gravestone-broken.glb"]
+				var i: int = 0
+				for cell: Vector2i in _nw_ring(c):
+					if _ring_free(bp, cell, reserved):
+						bp.set_height(cell, level)
+						reserved[cell] = true
+						_add_dress(bp, cell, stones[(i + _hash(bp.map_seed, cell, 241)) % stones.size()], float(_hash(bp.map_seed, cell, 243) % 3) * 8.0 - 8.0, Vector3.ONE * 1.25, Color(0.55, 0.56, 0.64), "campo_santo")
+					i += 1
+				var cross_cell: Vector2i = c + Vector2i(-2, -2)
+				if _ring_free(bp, cross_cell, reserved) and not hidden.has(cross_cell):
+					_add_dress(bp, cross_cell, "graveyard/cross-column.glb", 0.0, Vector3.ONE * 1.4, Color(0.5, 0.52, 0.6), "campo_santo")
+			MapNode.Kind.ELITE, MapNode.Kind.MINI_BOSS:
+				for cell: Vector2i in _nw_ring(c):
+					if _ring_free(bp, cell, reserved):
+						bp.set_height(cell, level)
+						reserved[cell] = true
+						var along_x: bool = cell.y == c.y - 2
+						_add_dress(bp, cell, "graveyard/iron-fence-border.glb", 0.0 if along_x else 90.0, Vector3.ONE * 1.1, Color(0.2, 0.21, 0.26), "armory_fence")
+				for corner: Vector2i in [c + Vector2i(-2, -2), c + Vector2i(2, -2)]:
+					if bp.is_solid(corner) and not bp.is_walkable(corner):
+						_add_dress(bp, corner, "graveyard/fire-basket.glb", 0.0, Vector3.ONE * 1.7, Color.WHITE, "armory_brazier", 0.0)
+			MapNode.Kind.AMBUSH:
+				for cell: Vector2i in [c + Vector2i(-2, -1), c + Vector2i(-2, 1), c + Vector2i(2, -2)]:
+					if _ring_free(bp, cell, reserved):
+						bp.set_height(cell, level)
+						reserved[cell] = true
+						_add_dress(bp, cell, "mini_dungeon/barrel.glb", float(_hash(bp.map_seed, cell, 251) % 4) * 90.0, Vector3.ONE * 1.3, Color(0.46, 0.4, 0.34), "ambush_cover")
+			_:
+				for cell: Vector2i in [c + Vector2i(-2, -2), c + Vector2i(2, 2)]:
+					if _ring_free(bp, cell, reserved):
+						bp.set_height(cell, level)
+						reserved[cell] = true
+						_add_dress(bp, cell, "graveyard/debris.glb", float(_hash(bp.map_seed, cell, 257) % 4) * 90.0, Vector3.ONE * 1.4, Color(0.55, 0.55, 0.6), "yard_debris")
+
+
+## O portão em ruína da cidade: a estrada de chegada atravessa dois pilares baixos e restos de
+## muro, ao sul da praça da partida (lado da câmera, por isso tudo baixo: nunca esconde a Bibiana).
+static func _place_city_gate(bp: ScenarioBlueprint, graph: MapGraph, reserved: Dictionary) -> void:
+	var s: Vector2i = bp.node_cells[graph.start_id]
+	var level: int = int(bp.node_levels[graph.start_id])
+	for dz: int in range(2, 6):
+		var road: Vector2i = Vector2i(s.x, s.y + dz)
+		if bp.is_solid(road) and bp.zone_at(road) == ScenarioBlueprint.ZONE_TERRACE and not reserved.has(road):
+			bp.road_cells[road] = true
+			bp.set_zone(road, ScenarioBlueprint.ZONE_ROAD)
+			bp.set_height(road, level)
+	var origin: Vector2i = Vector2i(s.x - 3, s.y + 3)
+	var cells: Array[Vector2i] = []
+	for dx: int in range(0, 7):
+		var cell: Vector2i = origin + Vector2i(dx, 0)
+		if dx == 3 or not bp.is_solid(cell) or bp.is_walkable(cell) or reserved.has(cell):
+			continue
+		bp.set_height(cell, level)
+		bp.set_zone(cell, ScenarioBlueprint.ZONE_BUILDING)
+		reserved[cell] = true
+		cells.append(cell)
+	if cells.is_empty():
+		return
+	bp.compounds.append({
+		"id": "city_gate",
+		"kind": ScenarioBlueprint.COMPOUND_CITY_GATE,
+		"origin": origin,
+		"size": Vector2i(7, 1),
+		"center": origin + Vector2i(3, 0),
+		"height": level,
+		"door_dir": ScenarioBlueprint.DIR_N,
+		"cells": cells,
+		"tall": false,
+	})
+
+
+## Estágio 4B: casas de empena rente às ruas, porta voltada para a rua. Do lado dos fundos da câmera
+## (norte e oeste da rua) a casa é alta, com telhado e janelas acesas; do lado da câmera (sul e
+## leste) só cabem ruínas baixas, que não escondem a rua. Nunca há bloco sem porta nem bloco solto.
+static func _place_street_houses(bp: ScenarioBlueprint, reserved: Dictionary) -> void:
+	var hidden: Dictionary = occluding_cells(bp)
+	var hidden_near: Dictionary = occluding_cells(bp, 1)
+	var doors: Array[int] = [ScenarioBlueprint.DIR_S, ScenarioBlueprint.DIR_E, ScenarioBlueprint.DIR_N, ScenarioBlueprint.DIR_W]
+	for s: Vector2i in _sorted_cells(bp.road_cells):
+		if bp.bridge_cells.has(s) or bp.stairs.has(s):
+			continue
+		for door_dir: int in doors:
+			_try_house(bp, reserved, hidden, hidden_near, s, door_dir)
+	# Praças cercadas de casas: as bordas norte e oeste de cada praça também têm fachadas.
+	for s: Vector2i in _sorted_cells(bp.plaza_cells):
+		for door_dir: int in [ScenarioBlueprint.DIR_S, ScenarioBlueprint.DIR_E]:
+			_try_house(bp, reserved, hidden, hidden_near, s, door_dir)
+
+
+static func _try_house(bp: ScenarioBlueprint, reserved: Dictionary, hidden: Dictionary, hidden_near: Dictionary, s: Vector2i, door_dir: int) -> void:
+	var roll: int = _hash(bp.map_seed, s, 211 + door_dir)
+	var back_side: bool = door_dir == ScenarioBlueprint.DIR_S or door_dir == ScenarioBlueprint.DIR_E
+	if roll % 100 < (6 if back_side else 58):
+		return
+	var w0: int = 2 + (roll / 7) % 3
+	var d0: int = 2 + (roll / 31) % 3
+	# Tenta a planta sorteada e, se não couber (rua cruzando, praça, desnível), encolhe até 2x2.
+	for w: int in range(w0, 1, -1):
+		for d: int in range(d0, 1, -1):
+			if _house_at(bp, reserved, hidden, hidden_near, s, door_dir, w, d, roll):
+				return
+
+
+static func _house_at(bp: ScenarioBlueprint, reserved: Dictionary, hidden: Dictionary, hidden_near: Dictionary, s: Vector2i, door_dir: int, w: int, d: int, roll: int) -> bool:
+	var back_side: bool = door_dir == ScenarioBlueprint.DIR_S or door_dir == ScenarioBlueprint.DIR_E
+	var origin: Vector2i = s
+	var sz: Vector2i = Vector2i(w, d)
+	match door_dir:
+		ScenarioBlueprint.DIR_S:
+			origin = Vector2i(s.x, s.y - d)
+		ScenarioBlueprint.DIR_N:
+			origin = Vector2i(s.x, s.y + 1)
+		ScenarioBlueprint.DIR_E:
+			origin = Vector2i(s.x - d, s.y)
+			sz = Vector2i(d, w)
+		_:
+			origin = Vector2i(s.x + 1, s.y)
+			sz = Vector2i(d, w)
+	var front: Vector2i = _front_of_pad(origin, sz, door_dir)
+	if not bp.is_walkable(front) or bp.stairs.has(front) or bp.bridge_cells.has(front):
+		return false
+	var pad_h: int = bp.height_at(front)
+	var cells: Array[Vector2i] = []
+	var tall: bool = back_side
+	var cottage_ok: bool = true
+	for dz: int in sz.y:
+		for dx: int in sz.x:
+			var c: Vector2i = origin + Vector2i(dx, dz)
+			if not _ring_free(bp, c, reserved) or absi(bp.height_at(c) - pad_h) > 2:
+				return false
+			for mz: int in range(-1, 2):
+				for mx: int in range(-1, 2):
+					if bp.water_cells.has(c + Vector2i(mx, mz)):
+						return false
+			if hidden.has(c):
+				tall = false
+			if hidden_near.has(c):
+				cottage_ok = false
+			cells.append(c)
+	var kind: int = ScenarioBlueprint.COMPOUND_RUIN_HOUSE
+	if tall:
+		kind = ScenarioBlueprint.COMPOUND_HOUSE
+	elif cottage_ok and roll % 100 < 88:
+		kind = ScenarioBlueprint.COMPOUND_COTTAGE
+	var zone: int = ScenarioBlueprint.ZONE_COURTYARD if kind == ScenarioBlueprint.COMPOUND_RUIN_HOUSE else ScenarioBlueprint.ZONE_BUILDING
+	for c: Vector2i in cells:
+		bp.set_height(c, pad_h)
+		bp.set_zone(c, zone)
+		reserved[c] = true
+	bp.compounds.append({
+		"id": "house_%d_%d_%d" % [origin.x, origin.y, door_dir],
+		"kind": kind,
+		"origin": origin,
+		"size": sz,
+		"center": origin + Vector2i(sz.x / 2, sz.y / 2),
+		"height": pad_h,
+		"door_dir": door_dir,
+		"cells": cells,
+		"tall": ScenarioBlueprint.is_tall_compound(kind),
+		"variant": roll % 7,
+	})
+	return true
 
 
 ## Estágio 6B: micro-props estritamente contextuais (nunca fora de contexto, nunca 5×5 dos nós,

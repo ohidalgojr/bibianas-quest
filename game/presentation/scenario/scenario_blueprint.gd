@@ -9,7 +9,7 @@ const MIN_PLAZA_LEVEL: int = 2
 const MAX_PLAZA_LEVEL: int = 5
 const MIN_WATER_COMPONENT: int = 6
 const MIN_WALL_RUN_LEN: int = 2
-const MIN_LAMP_SPACING: int = 5
+const MIN_LAMP_SPACING: int = 7
 
 const ZONE_VOID: int = 0
 const ZONE_PLAZA: int = 1
@@ -20,6 +20,8 @@ const ZONE_BUILDING: int = 5
 const ZONE_COURTYARD: int = 6
 const ZONE_TERRACE: int = 7
 const ZONE_EMBANKMENT: int = 8
+## Adro (pátio de pedra diante da igreja, só no mapa; ADR-0060).
+const ZONE_FORECOURT: int = 9
 
 ## Direções cardinais alinhadas ao yaw do Godot (+Y para cima): 0=-Z, 90=-X, 180=+Z, 270=+X.
 const DIR_N: int = 0
@@ -33,6 +35,14 @@ const COMPOUND_CEMETERY: int = 2
 const COMPOUND_COURTYARD_RUIN: int = 3
 const COMPOUND_SHRINE: int = 4
 const COMPOUND_BOSS_MAUSOLEUM: int = 5
+## Gramática da cidade gótica (ADR-0060): casa de empena com porta para a rua, ruína baixa
+## (pátio com muros caídos), muro-portal do adro da igreja e portão em ruína da entrada.
+const COMPOUND_HOUSE: int = 6
+const COMPOUND_RUIN_HOUSE: int = 7
+const COMPOUND_CHURCH_GATE: int = 8
+const COMPOUND_CITY_GATE: int = 9
+## Casa baixa de empena (cerca de 1,5 de altura): só esconde o primeiro passo diagonal da câmera.
+const COMPOUND_COTTAGE: int = 10
 
 const PROP_ROCK: int = 0
 const PROP_ROCK_TALL: int = 1
@@ -82,6 +92,15 @@ var wall_runs: Array[Dictionary] = []
 var lamps: Array[Dictionary] = []
 var typed_props: Dictionary = {}
 var focal_lights: Array[Dictionary] = []
+
+## Cidade gótica (ADR-0060): rua principal (células do caminho central entre início e chefe),
+## camada do canal (desnível), célula do chefe e peças de cenografia dos nós (poço, bancos,
+## muros de abrigo). Cada peça de `plaza_dress` é um dicionário com `cell`, `asset`, `yaw`,
+## `scale`, `tint`, `lift` e `role`.
+var main_road: Dictionary = {}
+var canal_layer: int = -1
+var boss_cell: Vector2i = Vector2i(-1, -1)
+var plaza_dress: Array[Dictionary] = []
 
 
 func configure(p_cols: int, p_rows: int, p_seed: int) -> void:
@@ -217,7 +236,8 @@ static func dir_from_vec(v: Vector2i) -> int:
 
 
 static func is_tall_compound(kind: int) -> bool:
-	return kind == COMPOUND_CHAPEL or kind == COMPOUND_WATCHTOWER or kind == COMPOUND_COURTYARD_RUIN or kind == COMPOUND_BOSS_MAUSOLEUM
+	return kind == COMPOUND_CHAPEL or kind == COMPOUND_WATCHTOWER or kind == COMPOUND_COURTYARD_RUIN \
+		or kind == COMPOUND_BOSS_MAUSOLEUM or kind == COMPOUND_HOUSE
 
 
 static func rotate_offset_deg(offset: Vector3, yaw_deg: float) -> Vector3:

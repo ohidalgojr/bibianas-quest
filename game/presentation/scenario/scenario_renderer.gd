@@ -10,10 +10,10 @@ const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const K_SCENERY: String = "res://assets/bibiana/scenery/"
 
 const TINT_CLIFF: Color = Color(0.42, 0.44, 0.52)
-const TINT_MOSS: Color = Color(0.62, 0.68, 0.62)
+const TINT_MOSS: Color = Color(0.78, 0.72, 0.68)
 const TINT_STONE_BASE: Color = Color(0.55, 0.57, 0.64)
 const TINT_PLAZA_TILE: Color = Color(1.25, 1.18, 1.05)
-const TINT_COURT_TILE: Color = Color(0.5, 0.5, 0.58)
+const TINT_COURT_TILE: Color = Color(0.74, 0.72, 0.78)
 const TINT_ROAD: Color = Color(1.0, 1.0, 1.08)
 const TINT_STAIR: Color = Color(0.40, 0.39, 0.43)
 const TINT_WALL: Color = Color(0.36, 0.38, 0.46)
@@ -22,6 +22,15 @@ const PROP_DARKEN: Color = Color(0.55, 0.55, 0.62)
 const TINT_FENCE: Color = Color(0.18, 0.19, 0.23)
 
 ## Assets com múltiplos MeshInstance3D internos devem ser colocados como Node3D e não em MultiMesh.
+## Chave reservada em `batches` para as janelas acesas das casas (quads emissivos).
+const WINDOWS_KEY: String = "_windows"
+## Linhas de Z por pedaço de MultiMesh: o mapa é grande e a câmera vê uma faixa dele; em pedaços
+## o Godot descarta o que está fora da tela (orçamento de primitivas, GDD §18).
+const CHUNK_ROWS: float = 12.0
+const TINT_ROAD_MAIN: Color = Color(1.14, 1.12, 1.2)
+const TINT_HOUSE: Color = Color(0.42, 0.42, 0.5)
+const TINT_HOUSE_ROOF: Color = Color(0.2, 0.21, 0.28)
+
 const MULTI_MESH_EXCEPTIONS: Array[String] = ["urn-round.glb", "urn-square.glb", "coffin.glb", "chest.glb"]
 
 
@@ -33,11 +42,11 @@ static func render(parent: Node3D, bp: ScenarioBlueprint, include_focal_lights: 
 	_render_wall_runs(bp, batches)
 	_render_compounds(parent, bp, batches, include_focal_lights)
 	_render_lamps(parent, bp, batches, include_focal_lights)
-	if include_focal_lights:
-		_render_gothic_mass(parent, bp, batches)
-	else:
-		_render_props(parent, bp, batches)
+	_render_dress(bp, batches)
+	_render_props(parent, bp, batches)
 	_flush_batches(parent, batches)
+	if batches.has(WINDOWS_KEY):
+		_build_window_quads(parent, batches[WINDOWS_KEY] as Array[Transform3D])
 	if include_focal_lights:
 		for light_def: Dictionary in bp.focal_lights:
 			_spawn_light(
@@ -50,7 +59,7 @@ static func render(parent: Node3D, bp: ScenarioBlueprint, include_focal_lights: 
 
 
 static func _batch_add(batches: Dictionary, path: String, pos: Vector3, yaw: float, scale_vec: Vector3, tint: Color, shadows: bool) -> void:
-	var key: String = "%s|%s|%s" % [path, tint.to_html(true), "1" if shadows else "0"]
+	var key: String = "%s|%s|%s|%d" % [path, tint.to_html(true), "1" if shadows else "0", int(floor(pos.z / CHUNK_ROWS))]
 	if not batches.has(key):
 		var list: Array[Transform3D] = []
 		batches[key] = {"path": path, "tint": tint, "shadows": shadows, "transforms": list}
@@ -60,6 +69,8 @@ static func _batch_add(batches: Dictionary, path: String, pos: Vector3, yaw: flo
 
 static func _flush_batches(parent: Node3D, batches: Dictionary) -> void:
 	for key: Variant in batches.keys():
+		if str(key) == WINDOWS_KEY:
+			continue
 		var bucket: Dictionary = batches[key]
 		_build_multimesh(
 			parent,
@@ -77,6 +88,7 @@ static func _render_terrain_and_water(parent: Node3D, bp: ScenarioBlueprint, bat
 	var plaza_tiles: Array[Transform3D] = []
 	var court_tiles: Array[Transform3D] = []
 	var road_tiles: Array[Transform3D] = []
+	var main_road_tiles: Array[Transform3D] = []
 	var water_transforms: Array[Transform3D] = []
 
 	for z: int in bp.rows:
@@ -109,25 +121,30 @@ static func _render_terrain_and_water(parent: Node3D, bp: ScenarioBlueprint, bat
 				for level: int in range(low, h):
 					cliff_blocks.append(Transform3D(Basis.IDENTITY, Vector3(wx, float(level) * ScenarioBlueprint.BLOCK_H, wz)))
 				var top_xf: Transform3D = Transform3D(Basis.IDENTITY, Vector3(wx, float(h) * ScenarioBlueprint.BLOCK_H, wz))
-				if zone == ScenarioBlueprint.ZONE_TERRACE:
+				if zone == ScenarioBlueprint.ZONE_TERRACE or zone == ScenarioBlueprint.ZONE_EMBANKMENT:
 					moss_tops.append(top_xf)
 				else:
 					stone_tops.append(top_xf)
 
 			var surface_y: float = float(h + 1) * ScenarioBlueprint.BLOCK_H + 0.02
-			if zone == ScenarioBlueprint.ZONE_PLAZA or zone == ScenarioBlueprint.ZONE_BRIDGE:
+			if zone == ScenarioBlueprint.ZONE_PLAZA or zone == ScenarioBlueprint.ZONE_BRIDGE or zone == ScenarioBlueprint.ZONE_FORECOURT:
 				plaza_tiles.append(Transform3D(Basis.IDENTITY, Vector3(wx, surface_y, wz)))
 			elif zone == ScenarioBlueprint.ZONE_BUILDING or zone == ScenarioBlueprint.ZONE_COURTYARD:
 				court_tiles.append(Transform3D(Basis.IDENTITY, Vector3(wx, surface_y, wz)))
 			elif zone == ScenarioBlueprint.ZONE_ROAD and not bp.stairs.has(cell):
-				road_tiles.append(Transform3D(Basis.IDENTITY.scaled(Vector3(0.86, 1.0, 0.86)), Vector3(wx, surface_y, wz)))
+				var road_xf: Transform3D = Transform3D(Basis.IDENTITY.scaled(Vector3(0.86, 1.0, 0.86)), Vector3(wx, surface_y, wz))
+				if bp.main_road.has(cell):
+					main_road_tiles.append(road_xf)
+				else:
+					road_tiles.append(road_xf)
 
-	_build_multimesh(parent, K_MINI + "dirt.glb", cliff_blocks, TINT_CLIFF, false, true)
-	_build_multimesh(parent, K_MINI + "dirt.glb", moss_tops, TINT_MOSS, bp.is_focal, true)
-	_build_multimesh(parent, K_MINI + "dirt.glb", stone_tops, TINT_STONE_BASE, bp.is_focal, true)
-	_build_multimesh(parent, K_MINI + "floor.glb", plaza_tiles, TINT_PLAZA_TILE, false, true)
-	_build_multimesh(parent, K_MINI + "floor.glb", court_tiles, TINT_COURT_TILE, false, true)
-	_build_multimesh(parent, K_MINI + "floor.glb", road_tiles, TINT_ROAD, false, true)
+	_build_chunked(parent, K_MINI + "dirt.glb", cliff_blocks, TINT_CLIFF, false, true)
+	_build_chunked(parent, K_MINI + "dirt.glb", moss_tops, TINT_MOSS, bp.is_focal, true)
+	_build_chunked(parent, K_MINI + "dirt.glb", stone_tops, TINT_STONE_BASE, bp.is_focal, true)
+	_build_chunked(parent, K_MINI + "floor.glb", plaza_tiles, TINT_PLAZA_TILE, false, true)
+	_build_chunked(parent, K_MINI + "floor.glb", court_tiles, TINT_COURT_TILE, false, true)
+	_build_chunked(parent, K_MINI + "floor.glb", road_tiles, TINT_ROAD, false, true)
+	_build_chunked(parent, K_MINI + "floor.glb", main_road_tiles, TINT_ROAD_MAIN, false, true)
 	_build_water_multimesh(parent, water_transforms)
 	var _b: Dictionary = batches
 
@@ -137,6 +154,19 @@ const STONE_TEXTURE: String = "res://assets/bibiana/textures/stone_cobble.jpg"
 
 static func _stone() -> Texture2D:
 	return load(STONE_TEXTURE) as Texture2D if ResourceLoader.exists(STONE_TEXTURE) else null
+
+
+## Divide as instâncias em faixas de Z (um MultiMesh por faixa) para o corte por tela funcionar.
+static func _build_chunked(parent: Node3D, path: String, transforms: Array[Transform3D], tint: Color, shadows: bool, textured: bool = false) -> void:
+	var chunks: Dictionary = {}
+	for xf: Transform3D in transforms:
+		var chunk_id: int = int(floor(xf.origin.z / CHUNK_ROWS))
+		if not chunks.has(chunk_id):
+			var list: Array[Transform3D] = []
+			chunks[chunk_id] = list
+		(chunks[chunk_id] as Array[Transform3D]).append(xf)
+	for chunk_id: Variant in chunks.keys():
+		_build_multimesh(parent, path, chunks[chunk_id] as Array[Transform3D], tint, shadows, textured)
 
 
 static func _build_multimesh(parent: Node3D, path: String, transforms: Array[Transform3D], tint: Color, shadows: bool, textured: bool = false) -> void:
@@ -238,6 +268,14 @@ static func _render_compounds(parent: Node3D, bp: ScenarioBlueprint, batches: Di
 				_render_shrine(batches, center_pos, face_yaw)
 			ScenarioBlueprint.COMPOUND_BOSS_MAUSOLEUM:
 				_render_boss_mausoleum(parent, batches, bp, origin, sz, center_pos, face_yaw, with_lights)
+			ScenarioBlueprint.COMPOUND_HOUSE, ScenarioBlueprint.COMPOUND_COTTAGE:
+				_render_house(batches, bp, comp, center_pos, face_yaw)
+			ScenarioBlueprint.COMPOUND_RUIN_HOUSE:
+				_render_courtyard_ruin(batches, bp, origin, sz, door_dir, center_pos, face_yaw, "stone-wall.glb", 0.6)
+			ScenarioBlueprint.COMPOUND_CHURCH_GATE:
+				_render_church_gate(batches, bp, origin, sz)
+			ScenarioBlueprint.COMPOUND_CITY_GATE:
+				_render_city_gate(batches, bp, comp)
 
 
 static func _pad_world_center(bp: ScenarioBlueprint, origin: Vector2i, sz: Vector2i) -> Vector3:
@@ -321,26 +359,26 @@ static func _render_cemetery(batches: Dictionary, bp: ScenarioBlueprint, origin:
 		_batch_add(batches, K_GRAVE + stones[i], st_pos, face_yaw, Vector3.ONE * 1.12, TINT_WALL, false)
 
 
-static func _render_courtyard_ruin(batches: Dictionary, bp: ScenarioBlueprint, origin: Vector2i, sz: Vector2i, door_dir: int, center: Vector3, face_yaw: float) -> void:
+static func _render_courtyard_ruin(batches: Dictionary, bp: ScenarioBlueprint, origin: Vector2i, sz: Vector2i, door_dir: int, center: Vector3, face_yaw: float, wall_name: String = "brick-wall.glb", pillar_scale: float = 0.85) -> void:
 	for dx: int in sz.x:
 		var x: int = origin.x + dx
 		if door_dir != ScenarioBlueprint.DIR_N:
-			_batch_add(batches, K_GRAVE + "brick-wall.glb", bp.world_of(Vector2i(x, origin.y)), ScenarioBlueprint.dir_yaw(ScenarioBlueprint.DIR_N), Vector3.ONE, TINT_WALL, true)
+			_batch_add(batches, K_GRAVE + wall_name, bp.world_of(Vector2i(x, origin.y)), ScenarioBlueprint.dir_yaw(ScenarioBlueprint.DIR_N), Vector3.ONE, TINT_WALL, true)
 		if door_dir != ScenarioBlueprint.DIR_S:
-			_batch_add(batches, K_GRAVE + "brick-wall.glb", bp.world_of(Vector2i(x, origin.y + sz.y - 1)), ScenarioBlueprint.dir_yaw(ScenarioBlueprint.DIR_S), Vector3.ONE, TINT_WALL, true)
+			_batch_add(batches, K_GRAVE + wall_name, bp.world_of(Vector2i(x, origin.y + sz.y - 1)), ScenarioBlueprint.dir_yaw(ScenarioBlueprint.DIR_S), Vector3.ONE, TINT_WALL, true)
 	for dz: int in sz.y:
 		var z: int = origin.y + dz
 		if door_dir != ScenarioBlueprint.DIR_W:
-			_batch_add(batches, K_GRAVE + "brick-wall.glb", bp.world_of(Vector2i(origin.x, z)), ScenarioBlueprint.dir_yaw(ScenarioBlueprint.DIR_W), Vector3.ONE, TINT_WALL, true)
+			_batch_add(batches, K_GRAVE + wall_name, bp.world_of(Vector2i(origin.x, z)), ScenarioBlueprint.dir_yaw(ScenarioBlueprint.DIR_W), Vector3.ONE, TINT_WALL, true)
 		if door_dir != ScenarioBlueprint.DIR_E:
-			_batch_add(batches, K_GRAVE + "brick-wall.glb", bp.world_of(Vector2i(origin.x + sz.x - 1, z)), ScenarioBlueprint.dir_yaw(ScenarioBlueprint.DIR_E), Vector3.ONE, TINT_WALL, true)
+			_batch_add(batches, K_GRAVE + wall_name, bp.world_of(Vector2i(origin.x + sz.x - 1, z)), ScenarioBlueprint.dir_yaw(ScenarioBlueprint.DIR_E), Vector3.ONE, TINT_WALL, true)
 
 	var nw: Vector3 = bp.world_of(origin) + Vector3(-0.36, 0.0, -0.36)
 	var ne: Vector3 = bp.world_of(Vector2i(origin.x + sz.x - 1, origin.y)) + Vector3(0.36, 0.0, -0.36)
 	var sw: Vector3 = bp.world_of(Vector2i(origin.x, origin.y + sz.y - 1)) + Vector3(-0.36, 0.0, 0.36)
 	var se: Vector3 = bp.world_of(origin + sz - Vector2i.ONE) + Vector3(0.36, 0.0, 0.36)
 	for corner_pos: Vector3 in [nw, ne, sw, se]:
-		_batch_add(batches, K_GRAVE + "pillar-square.glb", corner_pos, 0.0, Vector3.ONE * 0.85, TINT_WALL, true)
+		_batch_add(batches, K_GRAVE + "pillar-square.glb", corner_pos, 0.0, Vector3.ONE * pillar_scale, TINT_WALL, true)
 
 	var bench_pos: Vector3 = center + ScenarioBlueprint.rotate_offset_deg(Vector3(0.0, 0.0, -0.32 if sz.y <= 2 else -0.45), face_yaw)
 	var barrel_pos: Vector3 = center + ScenarioBlueprint.rotate_offset_deg(Vector3(-0.62, 0.0, 0.22 if sz.y <= 2 else 0.35), face_yaw)
@@ -414,97 +452,103 @@ static func _spawn_light(parent: Node3D, pos: Vector3, color: Color, energy: flo
 	parent.add_child(light)
 
 
-## Massa gótica do mapa (IDENTIDADE-VISUAL §C.2): fachadas altas atrás das ruas (o lado oposto à
-## câmera), ruínas baixas à frente (para não esconder os destinos), agulhas, janelas âmbar e a
-## catedral do chefe. Determinístico por semente (hash da célula). Só no mapa.
-const MASS_TINTS: Array[Color] = [Color(0.16, 0.17, 0.2), Color(0.12, 0.13, 0.16), Color(0.2, 0.21, 0.25)]
-const MASS_RADIUS: int = 4
-const WINDOW_COLOR: Color = Color(0.5, 0.28, 0.1)
+const WINDOW_COLOR: Color = Color(0.62, 0.34, 0.12)
 
 
-static func _cell_hash(cell: Vector2i, salt: int, seed_value: int) -> float:
-	var n: int = (cell.x * 73856093) ^ (cell.y * 19349663) ^ (salt * 83492791) ^ (seed_value * 2654435761)
-	n = (n ^ (n >> 13)) * 1274126177
-	n = n ^ (n >> 16)
-	return float(absi(n) % 1000) / 1000.0
-
-
-static func _render_gothic_mass(parent: Node3D, bp: ScenarioBlueprint, batches: Dictionary) -> void:
-	var walk: Array[Vector2i] = []
-	for z: int in bp.rows:
-		for x: int in bp.cols:
-			var c: Vector2i = Vector2i(x, z)
-			var zone: int = bp.zone_at(c)
-			if zone == ScenarioBlueprint.ZONE_ROAD or zone == ScenarioBlueprint.ZONE_PLAZA or zone == ScenarioBlueprint.ZONE_BRIDGE or zone == ScenarioBlueprint.ZONE_BUILDING or zone == ScenarioBlueprint.ZONE_COURTYARD:
-				walk.append(c)
+## Casa de empena (ADR-0060): corpo e telhado de duas águas (kit de cripta, escalado à planta), porta
+## em arco voltada para a rua e janelas acesas na fachada. Planta larga (4) vira duas casas geminadas.
+static func _render_house(batches: Dictionary, _bp: ScenarioBlueprint, comp: Dictionary, center: Vector3, face_yaw: float) -> void:
+	var sz: Vector2i = comp["size"] as Vector2i
+	var door_dir: int = int(comp["door_dir"])
+	var along_x: bool = door_dir == ScenarioBlueprint.DIR_S or door_dir == ScenarioBlueprint.DIR_N
+	var width: int = sz.x if along_x else sz.y
+	var depth: int = sz.y if along_x else sz.x
+	var variant: int = int(comp.get("variant", 0))
+	var modules: int = 2 if width >= 4 else 1
+	var module_w: float = float(width) / float(modules)
+	var sx: float = module_w / 1.85
+	var sz_depth: float = float(depth) / 2.4
+	var cottage: bool = int(comp["kind"]) == ScenarioBlueprint.COMPOUND_COTTAGE
+	var sy: float = 0.78 + 0.04 * float(variant % 3) if cottage else 1.3 + 0.06 * float(variant % 3)
 	var windows: Array[Transform3D] = []
-	for z: int in bp.rows:
-		for x: int in bp.cols:
-			var cell: Vector2i = Vector2i(x, z)
-			if bp.zone_at(cell) != ScenarioBlueprint.ZONE_TERRACE:
-				continue
-			var best: int = 99
-			var nearest: Vector2i = cell
-			var near_sum: int = 9999
-			for dz: int in range(-MASS_RADIUS - 2, MASS_RADIUS + 3):
-				for dx: int in range(-MASS_RADIUS - 2, MASS_RADIUS + 3):
-					var other: Vector2i = cell + Vector2i(dx, dz)
-					if not bp.in_bounds(other):
-						continue
-					var oz: int = bp.zone_at(other)
-					if oz == ScenarioBlueprint.ZONE_ROAD or oz == ScenarioBlueprint.ZONE_PLAZA or oz == ScenarioBlueprint.ZONE_BRIDGE or oz == ScenarioBlueprint.ZONE_BUILDING or oz == ScenarioBlueprint.ZONE_COURTYARD:
-						var d: int = maxi(absi(dx), absi(dz))
-						near_sum = mini(near_sum, other.x + other.y)
-						if d <= MASS_RADIUS and d < best:
-							best = d
-							nearest = other
-			if best > MASS_RADIUS:
-				continue
-			var away: Vector2i = cell - nearest
-			var front: bool = cell.x + cell.y >= near_sum - 1 or away.x + away.y > 0
-			var rnd: float = _cell_hash(cell, 1, bp.map_seed)
-			var height: float
-			if front:
-				if best > 1 or rnd > 0.45:
-					continue
-				height = 0.35 + 0.35 * rnd
-			else:
-				height = 2.0 + 1.2 * rnd + 0.9 * float(best - 1) + 1.1 * _cell_hash(cell, 2, bp.map_seed)
-			var base: Vector3 = bp.world_of(cell)
-			var tint: Color = MASS_TINTS[int(_cell_hash(cell, 3, bp.map_seed) * 3.0) % 3]
-			_batch_add(batches, K_MINI + "wall.glb", base, 90.0 * float(int(rnd * 4.0)), Vector3(1.0, height / 1.1, 1.0), tint, false)
-			if not front:
-				if _cell_hash(cell, 4, bp.map_seed) > 0.8:
-					_batch_add(batches, K_SCENERY + "spire.glb", base + Vector3(0, height, 0), 0.0, Vector3(0.5, 0.9, 0.5), tint, false)
-				elif _cell_hash(cell, 5, bp.map_seed) > 0.9:
-					_batch_add(batches, K_GRAVE + "cross-column.glb", base + Vector3(0, height, 0), 0.0, Vector3.ONE * 1.6, tint, false)
-				if best <= 2 and _cell_hash(cell, 6, bp.map_seed) < 0.22:
-					var wy: float = base.y + height * (0.45 + 0.3 * _cell_hash(cell, 7, bp.map_seed))
-					windows.append(Transform3D(Basis(Vector3.UP, deg_to_rad(90.0)), base + Vector3(0.505, wy - base.y, 0.0)))
-					windows.append(Transform3D(Basis.IDENTITY, base + Vector3(0.0, wy - base.y, 0.505)))
-	_render_cathedral(parent, bp, batches, windows)
-	_build_window_quads(parent, windows)
+	if batches.has(WINDOWS_KEY):
+		windows = batches[WINDOWS_KEY] as Array[Transform3D]
+	for m: int in modules:
+		var local_x: float = (float(m) - float(modules - 1) * 0.5) * module_w
+		var pos: Vector3 = center + ScenarioBlueprint.rotate_offset_deg(Vector3(local_x, 0.0, 0.0), face_yaw)
+		var scale_vec: Vector3 = Vector3(sx, sy, sz_depth)
+		_batch_add(batches, K_GRAVE + "crypt-large.glb", pos, face_yaw, scale_vec, TINT_HOUSE, true)
+		_batch_add(batches, K_GRAVE + "crypt-large-roof.glb", pos + Vector3(0.0, sy, 0.0), face_yaw, scale_vec, TINT_HOUSE_ROOF, true)
+		var facade_z: float = float(depth) * 0.5 + 0.02
+		for side: float in [-0.62, 0.62]:
+			var wpos: Vector3 = pos + ScenarioBlueprint.rotate_offset_deg(Vector3(side * module_w * 0.5, 0.95, facade_z), face_yaw)
+			windows.append(Transform3D(Basis(Vector3.UP, deg_to_rad(face_yaw)).scaled(Vector3(1.0, 1.15, 1.0)), wpos))
+	batches[WINDOWS_KEY] = windows
+	if variant % 3 == 0 and not cottage:
+		var top: Vector3 = center + ScenarioBlueprint.rotate_offset_deg(Vector3(0.0, sy + 0.8, float(depth) * -0.25), face_yaw)
+		_batch_add(batches, K_SCENERY + "spire.glb", top, 0.0, Vector3(0.18, 0.2, 0.18), TINT_HOUSE_ROOF, false)
 
 
-static func _render_cathedral(_parent: Node3D, bp: ScenarioBlueprint, batches: Dictionary, windows: Array[Transform3D]) -> void:
-	for comp: Dictionary in bp.compounds:
-		if int(comp["kind"]) != ScenarioBlueprint.COMPOUND_BOSS_MAUSOLEUM:
+## Muro e portão do adro, atrás do chefe: o portão de ferro fica no eixo da escadaria e da igreja.
+static func _render_church_gate(batches: Dictionary, bp: ScenarioBlueprint, origin: Vector2i, sz: Vector2i) -> void:
+	var mid_x: int = origin.x + sz.x / 2
+	for dx: int in sz.x:
+		var cell: Vector2i = origin + Vector2i(dx, 0)
+		var pos: Vector3 = bp.world_of(cell)
+		var off: int = absi(cell.x - mid_x)
+		if off == 0:
+			_batch_add(batches, K_GRAVE + "iron-fence-border-gate.glb", pos, 0.0, Vector3(1.0, 1.9, 1.7), TINT_FENCE, false)
+		elif off == 1:
+			_batch_add(batches, K_GRAVE + "iron-fence-border.glb", pos, 0.0, Vector3(1.0, 1.9, 1.7), TINT_FENCE, false)
+		elif off == 2:
+			_batch_add(batches, K_GRAVE + "pillar-square.glb", pos, 0.0, Vector3(1.7, 1.9, 1.7), TINT_WALL, true)
+		else:
+			_batch_add(batches, K_GRAVE + "stone-wall.glb", pos, 0.0, Vector3(1.0, 1.8, 1.6), TINT_WALL, true)
+			_batch_add(batches, K_GRAVE + "iron-fence-border.glb", pos + Vector3(0.0, 1.3, 0.0), 0.0, Vector3(1.0, 1.2, 1.0), TINT_FENCE, false)
+	var brazier_l: Vector3 = bp.world_of(Vector2i(mid_x - 3, origin.y + 2))
+	var brazier_r: Vector3 = bp.world_of(Vector2i(mid_x + 3, origin.y + 2))
+	_add_brazier(batches, brazier_l)
+	_add_brazier(batches, brazier_r)
+
+
+## Portão em ruína da entrada: dois pilares baixos e restos de muro (nada acima da altura que
+## esconderia a Bibiana na câmera).
+static func _render_city_gate(batches: Dictionary, bp: ScenarioBlueprint, comp: Dictionary) -> void:
+	var origin: Vector2i = comp["origin"] as Vector2i
+	for raw: Variant in comp["cells"]:
+		var cell: Vector2i = raw as Vector2i
+		var dx: int = cell.x - origin.x
+		var pos: Vector3 = bp.world_of(cell)
+		if dx == 2 or dx == 4:
+			_batch_add(batches, K_GRAVE + "pillar-square.glb", pos, 0.0, Vector3(1.5, 0.62, 1.5), TINT_WALL, true)
+		elif dx == 1 or dx == 5:
+			_batch_add(batches, K_GRAVE + "stone-wall-damaged.glb", pos, 0.0, Vector3.ONE, TINT_WALL, true)
+		else:
+			_batch_add(batches, K_GRAVE + "debris.glb", pos, float(dx * 50), Vector3.ONE * 1.3, Color(0.5, 0.5, 0.55), false)
+
+
+## Braseiro: cesto de ferro escuro com chama âmbar (dois quads cruzados, sem luz dinâmica).
+static func _add_brazier(batches: Dictionary, pos: Vector3) -> void:
+	_batch_add(batches, K_GRAVE + "fire-basket.glb", pos, 0.0, Vector3.ONE * 1.7, Color(0.2, 0.2, 0.24), false)
+	var windows: Array[Transform3D] = []
+	if batches.has(WINDOWS_KEY):
+		windows = batches[WINDOWS_KEY] as Array[Transform3D]
+	for yaw: float in [45.0, -45.0]:
+		windows.append(Transform3D(Basis(Vector3.UP, deg_to_rad(yaw)).scaled(Vector3(1.3, 1.3, 1.0)), pos + Vector3(0.0, 0.5, 0.0)))
+	batches[WINDOWS_KEY] = windows
+
+
+## Cenografia dos lugares (abrigo, sala em ruínas, campo-santo, grade da praça de armas...).
+static func _render_dress(bp: ScenarioBlueprint, batches: Dictionary) -> void:
+	for piece: Dictionary in bp.plaza_dress:
+		var cell: Vector2i = piece["cell"] as Vector2i
+		var pos: Vector3 = bp.world_of(cell) + Vector3(0.0, float(piece.get("lift", 0.0)), 0.0)
+		var rel: String = str(piece["asset"])
+		var big: bool = rel.contains("stone-wall") or rel.contains("iron-fence")
+		if rel.contains("fire-basket"):
+			_add_brazier(batches, pos)
 			continue
-		var origin: Vector2i = comp["origin"] as Vector2i
-		var sz: Vector2i = comp["size"] as Vector2i
-		var center: Vector3 = _pad_world_center(bp, origin, sz) + Vector3(0.0, 0.0, -3.0)
-		var dark: Color = Color(0.1, 0.11, 0.14)
-		# Fachada da catedral: arcada ogival alta, torres com agulhas e contrafortes.
-		_batch_add(batches, K_SCENERY + "ogive_arcade.glb", center, 0.0, Vector3(1.5, 2.2, 1.5), dark, false)
-		_batch_add(batches, K_SCENERY + "ogive_arch.glb", center + Vector3(0.0, 0.0, -1.2), 0.0, Vector3(1.3, 2.4, 1.3), dark.darkened(0.2), false)
-		for side: float in [-4.6, 4.6]:
-			_batch_add(batches, K_MINI + "wall.glb", center + Vector3(side, 0.0, 0.2), 0.0, Vector3(2.0, 11.0, 2.0), dark, false)
-			_batch_add(batches, K_SCENERY + "spire.glb", center + Vector3(side, 11.0 * 1.1, 0.2), 0.0, Vector3(1.6, 2.4, 1.6), dark, false)
-			_batch_add(batches, K_SCENERY + "buttress.glb", center + Vector3(side * 0.62, 0.0, 1.0), 0.0, Vector3(1.0, 1.5, 1.0), dark, false)
-		_batch_add(batches, K_SCENERY + "spire.glb", center + Vector3(0.0, 13.0, -1.0), 0.0, Vector3(2.2, 2.6, 2.2), dark, false)
-		# Vitral âmbar tênue entre as torres (a promessa de luz do chefe).
-		windows.append(Transform3D(Basis.IDENTITY.scaled(Vector3(2.4, 5.0, 1.0)), center + Vector3(0.0, 5.2, -1.0)))
-		windows.append(Transform3D(Basis.IDENTITY.scaled(Vector3(1.2, 3.0, 1.0)), center + Vector3(-3.2, 4.0, 1.4)))
+		_batch_add(batches, "res://assets/kenney/" + rel, pos, float(piece["yaw"]), piece["scale"] as Vector3, piece["tint"] as Color, big)
 
 
 static func _build_window_quads(parent: Node3D, windows: Array[Transform3D]) -> void:

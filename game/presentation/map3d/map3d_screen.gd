@@ -46,6 +46,8 @@ var _hero_cell: Vector2i
 var _fog: MultiMeshInstance3D
 var _fog_now: PackedFloat32Array = PackedFloat32Array()
 var _fog_goal: PackedFloat32Array = PackedFloat32Array()
+## Índice da folha de névoa de cada célula da grade (-1 no vazio).
+var _fog_slot: PackedInt32Array = PackedInt32Array()
 var _cam_target: Vector3 = Vector3.ZERO
 var _walking: bool = false
 ## Primeiro toque abre a prévia do destino, o segundo (ou "Caminhar") confirma (ADR-0048, D-UI-3).
@@ -195,15 +197,25 @@ func _build_fog() -> void:
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	multi.use_colors = true
 	multi.mesh = sheet
-	multi.instance_count = layout.cols * layout.rows
+	# Só as células sólidas ganham folha de névoa (o vazio não gasta primitivas, ADR-0060).
+	_fog_slot.resize(layout.cols * layout.rows)
+	var solid: int = 0
 	for z: int in layout.rows:
 		for x: int in layout.cols:
-			var cell: Vector2i = Vector2i(x, z)
-			if layout.blueprint.zone_at(cell) == ScenarioBlueprint.ZONE_VOID:
-				multi.set_instance_transform(z * layout.cols + x, Transform3D(Basis.IDENTITY.scaled(Vector3.ZERO), Vector3.ZERO))
+			if layout.blueprint.zone_at(Vector2i(x, z)) == ScenarioBlueprint.ZONE_VOID:
+				_fog_slot[z * layout.cols + x] = -1
 			else:
-				var lift: float = (layout.height_at(cell) + 1) * Map3DLayout.BLOCK_H + FOG_SHEET_LIFT
-				multi.set_instance_transform(z * layout.cols + x, Transform3D(Basis.IDENTITY, Vector3(x, lift, z)))
+				_fog_slot[z * layout.cols + x] = solid
+				solid += 1
+	multi.instance_count = solid
+	for z: int in layout.rows:
+		for x: int in layout.cols:
+			var slot: int = _fog_slot[z * layout.cols + x]
+			if slot < 0:
+				continue
+			var cell: Vector2i = Vector2i(x, z)
+			var lift: float = (layout.height_at(cell) + 1) * Map3DLayout.BLOCK_H + FOG_SHEET_LIFT
+			multi.set_instance_transform(slot, Transform3D(Basis.IDENTITY, Vector3(x, lift, z)))
 	_fog = MultiMeshInstance3D.new()
 	_fog.multimesh = multi
 	_world.add_child(_fog)
@@ -238,8 +250,8 @@ func _fog_alphas(current_layer: int, visible_layer: int) -> PackedFloat32Array:
 func _apply_fog(all: bool = false) -> void:
 	var multi: MultiMesh = _fog.multimesh
 	for i: int in _fog_now.size():
-		if all or not is_equal_approx(_fog_now[i], _fog_goal[i]):
-			multi.set_instance_color(i, Color(1, 1, 1, _fog_now[i]))
+		if _fog_slot[i] >= 0 and (all or not is_equal_approx(_fog_now[i], _fog_goal[i])):
+			multi.set_instance_color(_fog_slot[i], Color(1, 1, 1, _fog_now[i]))
 
 
 ## Ao voltar ao mapa a névoa recua em volta do novo destino (0,6 a 1 s) e a câmera desliza.
@@ -580,6 +592,9 @@ func _add_vignette() -> void:
 ## Ponto que a câmera mira: entre a Bibiana e o centro dos destinos, para mostrar os três caminhos.
 func _aim_point(from_node_id: int) -> Vector3:
 	var here: Vector3 = layout.node_world(from_node_id)
+	# Na última camada, a mira vai ao chefe: ele aparece diante da igreja pintada (ADR-0060).
+	if view.run.map.node_by_id(from_node_id).layer >= view.run.map.layer_count:
+		return layout.node_world(view.run.map.boss_id)
 	var next_ids: PackedInt32Array = view.run.map.node_by_id(from_node_id).next_ids
 	if next_ids.is_empty():
 		return here + CAM_LOOKAHEAD

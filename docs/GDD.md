@@ -742,6 +742,8 @@ O cânone visual e atmosférico obrigatório em todo cenário, profundidade e as
 
 ### Geração do tabuleiro
 
+**Cidade gótica (ADR-0060, TASK-073):** no Cidade Abandonada o tabuleiro é uma cidade murada que sobe, em socalcos, do portão em ruína até o adro da igreja: a rua principal avança na diagonal da câmera (a igreja pintada fica acima do chefe), praças ligadas por ruas, casas de empena com porta para a rua, escadas nos desníveis, um canal com pontes e o chefe no ponto mais alto, diante do portão de ferro. Cada tipo de nó é um lugar (baú numa casa em ruínas, fogueira numa praça abrigada, evento num campo-santo). Estrutura completa em `docs/design/ESTRUTURA-TABULEIRO-GOTICO.md`. Os seis passos abaixo continuam valendo como contrato geral.
+
 1. **Layout:** o grafo ganha posições em uma grade isométrica (camadas da esquerda para a direita ou de baixo para cima).
 2. **Estradas:** caminhos entre nós são traçados com busca de caminho na grade, com curvas leves para não parecerem linhas retas.
 3. **Praças:** cada nó vira uma praça com props que dizem o tipo (fogueira acesa, baú, forca, altar).

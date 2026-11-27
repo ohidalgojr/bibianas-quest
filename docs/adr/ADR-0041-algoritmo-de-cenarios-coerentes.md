@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aceito |
+| Status | Aceito (o tabuleiro do mapa foi refinado pelo ADR-0060: cidade gótica, orientação diagonal e regra de oclusão geral) |
 | Data | 2026-11-19 |
 | Tarefa | TASK-053 |
 | GDD | 5, 17, 18 |
