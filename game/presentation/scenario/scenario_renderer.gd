@@ -169,11 +169,46 @@ static func _build_chunked(parent: Node3D, path: String, transforms: Array[Trans
 		_build_multimesh(parent, path, chunks[chunk_id] as Array[Transform3D], tint, shadows, textured)
 
 
+## Texturas pintadas do Gemini por tipo de peça, escolhidas pelo tom da peça (TASK-077): reboco com
+## madeira nas casas, ardósia nos telhados, pedra de arrimo nos muros e entulho nos pátios.
+const TEX_DIR: String = "res://assets/bibiana/textures/"
+
+
+## {textura, tom, repetições por unidade} da peça com este tom, ou vazio se ela fica com a cor do kit.
+static func _piece_texture(tint: Color) -> Dictionary:
+	var file_name: String = ""
+	var paint: Color = Color(0.92, 0.9, 0.9)
+	var scale_f: float = 0.3
+	if tint == TINT_HOUSE:
+		file_name = "wall_plaster_timber.jpg"
+		paint = Color(0.82, 0.78, 0.76)
+		scale_f = 0.34
+	elif tint == TINT_HOUSE_ROOF or tint == TINT_ROOF:
+		file_name = "roof_slate.jpg"
+		paint = Color(0.78, 0.8, 0.88)
+		scale_f = 0.55
+	elif tint == TINT_WALL:
+		file_name = "stone_retaining_wall.jpg"
+		paint = Color(0.86, 0.84, 0.86)
+		scale_f = 0.36
+	elif tint == TINT_COURT_TILE:
+		file_name = "ground_rubble.jpg"
+		paint = Color(0.8, 0.78, 0.82)
+		scale_f = 0.26
+	if file_name.is_empty() or not ResourceLoader.exists(TEX_DIR + file_name):
+		return {}
+	return {"texture": load(TEX_DIR + file_name) as Texture2D, "tint": paint, "scale": scale_f}
+
+
 static func _build_multimesh(parent: Node3D, path: String, transforms: Array[Transform3D], tint: Color, shadows: bool, textured: bool = false) -> void:
 	if transforms.is_empty():
 		return
 	var before_count: int = parent.get_child_count()
-	StageKit.multimesh_from(parent, path, transforms, tint, _stone() if textured else null)
+	var piece: Dictionary = _piece_texture(tint)
+	if not piece.is_empty():
+		StageKit.multimesh_from(parent, path, transforms, piece["tint"] as Color, piece["texture"] as Texture2D, float(piece["scale"]))
+	else:
+		StageKit.multimesh_from(parent, path, transforms, tint, _stone() if textured else null)
 	if not shadows and parent.get_child_count() > before_count:
 		var holder: Node = parent.get_child(parent.get_child_count() - 1)
 		if holder is GeometryInstance3D:

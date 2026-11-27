@@ -421,7 +421,9 @@ func _build_node(info: Dictionary) -> void:
 			fire.position = at + Vector3(0, 1.0, 0)
 			_node_root.add_child(fire)
 		MapNode.Kind.EVENT:
-			_place_sprite("gothic_tombstone", at, 2.4)
+			# Cada evento ganha um lugar: poço, forca de três cordas ou lápide (TASK-077).
+			var spot: Array[String] = ["well_stone", "gallows_post_3ropes", "gothic_tombstone"]
+			_place_sprite(spot[node.id % spot.size()], at, 2.5)
 		_:
 			pass
 
