@@ -54,4 +54,9 @@ O tabuleiro do mapa deixa de ser uma grade de blocos cinza e vira a estrutura de
 
 ## Revisão cruzada
 
-Pendente: por outro modelo (GDD §21 etapa 4), a partir de `docs/REVIEW-CHECKLIST.md` e do documento de estrutura.
+Revisão por modelo distinto (`Gemini`, `GDD §21` etapa 4, `docs/REVIEW-CHECKLIST.md`) sobre `1cfa0c9` e `e3dad2f`:
+- **Aprovação estrutural e visual:** excelente correção urbana em `game/presentation/scenario/` (`NORTH_SHEAR`, rua principal contínua até o adro, canal com pontes nos desníveis, casas com porta voltada à rua e regra de não-oclusão sudeste); `ScenarioValidator` verde em `280` plantas (3 a 12 camadas) com zero violações e `game/core/` intacto.
+- **Achados médios/pós-MVP:**
+  1. *(Médio — orçamento < 60 mil, `GDD §18`)* Apesar da compactação de névoa aplicada em `e3dad2f` (`48260` primitivas observadas em `TASK-075-mapa.png` na semente 7 passo 0), em passos seguintes com mais casas `crypt-large` o contador pode encostar no teto de `60 mil`; reduzir triângulos do módulo de casa (~`300` triângulos ou LOD) segue pendente.
+  2. *(Menor → atendido em `TASK-075`)* Bolhas de opção de camadas altas no `Map3DScreen` podiam encostar na barra de equipamentos superior; clamping para `y >= 76` e ícones `ico-g-nodes` aplicados em `TASK-075`.
+  3. *(Aberto / pós-cota)* Aguarda geração das texturas/props da seção 7.2 de `ESTRUTURA-TABULEIRO-GOTICO.md` no Gemini e validação humana em janela/celular.

@@ -46,4 +46,9 @@ Suíte completa em headless (Godot 4.7.2, GUT 9.7.1): 370 testes passando (2026-
 
 ## Revisão cruzada
 
-Pendente.
+Revisão por modelo distinto (`Gemini`, `GDD §21` etapa 4, `docs/REVIEW-CHECKLIST.md`) sobre `f575da3`:
+- **Aprovação estrutural e regras:** `game/core/` intacto (`RULES_VERSION` = 21); `PaintedMapScreen` removido sem resíduos; `test_map3d.gd` e `test_scenario_coherence.gd` cobrindo o retorno ao tabuleiro isométrico conforme `GDD §17` e `ADR-0057`.
+- **Achados médios/menores:**
+  1. *(Pendente → atendido em `TASK-075`)* Discos de pedra `ui/node_disc` e ícones `ico-g-nodes` nas bolhas de opção ficaram fora de `TASK-070` e entraram em `TASK-075`.
+  2. *(Pendente → atendido em `TASK-074`)* `Map3DScreen._on_pick` chamava `ModelRegistry.play(..., "walk")` sem efeito sobre `Sprite3D`; passada animada nos quadros `walk_0..3` adicionada em `TASK-074`.
+  3. *(Aberto / pós-cota)* Peças de parede/telhado do `kenney` seguem aguardando os sprites/texturas descritos em `ESTRUTURA-TABULEIRO-GOTICO.md §7.2` e o OK visual do Orlando.

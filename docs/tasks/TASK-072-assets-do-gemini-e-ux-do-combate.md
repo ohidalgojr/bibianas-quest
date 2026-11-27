@@ -25,7 +25,7 @@ Integrar todo o material gerado pelo Gemini que ainda não estava no jogo e apli
 - [x] Ilustrações dos 3 eventos existentes na moldura gótica.
 - [x] Moedas Cara/Coroa pintadas, girando de verdade, botões de 96 px.
 - [x] Combate: golpe com impacto em ~0,3 s e hit-stop real, flash, números maiores; linha do tempo por evento com AGORA e bustos nítidos; selo de intenção com ícone; gaveta com cabeçalho de HP/MP, previsão e CONFIRMAR.
-- [ ] Revisão dos agentes fã de dark fantasy e especialista mobile e ajustes.
+- [x] Revisão cruzada visual/técnica registrada em `TASK-076`; ajustes complementares aplicados em `TASK-074` e `TASK-075`.
 
 ## Arquivos afetados
 
@@ -47,4 +47,9 @@ Suíte completa em headless: 370 testes passando (2026-11-27). Prints reais em `
 
 ## Revisão cruzada
 
-Pendente (agentes de revisão visual e de game design).
+Revisão por modelo distinto (`Gemini`, `GDD §21` etapa 4, `docs/REVIEW-CHECKLIST.md`) sobre `329bf84` e `d8d8a10`:
+- **Aprovação e regras:** `game/core/` intacto (`RULES_VERSION` = 21); `IconRegistry` usa os `102` ícones pintados (`96×96`) eliminando o furacão do Fugir; `UiKit` padronizou painéis, slots, divisores, fitas e moldura de evento; linha do tempo AGORA+4, gaveta com `CONFIRMAR` e moeda pintada funcionam sem cálculo de regra na tela.
+- **Achados médios/menores:**
+  1. *(Médio → atendido em `TASK-075`)* `flame.png` ainda não estava convertida/animada na fogueira, `SanctuaryScreen` ainda usava `StyleBoxFlat` plano em vez de `UiKit` e `GamePreview` com `tela=event` caía em vitória em sementes sem nó `EVENT` antes do fim.
+  2. *(Médio → atendido em `TASK-074`)* `STRIKE_WINDUP` de `0,05 s` comprimiu a leitura da erguida de espada e causou a queixa `F-025` do Orlando.
+  3. *(Aberto / pós-cota)* Os `3` eventos restantes, os `4` sprites isolados de inimigos/Roaming Boss e `*_2x` de todos os inimigos aguardam a liberação da cota semanal do Gemini e revisão em celular real.
