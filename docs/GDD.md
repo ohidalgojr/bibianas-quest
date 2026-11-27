@@ -142,6 +142,10 @@ A Bibiana escolhe um de três destinos por camada, e só esses três mostram o t
 
 Os valores são ponto de partida para o protótipo; a seção 23 explica como calibrar.
 
+### Garantia de lutas por rota (ADR-0067)
+
+Nenhuma rota do início ao chefe passa por menos de **2 lutas** (batalha, emboscada, elite ou mini boss). Se a rota mais pobre em lutas tiver menos, o gerador transforma, sem sorteio, o primeiro baú ou evento dela em batalha comum; fogueiras não mudam. A suavização da vencibilidade respeita a mesma regra. Motivo: a Descida só de baú, fogueira e evento chegava ao chefe sem desafio nem Poder (revisão de game design).
+
 ### Garantia de vencibilidade
 
 A geração precisa provar que existe um caminho que um jogador mediano consegue vencer. O gerador faz isso em três passos:

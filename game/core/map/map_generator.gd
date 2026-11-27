@@ -23,7 +23,66 @@ static func generate(config: MapConfig, rng: Pcg32) -> MapGraph:
 			node.kind = _draw_kind(graph, config, node, elites, rng)
 			if node.kind == MapNode.Kind.ELITE:
 				elites += 1
+	_ensure_fights_on_every_route(graph)
 	return graph
+
+
+## GDD §5 (ADR-0067): nenhuma rota do início ao chefe passa por menos de 2 lutas. Sem isso, a Descida só
+## de baú, fogueira e evento chegava ao chefe sem desafio nem Poder. Reparo determinístico, sem sorteio:
+## enquanto a rota mais pobre em lutas tiver menos de [constant MIN_FIGHTS_PER_ROUTE], o primeiro baú ou
+## evento dela vira batalha comum (fogueiras ficam como estão).
+const MIN_FIGHTS_PER_ROUTE: int = 2
+
+
+static func _is_fight_kind(kind: MapNode.Kind) -> bool:
+	return kind == MapNode.Kind.BATTLE or kind == MapNode.Kind.AMBUSH or kind == MapNode.Kind.ELITE \
+		or kind == MapNode.Kind.MINI_BOSS
+
+
+## Menor número de lutas (antes do chefe) entre as rotas do início ao chefe, e uma rota que o atinge.
+static func _poorest_route(graph: MapGraph) -> Dictionary:
+	var best: Dictionary = {}
+	var route: Dictionary = {}
+	for layer: int in range(graph.layer_count, -1, -1):
+		for node: MapNode in graph.layer_nodes(layer):
+			var fights_here: int = 1 if (layer > 0 and _is_fight_kind(node.kind)) else 0
+			if node.next_ids.is_empty() or layer == graph.layer_count:
+				best[node.id] = fights_here
+				route[node.id] = [node.id]
+				continue
+			var pick: int = -1
+			var pick_fights: int = 1 << 30
+			for next_id: int in node.next_ids:
+				if next_id == graph.boss_id or not best.has(next_id):
+					continue
+				if int(best[next_id]) < pick_fights:
+					pick_fights = int(best[next_id])
+					pick = next_id
+			if pick < 0:
+				best[node.id] = fights_here
+				route[node.id] = [node.id]
+			else:
+				best[node.id] = fights_here + pick_fights
+				var chain: Array = [node.id]
+				chain.append_array(route[pick] as Array)
+				route[node.id] = chain
+	return {"fights": int(best.get(graph.start_id, 0)), "route": route.get(graph.start_id, [])}
+
+
+static func _ensure_fights_on_every_route(graph: MapGraph) -> void:
+	for attempt: int in graph.layer_count * graph.width:
+		var poorest: Dictionary = _poorest_route(graph)
+		if int(poorest["fights"]) >= MIN_FIGHTS_PER_ROUTE:
+			return
+		var fixed: bool = false
+		for id: Variant in poorest["route"] as Array:
+			var node: MapNode = graph.node_by_id(int(id))
+			if node.layer > 0 and (node.kind == MapNode.Kind.CHEST or node.kind == MapNode.Kind.EVENT):
+				node.kind = MapNode.Kind.BATTLE
+				fixed = true
+				break
+		if not fixed:
+			return
 
 
 ## A penúltima camada recebe uma fogueira em uma coluna que aparece nas 3 opções de

@@ -225,7 +225,7 @@ func new_run(run_seed: int = -1) -> void:
 		_seed_counter += 1
 		run_seed = int(Time.get_unix_time_from_system()) * 1000 + _seed_counter
 	_logged_events = 0
-	_page("Gerando o mapa...", "Semente %d. Conferindo se há caminho vencível (GDD §5)." % run_seed)
+	_page("Gerando o mapa...", "A cidade se refaz na névoa... (semente %d)" % run_seed)
 	if use_thread:
 		_thread = Thread.new()
 		_thread.start(_create_run.bind(run_seed))
@@ -400,6 +400,8 @@ func _show_result() -> void:
 	box.add_child(_label(str(summary["tip_line"])))
 	box.add_child(_label(str(summary["accomplished_line"])))
 	box.add_child(_label(str(summary["next_line"])))
+	if not str(summary["unlock_line"]).is_empty():
+		box.add_child(_label(str(summary["unlock_line"])))
 	box.add_child(_button("Outra Descida", func() -> void: new_run()))
 	box.add_child(_button("Santuário (Ecos: %d)" % echoes, func() -> void: show_sanctuary()))
 	box.add_child(_button("Início", show_home))
@@ -517,17 +519,25 @@ func _page(title: String, text: String, scene_kind: String = "") -> VBoxContaine
 		backdrop.kind = scene_kind
 		backdrop.time_scale = time_scale
 		page.add_child(backdrop)
-	var center: CenterContainer = CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	page.add_child(center)
 	var box: VBoxContainer = _titled_box(title, text)
 	if scene_on:
-		center.anchor_top = 0.44
+		# Painel rolável: textos longos (fim da Descida) não empurram os botões para fora da tela.
+		var scroll: ScrollContainer = ScrollContainer.new()
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.anchor_left = 0.03
+		scroll.anchor_right = 0.97
+		scroll.anchor_top = 0.42
+		scroll.anchor_bottom = 0.985
+		page.add_child(scroll)
 		var frame: PanelContainer = PanelContainer.new()
+		frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		frame.add_theme_stylebox_override("panel", UiKit.panel(40))
 		frame.add_child(box)
-		center.add_child(frame)
+		scroll.add_child(frame)
 	else:
+		var center: CenterContainer = CenterContainer.new()
+		center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		page.add_child(center)
 		center.add_child(box)
 	_set_content(page)
 	return box

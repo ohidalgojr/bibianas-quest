@@ -72,6 +72,9 @@ var _mist: TextureRect
 var _pursuer_banner: PanelContainer
 var _pursuer_text: Label
 var _last_pursuer_distance: int = -1
+var _tip_panel: PanelContainer
+var _tip_text: Label
+var _tip_hidden_step: int = -1
 
 
 func _ready() -> void:
@@ -346,6 +349,7 @@ func refresh() -> void:
 		_build_node(node_view)
 	_build_hero()
 	_build_pursuer()
+	_build_tip()
 	_fog_goal = _fog_alphas(view.run.current_node().layer, view.visible_layer())
 	if time_scale <= 0.0:
 		_fog_now = _fog_goal.duplicate()
@@ -410,6 +414,47 @@ func _build_pursuer() -> void:
 	glow.omni_range = 5.0
 	glow.position = layout.node_world(spot) + Vector3(0, 1.8, 0)
 	_node_root.add_child(glow)
+
+
+## Dicas da 1ª Descida (revisão de game design, P0 4): uma por etapa, só no começo, tocar fecha.
+const TIPS: Array[String] = [
+	"Toque num destino para ver a prévia e em Caminhar para ir. O número vermelho é o nível do inimigo.",
+	"Cada vitória dá Poder e ouro. Elites e chefes dão bem mais. Poder sobe seus atributos.",
+	"Quando o aviso for de MOEDA, escolha Cara ou Coroa. Defender corta a consequência da coroa.",
+	"Fogueira: arme com um Galho Seco e descanse. Baú dá ouro, e a loja vem depois de cada luta.",
+]
+
+
+func _build_tip() -> void:
+	var run: RunState = view.run
+	var step: int = run.nodes_cleared
+	var show: bool = run.first_run and step < TIPS.size() and _tip_hidden_step != step
+	if _tip_panel == null:
+		_tip_panel = PanelContainer.new()
+		var box: StyleBoxFlat = StyleBoxFlat.new()
+		box.bg_color = Color(0.05, 0.055, 0.075, 0.92)
+		box.border_color = Color(0.74, 0.58, 0.28)
+		box.set_border_width_all(2)
+		box.set_corner_radius_all(6)
+		box.set_content_margin_all(8)
+		_tip_panel.add_theme_stylebox_override("panel", box)
+		_tip_panel.position = Vector2(10, 126)
+		_tip_panel.custom_minimum_size = Vector2(520, 0)
+		_tip_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+		_tip_text = Label.new()
+		_tip_text.add_theme_font_size_override("font_size", 16)
+		_tip_text.add_theme_color_override("font_color", Color(0.93, 0.88, 0.74))
+		_tip_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_tip_text.custom_minimum_size = Vector2(500, 0)
+		_tip_panel.add_child(_tip_text)
+		_tip_panel.gui_input.connect(func(input_event: InputEvent) -> void:
+			if input_event is InputEventMouseButton and (input_event as InputEventMouseButton).pressed:
+				_tip_hidden_step = view.run.nodes_cleared
+				_tip_panel.visible = false)
+		add_child(_tip_panel)
+	_tip_panel.visible = show
+	if show:
+		_tip_text.text = "Dica: %s (toque para fechar)" % TIPS[step]
 
 
 func _build_node(info: Dictionary) -> void:

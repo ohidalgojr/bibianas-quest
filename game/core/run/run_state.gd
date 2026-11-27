@@ -235,17 +235,32 @@ func end_summary(total_echoes_after: int = -1) -> Dictionary:
 	var killer_name: String = str(data.enemies[defeated_by_id]["name"]) if data.enemies.has(defeated_by_id) else "?"
 	var killer_line: String = ""
 	if not victory:
-		killer_line = "Derrotada por %s, nível %d (ficou com %d%% de HP)." % [
+		killer_line = "Derrotada por %s, nível %d, que ficou com %d%% da vida." % [
 			killer_name, defeated_by_level, maxi(defeated_by_hp_percent, 1)]
 	var reached_layer: int = maxi(current_node().layer, 0) if map != null and current_node() != null else 0
-	var accomplished: String = "Conquistado: camada %d/%d, Nível %d (Poder %.2f), ouro %d, %d nós, %d inimigos derrotados, %d chefe(s)." % [
-		reached_layer, map.layer_count if map != null else 6, level(), power, gold, nodes_cleared, enemies_defeated, bosses_defeated()]
+	var total_layers: int = map.layer_count if map != null else 6
+	reached_layer = mini(reached_layer, total_layers)
+	var accomplished: String = "Conquistado: camada %d de %d, Nível %d (Poder %.2f), ouro %d, %d nós, %d inimigos derrotados, %d chefe(s)." % [
+		reached_layer, total_layers, level(), power, gold, nodes_cleared, enemies_defeated, bosses_defeated()]
 	var bonus_tag: String = " (em dobro na 1ª Descida!)" if first_run else ""
 	var next_line: String = "Ecos ganhos: +%d%s (total %d). Nenhuma Descida se perde: os Ecos ficam para a próxima Descida." % [
 		earned, bonus_tag, total]
+	# Próximo desbloqueio do Santuário: o mais barato ainda não comprado (revisão de game design).
+	var unlock_line: String = ""
+	var cheapest: Dictionary = {}
+	for entry: Dictionary in SanctuaryRules.catalog():
+		if meta_unlocks.has(str(entry["id"])):
+			continue
+		if cheapest.is_empty() or int(entry["cost"]) < int(cheapest["cost"]):
+			cheapest = entry
+	if not cheapest.is_empty():
+		var missing: int = maxi(int(cheapest["cost"]) - total, 0)
+		unlock_line = "Próximo no Santuário: %s (custo %d Ecos%s)." % [str(cheapest["name"]), int(cheapest["cost"]),
+			", já dá para comprar" if missing == 0 else ", faltam %d" % missing]
 	return {
 		"victory": victory,
 		"first_run": first_run,
+		"unlock_line": unlock_line,
 		"echoes": earned,
 		"killer_line": killer_line,
 		"tip_line": teaching_tip(),

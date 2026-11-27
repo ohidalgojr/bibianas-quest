@@ -72,7 +72,8 @@ func test_different_seeds_give_different_maps() -> void:
 
 func test_golden_maps_pin_the_generation() -> void:
 	# Se estes textos mudarem, as Descidas gravadas mudaram: exige ADR e RULES_VERSION.
-	assert_eq(_generate(12345, MapConfig.for_scenario(1)).signature(), "4x4@1/BVAB/VBAC/BFVE/EBEB")
+	# ADR-0067: o evento da camada 1 virou batalha para a rota mais pobre ter 2 lutas.
+	assert_eq(_generate(12345, MapConfig.for_scenario(1)).signature(), "4x4@1/BBAB/VBAC/BFVE/EBEB")
 	assert_eq(_generate(12345, MapConfig.for_scenario(5)).signature(), "10x5@2/BVBAC/VFVVB/AABBA/VBVCC/BBBAA/BAFAB/BEBVC/AVBBA/BAFCE/ECVBB")
 
 

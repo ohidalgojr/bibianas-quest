@@ -172,3 +172,23 @@ func test_bubbles_include_node_icon_and_clamp_within_viewport() -> void:
 		assert_gt(bubble.find_children("*", "TextureRect", true, false).size(), 0, "bolha traz ícone do nó")
 		assert_gte(bubble.position.x, 8.0, "bolha respeita margem esquerda")
 		assert_lte(bubble.position.x + bubble.size.x, 532.0, "bolha não vaza na direita")
+
+
+## TASK-081: dicas da 1ª Descida aparecem só nela e fecham ao tocar.
+func test_first_descent_shows_a_closable_tip() -> void:
+	var run: RunState = RunState.new(_data, 5, "warrior", [], 0, null, true, [])
+	var screen: Map3DScreen = Map3DScreen.new()
+	screen.view = MapView.new(run)
+	screen.time_scale = 0.0
+	add_child_autofree(screen)
+	assert_true(screen._tip_panel.visible, "1ª Descida mostra dica")
+	var click: InputEventMouseButton = InputEventMouseButton.new()
+	click.pressed = true
+	screen._tip_panel.gui_input.emit(click)
+	assert_false(screen._tip_panel.visible)
+	var later: RunState = RunState.new(_data, 5, "warrior", [], 0, null, false, [])
+	var other: Map3DScreen = Map3DScreen.new()
+	other.view = MapView.new(later)
+	other.time_scale = 0.0
+	add_child_autofree(other)
+	assert_false(other._tip_panel.visible, "fora da 1ª Descida não há dica")

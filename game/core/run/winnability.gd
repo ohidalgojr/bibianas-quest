@@ -126,7 +126,9 @@ static func smooth(graph: MapGraph, config: MapConfig, route: PackedInt32Array, 
 	swap.kind = MapNode.Kind.CHEST
 	swap.enemy_id = ""
 	swap.mutation = ""
-	if not MapRules.find_violations(graph, config).is_empty():
+	# A troca por baú também não pode deixar nenhuma rota com menos de 2 lutas (ADR-0067).
+	if not MapRules.find_violations(graph, config).is_empty() \
+			or int(MapGenerator._poorest_route(graph)["fights"]) < MapGenerator.MIN_FIGHTS_PER_ROUTE:
 		swap.kind = old_kind
 		swap.enemy_id = old_enemy
 		swap.level = old_level
