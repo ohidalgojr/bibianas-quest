@@ -10,6 +10,7 @@ var panels: RunPanels
 var forced_coin: int = -1
 ## Cenário 3D de fundo (ADR-0036); vazio mantém o painel de depuração sobre o mapa.
 var backdrop_kind: String = ""
+var _event_frame: PanelContainer
 var time_scale: float = 1.0
 
 ## Altura em que o bottom sheet começa (o diorama 3D fica com o resto, D-UI-3).
@@ -129,7 +130,8 @@ func _render_reward() -> void:
 	var drop: Dictionary = view["drop"]
 	if not drop.is_empty():
 		_render_drop(drop)
-	_footer_button("Continuar (vende o drop)" if not drop.is_empty() else "Continuar", func() -> void: closed.emit())
+	if drop.is_empty():
+		_footer_button("Continuar", func() -> void: closed.emit())
 
 
 ## Equipamento caído: raridade, efeito, mudança de atributos e Equipar ou Vender.
@@ -139,15 +141,16 @@ func _render_drop(drop: Dictionary) -> void:
 	_text(str(drop["effect"]), 16)
 	var changes: Array = drop["changes"]
 	_text("Equipando: " + (", ".join(changes) if not changes.is_empty() else "sem mudança"), 16)
-	var equip_label: String = "Equipar %s" % str(drop["name"])
 	if str(drop["replaces"]) != "":
-		equip_label += " (vende %s)" % str(drop["replaces"])
-	_button(equip_label, func() -> void:
+		var swap: Label = _text("Equipar vende %s." % str(drop["replaces"]), 16)
+		swap.add_theme_color_override("font_color", Color(0.85, 0.8, 0.55))
+	# Equipar e Vender ficam no rodapé fixo (nunca abaixo da dobra) e decidem o drop (revisão de game design, P0 2).
+	_footer_button("Equipar", func() -> void:
 		panels.equip_drop()
-		_render(), IconRegistry.texture_for("item", str(drop["id"])))
-	_button("Vender por %d ouro" % int(drop["sell_value"]), func() -> void:
+		_render())
+	_footer_button("Vender +%d ouro" % int(drop["sell_value"]), func() -> void:
 		panels.sell_drop()
-		_render(), IconRegistry.texture_for("ui", "gold"))
+		_render())
 
 
 func _render_chest() -> void:
@@ -272,7 +275,8 @@ func _render_event() -> void:
 		var drop: Dictionary = view["drop"]
 		if not drop.is_empty():
 			_render_drop(drop)
-		_footer_button("Seguir (vende o drop)" if not drop.is_empty() else "Seguir", func() -> void: closed.emit())
+		if drop.is_empty():
+			_footer_button("Seguir", func() -> void: closed.emit())
 		return
 	for choice: Dictionary in view["choices"]:
 		var idx: int = int(choice["index"])
@@ -299,17 +303,26 @@ func _event_art(title: String) -> void:
 	var path: String = "res://assets/bibiana/events/%s.jpg" % file_name
 	if file_name.is_empty() or not ResourceLoader.exists(path):
 		return
+	# A ilustração fica no alto da tela (sobre o cenário), não dentro do painel: o painel guarda o texto
+	# e as escolhas sem estourar (revisão de vibe, P0 2).
+	if _event_frame != null and is_instance_valid(_event_frame):
+		_event_frame.queue_free()
 	var frame: PanelContainer = PanelContainer.new()
 	frame.add_theme_stylebox_override("panel", UiKit.illustration_frame(34))
-	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	frame.anchor_left = 0.06
+	frame.anchor_right = 0.94
+	frame.anchor_top = 0.05
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var pic: TextureRect = TextureRect.new()
 	pic.texture = load(path) as Texture2D
 	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	pic.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	pic.custom_minimum_size = Vector2(400.0, 190.0)
+	pic.custom_minimum_size = Vector2(440.0, 250.0)
+	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.add_child(pic)
-	_box.add_child(frame)
+	add_child(frame)
+	_event_frame = frame
 
 
 func _title(text: String) -> void:

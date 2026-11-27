@@ -72,6 +72,8 @@ var _intent_icon: Label
 var _intent_art: TextureRect
 ## Quem decide ou executa agora (a linha do tempo mostra o AGORA e os próximos).
 var _now_side: int = Combatant.PLAYER
+## Id do último golpe anunciado pelo inimigo (distingue a moeda dele da moeda da Bibiana).
+var _last_intent_move: String = ""
 var _intent_detail: Label
 var _log_label: Label
 var _player_hp_bar: ProgressBar
@@ -371,6 +373,7 @@ func _set_intent_tone(color: Color) -> void:
 
 
 func _show_intent(move_id: String, reason: int = 0) -> void:
+	_last_intent_move = move_id
 	var view: Dictionary = session.intent_view(move_id, reason)
 	var icon_text: String = str(view["icon"])
 	var name_text: String = str(view["name"])
@@ -408,7 +411,7 @@ func _show_coin(event: CombatEvent) -> void:
 	if _coin_medallion != null:
 		_coin_medallion.show_call_prompt()
 	var odds: String = "Moeda da Sorte: se errar, rejoga!" if session.is_lucky_armed() else ""
-	var called: int = await _ask_call(event.value, odds)
+	var called: int = await _ask_call(event.value, odds, event.label)
 	session.coin_call = called
 	if _coin_medallion != null:
 		_coin_medallion.set_side(called)
@@ -434,11 +437,19 @@ func _show_coin(event: CombatEvent) -> void:
 
 ## Pede o lado ao jogador e devolve o escolhido. Sem tempo (testes) ou fora da árvore,
 ## usa [member auto_call] em vez de esperar o botão.
-func _ask_call(chance: int, odds: String = "") -> int:
+func _ask_call(chance: int, odds: String = "", reason: String = "") -> int:
 	if time_scale <= 0.0 or not is_inside_tree():
 		return auto_call
 	# A consequência do erro fica na tela na hora de escolher (o selo de intenção já não a mostra).
-	var stakes: String = _intent_detail.text.trim_prefix("Escolha Cara ou Coroa. ")
+	# Só o golpe de moeda do inimigo tem consequência no selo; a moeda da própria Bibiana (habilidade, fuga)
+	# diz o que o acerto faz (revisão de game design, P0 1).
+	var stakes: String = ""
+	if reason == "flee":
+		stakes = "Acertar: você foge da luta."
+	elif reason == _last_intent_move:
+		stakes = _intent_detail.text.trim_prefix("Escolha Cara ou Coroa. ")
+	else:
+		stakes = "Acertar: o efeito extra da habilidade se aplica."
 	_coin_label.text = "Escolha o lado da moeda\n%s\n%s" % [stakes, odds]
 	_call_row.visible = true
 	var side: int = await coin_called

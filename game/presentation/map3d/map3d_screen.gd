@@ -134,10 +134,10 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_CLEAR_COLOR
 	env.background_color = Color(0.024, 0.028, 0.044)
 	Atmosphere.apply(env, false)
-	env.ambient_light_color = Color("66728F")
-	env.ambient_light_energy = 1.9
+	env.ambient_light_color = Color("56606F")
+	env.ambient_light_energy = 1.55
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 0.85
+	env.adjustment_saturation = 0.72
 	env.adjustment_contrast = 1.12
 	env.adjustment_brightness = 1.05
 	env.glow_enabled = true

@@ -68,6 +68,8 @@ func test_full_run_through_the_screens() -> void:
 					screen._buttons["attack"].pressed.emit()
 			RunState.Phase.SHOP:
 				# A recompensa vem antes da loja (TASK-010).
+				# Com drop, Equipar/Vender decidem primeiro; depois aparece Continuar (revisão de game design, P0 2).
+				_press(_game, "Equipar")
 				if _press(_game, "Continuar"):
 					rewards += 1
 				assert_true(_press(_game, "Seguir"))
@@ -77,6 +79,7 @@ func test_full_run_through_the_screens() -> void:
 				assert_true(_press(_game, "Seguir"))
 			RunState.Phase.EVENT:
 				_press_any_event_choice(_game)
+				_press(_game, "Equipar")
 				assert_true(_press(_game, "Seguir"))
 			_:
 				break
@@ -148,6 +151,7 @@ func _play_step(run: RunState) -> void:
 			else:
 				screen._buttons["attack"].pressed.emit()
 		RunState.Phase.SHOP:
+			_press(_game, "Equipar")
 			_press(_game, "Continuar")
 			_press(_game, "Seguir")
 		RunState.Phase.CAMPFIRE:
@@ -156,6 +160,7 @@ func _play_step(run: RunState) -> void:
 			_press(_game, "Seguir")
 		RunState.Phase.EVENT:
 			_press_any_event_choice(_game)
+			_press(_game, "Equipar")
 			_press(_game, "Seguir")
 
 

@@ -9,15 +9,15 @@ const K_MINI: String = "res://assets/kenney/mini_dungeon/"
 const K_GRAVE: String = "res://assets/kenney/graveyard/"
 const K_SCENERY: String = "res://assets/bibiana/scenery/"
 
-const TINT_CLIFF: Color = Color(0.42, 0.44, 0.52)
+const TINT_CLIFF: Color = Color(0.36, 0.36, 0.4)
 const TINT_MOSS: Color = Color(0.78, 0.72, 0.68)
-const TINT_STONE_BASE: Color = Color(0.55, 0.57, 0.64)
-const TINT_PLAZA_TILE: Color = Color(1.25, 1.18, 1.05)
-const TINT_COURT_TILE: Color = Color(0.74, 0.72, 0.78)
-const TINT_ROAD: Color = Color(1.0, 1.0, 1.08)
-const TINT_STAIR: Color = Color(0.40, 0.39, 0.43)
-const TINT_WALL: Color = Color(0.36, 0.38, 0.46)
-const TINT_ROOF: Color = Color(0.24, 0.25, 0.32)
+const TINT_STONE_BASE: Color = Color(0.5, 0.5, 0.55)
+const TINT_PLAZA_TILE: Color = Color(1.22, 1.14, 1.02)
+const TINT_COURT_TILE: Color = Color(0.66, 0.64, 0.66)
+const TINT_ROAD: Color = Color(1.0, 0.98, 1.0)
+const TINT_STAIR: Color = Color(0.42, 0.4, 0.4)
+const TINT_WALL: Color = Color(0.42, 0.39, 0.38)
+const TINT_ROOF: Color = Color(0.16, 0.17, 0.2)
 const PROP_DARKEN: Color = Color(0.55, 0.55, 0.62)
 const TINT_FENCE: Color = Color(0.18, 0.19, 0.23)
 
@@ -27,9 +27,9 @@ const WINDOWS_KEY: String = "_windows"
 ## Linhas de Z por pedaço de MultiMesh: o mapa é grande e a câmera vê uma faixa dele; em pedaços
 ## o Godot descarta o que está fora da tela (orçamento de primitivas, GDD §18).
 const CHUNK_ROWS: float = 12.0
-const TINT_ROAD_MAIN: Color = Color(1.14, 1.12, 1.2)
-const TINT_HOUSE: Color = Color(0.42, 0.42, 0.5)
-const TINT_HOUSE_ROOF: Color = Color(0.2, 0.21, 0.28)
+const TINT_ROAD_MAIN: Color = Color(1.12, 1.08, 1.08)
+const TINT_HOUSE: Color = Color(0.46, 0.42, 0.4)
+const TINT_HOUSE_ROOF: Color = Color(0.15, 0.16, 0.19)
 
 const MULTI_MESH_EXCEPTIONS: Array[String] = ["urn-round.glb", "urn-square.glb", "coffin.glb", "chest.glb"]
 
