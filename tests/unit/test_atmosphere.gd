@@ -44,11 +44,11 @@ func test_campfire_backdrop_lights_and_puts_out_the_fire() -> void:
 	assert_false(backdrop.fire_lit)
 	# TASK-068: no cenário pintado, apagada = arena escurecida e halo desligado; acesa = sem véu.
 	assert_true(backdrop._painted)
-	assert_gt(backdrop._painted_cover.color.a, 0.3, "apagada: arena escurecida")
+	assert_true(backdrop._painted_rect.texture.resource_path.contains("apagada"), "apagada: arena própria da fogueira fria")
 	for glow: Control in backdrop._painted_glows:
 		assert_false(glow.visible, "apagada: sem halo de chama")
 	backdrop.set_fire_lit(true)
-	assert_eq(backdrop._painted_cover.color.a, 0.0)
+	assert_true(backdrop._painted_rect.texture.resource_path.contains("acesa"), "acesa: arena da fogueira com chama")
 	assert_gt(backdrop._painted_glows.size(), 0)
 	for glow: Control in backdrop._painted_glows:
 		assert_true(glow.visible)

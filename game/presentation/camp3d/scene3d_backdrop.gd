@@ -37,15 +37,16 @@ const PAINTED: Dictionary = {
 	"shop": {"arena": "arena-loja.jpg", "shift": 330.0, "hero": Vector2(120, 410), "hero_h": 210.0, "pose": "right", "npc": "shop_keeper", "npc_at": Vector2(400, 345), "npc_h": 190.0},
 	"chest": {"arena": "arena-cidade-rua.jpg", "shift": 330.0, "hero": Vector2(170, 410), "hero_h": 210.0, "pose": "right", "npc": "iron_chest", "npc_at": Vector2(370, 400), "npc_h": 120.0, "glow": Vector2(370, 360)},
 	"event": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(170, 410), "hero_h": 210.0, "pose": "right", "npc": "gothic_tombstone", "npc_at": Vector2(380, 395), "npc_h": 150.0},
-	"reward": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(270, 410), "hero_h": 220.0},
+	"reward": {"arena": "bg-reward-shrine.jpg", "shift": 300.0, "hero": Vector2(270, 410), "hero_h": 220.0},
 	"home": {"arena": "arena-home-santuario.jpg", "shift": 260.0, "hero": Vector2(270, 440), "hero_h": 240.0},
 	"victory": {"arena": "arena-cidade-praca.jpg", "shift": 300.0, "hero": Vector2(270, 410), "hero_h": 220.0},
-	"defeat": {"arena": "arena-cidade-rua.jpg", "shift": 330.0, "hero": Vector2(270, 415), "hero_h": 150.0, "pose": "camp", "cold": true},
+	"defeat": {"arena": "bg-defeat.jpg", "shift": 300.0, "hero": Vector2(270, 415), "hero_h": 150.0, "pose": "defeat"},
 }
 
 var _painted: bool = false
 var _painted_glows: Array[Control] = []
 var _painted_cover: ColorRect
+var _painted_rect: TextureRect
 
 
 func _ready() -> void:
@@ -96,6 +97,7 @@ func _build_painted() -> void:
 	rect.position = Vector2(0.0, -float(cfg["shift"]))
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(rect)
+	_painted_rect = rect
 	var dim: float = 0.0
 	if bool(cfg.get("cold", false)):
 		dim = 0.45
@@ -474,8 +476,14 @@ func set_fire_lit(lit: bool) -> void:
 	if kind != "campfire":
 		return
 	if _painted:
-		# Sem a prancha da fogueira apagada (pendente), escurece a arena e apaga o halo.
-		_painted_cover.color = Color(0.03, 0.04, 0.08, 0.0 if lit else 0.55)
+		# Acesa e apagada têm arena própria (`arena-fogueira-apagada`): troca a textura e o halo.
+		var cold_path: String = ARENAS + "arena-fogueira-apagada.jpg"
+		var lit_path: String = ARENAS + str((PAINTED["campfire"] as Dictionary)["arena"])
+		if _painted_rect != null and ResourceLoader.exists(cold_path):
+			_painted_rect.texture = load(lit_path if lit else cold_path) as Texture2D
+			_painted_cover.color = Color(0.03, 0.04, 0.08, 0.0)
+		else:
+			_painted_cover.color = Color(0.03, 0.04, 0.08, 0.0 if lit else 0.55)
 		for glow: Control in _painted_glows:
 			glow.visible = lit
 		return

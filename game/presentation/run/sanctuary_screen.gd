@@ -59,6 +59,17 @@ func _rebuild() -> void:
 	bg.color = COLOR_BG
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
+	# Interior pintado do Santuário, escurecido atrás das abas (TASK-072).
+	var art_path: String = "res://assets/bibiana/arenas/sanctuary-interior.jpg"
+	if ResourceLoader.exists(art_path):
+		var art: TextureRect = TextureRect.new()
+		art.texture = load(art_path) as Texture2D
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		art.modulate = Color(0.55, 0.58, 0.68)
+		art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(art)
 
 	var margin: MarginContainer = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

@@ -522,13 +522,7 @@ func _page(title: String, text: String, scene_kind: String = "") -> VBoxContaine
 	if scene_on:
 		center.anchor_top = 0.44
 		var frame: PanelContainer = PanelContainer.new()
-		var frame_style: StyleBoxFlat = StyleBoxFlat.new()
-		frame_style.bg_color = Color(0.05, 0.055, 0.08, 0.9)
-		frame_style.border_color = VisualTheme.COLOR_BORDER_BRONZE
-		frame_style.set_border_width_all(2)
-		frame_style.set_corner_radius_all(8)
-		frame_style.set_content_margin_all(14)
-		frame.add_theme_stylebox_override("panel", frame_style)
+		frame.add_theme_stylebox_override("panel", UiKit.panel(40))
 		frame.add_child(box)
 		center.add_child(frame)
 	else:

@@ -129,7 +129,7 @@ static func _spawn_sprite(id: String, entry: Dictionary) -> Node3D:
 	sprite.offset = Vector2(0.0, float(tex.get_height()) * 0.5)
 	sprite.flip_h = bool(entry.get("flip", false))
 	sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
 	sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	sprite.shaded = false
 	sprite.modulate = Color(1.0, 1.0, 1.0)

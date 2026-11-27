@@ -695,13 +695,7 @@ func _build() -> void:
 	# Gavetas como folha sobreposta (TASK-067, crítica do diretor): sobem sobre o log e as ações sem
 	# redimensionar o palco, que fica fixo.
 	_sheet = PanelContainer.new()
-	var sheet_style: StyleBoxFlat = StyleBoxFlat.new()
-	sheet_style.bg_color = Color(0.082, 0.09, 0.11, 1.0)
-	sheet_style.border_color = Color(0.54, 0.42, 0.23)
-	sheet_style.set_border_width_all(2)
-	sheet_style.set_corner_radius_all(10)
-	sheet_style.set_content_margin_all(10)
-	_sheet.add_theme_stylebox_override("panel", sheet_style)
+	_sheet.add_theme_stylebox_override("panel", UiKit.panel(40))
 	_sheet.anchor_left = 0.0
 	_sheet.anchor_right = 1.0
 	_sheet.anchor_top = 1.0
@@ -1100,9 +1094,9 @@ func _style_icon_button(button: Button, icon: Texture2D) -> void:
 	button.icon = icon
 	button.expand_icon = true
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.add_theme_constant_override("icon_max_width", 30)
+	button.add_theme_constant_override("icon_max_width", 40)
 	button.add_theme_constant_override("h_separation", 10)
-	button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	button.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 
 
 ## Ícones dos efeitos ativos sobre os personagens (TASK-043): o do inimigo no alto do palco, o da
@@ -1122,6 +1116,6 @@ func _fill_status_icons() -> void:
 			icon.texture = tex
 			icon.custom_minimum_size = Vector2(30, 30)
 			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 			icon.tooltip_text = CombatTexts.effect_name(label)
 			row.add_child(icon)

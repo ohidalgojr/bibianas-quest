@@ -39,10 +39,49 @@ const UI: Dictionary = {
 	"echoes": "I_Eye", "power": "S_Buff04", "attack": "S_Sword02", "defend": "S_Buff02", "flee": "S_Wind01", "ether": "P_Blue01",
 }
 
+## Ícones pintados 96x96 do Gemini (`tools/make_icons.py`), preferidos sobre o pacote CC0 (TASK-072).
+const PAINTED_DIR: String = "res://assets/bibiana/icons/"
+## Nome do ícone de cada tipo de nó, na ordem de [enum MapNode.Kind].
+const NODE_NAMES: Array[String] = ["start", "battle", "ambush", "elite", "chest", "event", "bonfire", "mini_boss", "boss"]
+## Ids de `ui` que moram em `action/` ou `item/` na folha pintada.
+const UI_ACTION: Array[String] = ["attack", "defend", "flee"]
+const UI_ITEM: Dictionary = {"potion": "murky_potion", "ether": "dirty_ether"}
+
 static var _cache: Dictionary = {}
 
 
+## Caminho do ícone pintado para a categoria e o id, ou "" se não houver.
+static func painted_path(category: String, id: String) -> String:
+	var folder: String = category
+	var name_id: String = id
+	match category:
+		"effect":
+			folder = "status"
+		"disease":
+			folder = "status"
+			name_id = "disease"
+		"node":
+			folder = "node"
+			var index: int = int(id)
+			name_id = NODE_NAMES[index] if index >= 0 and index < NODE_NAMES.size() else ""
+		"ui":
+			if UI_ACTION.has(id):
+				folder = "action"
+			elif UI_ITEM.has(id):
+				folder = "item"
+				name_id = str(UI_ITEM[id])
+	if name_id.is_empty():
+		return ""
+	var path: String = "%s%s/%s.png" % [PAINTED_DIR, folder, name_id]
+	return path if ResourceLoader.exists(path) else ""
+
+
 static func texture_for(category: String, id: String) -> Texture2D:
+	var painted: String = painted_path(category, id)
+	if not painted.is_empty():
+		if not _cache.has(painted):
+			_cache[painted] = load(painted) as Texture2D
+		return _cache[painted]
 	var table: Dictionary = {"item": ITEMS, "skill": SKILLS, "effect": EFFECTS, "disease": DISEASES, "ui": UI}
 	var file_name: String = ""
 	if category == "node":

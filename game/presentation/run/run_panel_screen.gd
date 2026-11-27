@@ -37,13 +37,8 @@ func _ready() -> void:
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	var panel: PanelContainer = PanelContainer.new()
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.065, 0.09, 0.98 if backdrop_kind.is_empty() else 0.9)
-	style.border_color = VisualTheme.COLOR_BORDER_BRONZE
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.set_content_margin_all(16)
-	panel.add_theme_stylebox_override("panel", style)
+	# Painel de pedra pintado (TASK-072, ADR-0059).
+	panel.add_theme_stylebox_override("panel", UiKit.panel(44))
 	panel.anchor_left = 0.04
 	panel.anchor_right = 0.96
 	panel.anchor_top = 0.1 if backdrop_kind.is_empty() else float(SHEET_TOP_BY_KIND.get(backdrop_kind, SHEET_TOP))
@@ -268,6 +263,7 @@ func _render_event() -> void:
 	if view.is_empty():
 		return
 	_title(str(view["title"]))
+	_event_art(str(view["title"]))
 	_text(str(view["description"]), 18)
 	if bool(view["resolved"]):
 		for line: Variant in view["result_lines"]:
@@ -290,10 +286,37 @@ func _render_event() -> void:
 		btn.disabled = not can_pick
 
 
+## Ilustração do evento numa moldura gótica (TASK-072), pelo título; sem arte, não mostra nada.
+const EVENT_ART: Dictionary = {
+	"O Sino Rachado da Praça": "event-weeping-bell", "Carroça do Boticário": "event-plague-wagon",
+	"O Arauto Cego": "event-blind-herald", "Fonte de Cinza e Sal": "event-fountain-of-ash",
+	"A Forca da Encruzilhada": "event-gallows-tree", "Forja Fria da Guarda": "event-abandoned-armory",
+}
+
+
+func _event_art(title: String) -> void:
+	var file_name: String = str(EVENT_ART.get(title, ""))
+	var path: String = "res://assets/bibiana/events/%s.jpg" % file_name
+	if file_name.is_empty() or not ResourceLoader.exists(path):
+		return
+	var frame: PanelContainer = PanelContainer.new()
+	frame.add_theme_stylebox_override("panel", UiKit.illustration_frame(34))
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var pic: TextureRect = TextureRect.new()
+	pic.texture = load(path) as Texture2D
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	pic.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	pic.custom_minimum_size = Vector2(400.0, 190.0)
+	frame.add_child(pic)
+	_box.add_child(frame)
+
+
 func _title(text: String) -> void:
 	var label: Label = _text(text, 30)
 	label.theme_type_variation = "TitleLabel"
 	label.add_theme_color_override("font_color", Color(0.9, 0.75, 0.25))
+	_box.add_child(UiKit.divider())
 
 
 func _text(text: String, size: int = 20) -> Label:
@@ -320,7 +343,7 @@ func _button(text: String, action: Callable, icon: Texture2D = null) -> Button:
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.add_theme_constant_override("icon_max_width", 44)
 		button.add_theme_constant_override("h_separation", 12)
-		button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		button.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	button.pressed.connect(action)
 	_box.add_child(button)
 	return button
@@ -367,7 +390,7 @@ func _card(grid: GridContainer, text: String, action: Callable, icon: Texture2D 
 		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 		button.add_theme_constant_override("icon_max_width", 40)
-		button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		button.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	button.pressed.connect(action)
 	grid.add_child(button)
 	return button

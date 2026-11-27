@@ -39,6 +39,8 @@ const STRIKE_RETURN: float = 0.34
 const WALK_FRAME_SECONDS: float = 0.09
 const ARENA_COMMON: String = "res://assets/bibiana/arenas/arena-cidade-rua.jpg"
 const ARENA_ELITE: String = "res://assets/bibiana/arenas/arena-cidade-praca.jpg"
+## Cemitério e capela do Coveiro: só o chefe final (TASK-072).
+const ARENA_BOSS: String = "res://assets/bibiana/arenas/arena-cidade-chefe.jpg"
 
 var time_scale: float = 1.0
 var camera: Camera3D
@@ -177,6 +179,8 @@ func _build_arena(kind: int) -> void:
 	if _painted:
 		# Fundo pintado HD-2D (ADR-0053): beco para luta comum, praça para elite, mini boss e chefe.
 		var path: String = ARENA_ELITE if (boss or kind == MapNode.Kind.ELITE) else ARENA_COMMON
+		if kind == MapNode.Kind.BOSS and ResourceLoader.exists(ARENA_BOSS):
+			path = ARENA_BOSS
 		_backdrop.texture = load(path) as Texture2D
 		return
 	# Reserva sem textura: arena de duelo composta (ADR-0050), canto de nave gótica.

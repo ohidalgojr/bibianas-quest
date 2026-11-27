@@ -27,7 +27,7 @@ func _row(parent: Control, text: String, tex: Texture2D) -> void:
 	rect.texture = tex
 	rect.custom_minimum_size = Vector2(26, 26)
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	row.add_child(rect)
 	var label: Label = Label.new()
 	label.text = text

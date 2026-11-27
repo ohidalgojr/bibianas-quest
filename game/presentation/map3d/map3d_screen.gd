@@ -64,6 +64,7 @@ var _diamonds: Array[MeshInstance3D] = []
 var _selection: Array[Node] = []
 var _arrow: Label3D
 var _arrow_base_y: float = 0.0
+var _mist: TextureRect
 
 
 func _ready() -> void:
@@ -104,6 +105,7 @@ func _ready() -> void:
 	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_overlay)
+	_add_foreground()
 	_add_vignette()
 	_header = Label.new()
 	_header.add_theme_font_size_override("font_size", 13)
@@ -284,6 +286,8 @@ func _process(delta: float) -> void:
 	for diamond: MeshInstance3D in _diamonds:
 		if is_instance_valid(diamond):
 			((diamond.mesh as QuadMesh).material as ShaderMaterial).set_shader_parameter("pulse", beat)
+	if _mist != null:
+		_mist.position.x = -110.0 + 70.0 * sin(_pulse_time * 0.12)
 	if _arrow != null and is_instance_valid(_arrow):
 		_arrow.position.y = _arrow_base_y + 0.35 * sin(_pulse_time * 5.0)
 	_update_overlay()
@@ -532,6 +536,35 @@ func _on_pick(node_id: int) -> void:
 		node_chosen.emit(node_id))
 
 
+## Névoa pintada que deriva devagar e grade de ferro no primeiro plano (TASK-072): profundidade de
+## camadas, como nas referências táticas. Nada disso intercepta toque.
+func _add_foreground() -> void:
+	var mist_path: String = "res://assets/bibiana/arenas/map-mist-band.png"
+	if ResourceLoader.exists(mist_path):
+		_mist = TextureRect.new()
+		_mist.texture = load(mist_path) as Texture2D
+		_mist.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_mist.stretch_mode = TextureRect.STRETCH_SCALE
+		_mist.size = Vector2(760.0, 300.0)
+		_mist.position = Vector2(-110.0, 330.0)
+		_mist.modulate = Color(1, 1, 1, 0.5)
+		_mist.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_mist)
+	var fence_path: String = "res://assets/bibiana/arenas/map-fg-ironfence.png"
+	if ResourceLoader.exists(fence_path):
+		var fence: TextureRect = TextureRect.new()
+		var tex: Texture2D = load(fence_path) as Texture2D
+		fence.texture = tex
+		fence.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		fence.stretch_mode = TextureRect.STRETCH_SCALE
+		var h: float = 540.0 * float(tex.get_height()) / float(tex.get_width())
+		fence.size = Vector2(540.0, h)
+		fence.position = Vector2(0.0, 960.0 - h + 6.0)
+		fence.modulate = Color(1, 1, 1, 0.92)
+		fence.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(fence)
+
+
 func _add_vignette() -> void:
 	var rect: ColorRect = ColorRect.new()
 	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -591,23 +624,19 @@ func _fill_gear() -> void:
 	for slot: String in ["weapon", "offhand", "armor", "head", "relic"]:
 		var item_id: String = str(run.equipment.get(slot, ""))
 		var tip: String = RunPanels.SLOT_NAMES.get(slot, slot)
-		var tex: Texture2D = IconRegistry.texture_for("item", item_id) if not item_id.is_empty() else null
+		var tex: Texture2D = IconRegistry.texture_for("item", item_id) if not item_id.is_empty() else IconRegistry.texture_for("slot", slot)
 		if not item_id.is_empty():
 			tip = "%s: %s" % [tip, str(run.data.items[item_id]["name"])]
-		_gear_row.add_child(_gear_slot(tex, tip, ""))
+		_gear_row.add_child(_gear_slot(tex, tip, "", item_id.is_empty()))
 	_gear_row.add_child(_gear_slot(IconRegistry.texture_for("ui", "potion"), "Poções", "x%d" % run.consumable_count("murky_potion")))
 	_gear_row.add_child(_gear_slot(IconRegistry.texture_for("ui", "firewood"), "Galhos Secos", "x%d" % run.consumable_count(RunRules.FIREWOOD_ID)))
 
 
-func _gear_slot(tex: Texture2D, tip: String, count: String) -> Control:
+func _gear_slot(tex: Texture2D, tip: String, count: String, empty: bool = false) -> Control:
 	var frame: PanelContainer = PanelContainer.new()
-	var box: StyleBoxFlat = StyleBoxFlat.new()
-	box.bg_color = Color(0.05, 0.055, 0.08, 0.8)
-	box.border_color = Color(0.42, 0.35, 0.24) if tex != null else Color(0.2, 0.18, 0.15)
-	box.set_border_width_all(1)
-	box.set_corner_radius_all(4)
-	box.set_content_margin_all(2)
-	frame.add_theme_stylebox_override("panel", box)
+	frame.add_theme_stylebox_override("panel", UiKit.slot("steel" if empty else "bronze", 6))
+	if empty:
+		frame.modulate = Color(1, 1, 1, 0.5)
 	frame.tooltip_text = tip
 	frame.mouse_filter = Control.MOUSE_FILTER_PASS
 	var row: HBoxContainer = HBoxContainer.new()
@@ -615,9 +644,9 @@ func _gear_slot(tex: Texture2D, tip: String, count: String) -> Control:
 	frame.add_child(row)
 	var icon: TextureRect = TextureRect.new()
 	icon.texture = tex
-	icon.custom_minimum_size = Vector2(30, 30)
+	icon.custom_minimum_size = Vector2(34, 34)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	row.add_child(icon)
 	if not count.is_empty():
 		var label: Label = Label.new()
@@ -638,13 +667,7 @@ func _show_preview(node_id: int) -> void:
 			info = entry
 	var node: MapNode = view.run.map.node_by_id(node_id)
 	_preview_card = PanelContainer.new()
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.043, 0.047, 0.063, 0.92)
-	style.border_color = VisualTheme.COLOR_BORDER_BRONZE
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.set_content_margin_all(12)
-	_preview_card.add_theme_stylebox_override("panel", style)
+	_preview_card.add_theme_stylebox_override("panel", UiKit.panel(40))
 	_preview_card.anchor_left = 0.04
 	_preview_card.anchor_right = 0.96
 	_preview_card.anchor_top = 1.0
@@ -753,7 +776,7 @@ func _build_hud() -> void:
 	coin.texture = IconRegistry.texture_for("ui", "gold")
 	coin.custom_minimum_size = Vector2(16, 16)
 	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	coin.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	coin.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(coin)
 	_hud_gold = Label.new()
