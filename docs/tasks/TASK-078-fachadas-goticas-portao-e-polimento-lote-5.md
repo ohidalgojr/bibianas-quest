@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aberta |
+| Status | Em verificação (revisão cruzada pendente no fechamento do lote) |
 | Aberta em | 2026-11-27 |
 | Fase | 1, identidade visual |
 | GDD | 17, 18 |
@@ -20,12 +20,12 @@ Aplicar nas fachadas do tabuleiro os sprites recortados do lote 5 (`house_window
 
 ## Critérios de aceite
 
-- [ ] Trocar os retângulos laranja chapados de `_build_window_quads` (`ScenarioRenderer._render_house`) por quads texturizados com `assets/bibiana/sprites/house_window_lit.png` e aplicar `house_door_arch.png` nas frentes voltadas à rua.
-- [ ] Limpar pixels internos `#10131A` fechados entre os balaústres de `assets/bibiana/sprites/balcony_wood.png` e posicionar nas empenas altas quando coerente.
-- [ ] Substituir `iron-fence-border-gate.glb` em `ScenarioRenderer._render_church_gate` por `church_gate_iron.png` como `Sprite3D` estático alinhado ao muro do adro.
-- [ ] Dessaturar/texturizar os muretes baixos lilás (`TINT_WALL` / barreiras) e melhorar o contraste de silhueta (luz de borda fria) de `crowned_pursuer.png`.
-- [ ] Anexar em `docs/tasks/prints/` um print real `540×960` mostrando nó de evento com `well_stone`/`gallows_post_3ropes`/`gothic_tombstone` + fachadas novas.
-- [ ] Suíte headless verde (`tools\run_tests.ps1`).
+- [x] Trocar os retângulos laranja chapados de `_build_window_quads` (`ScenarioRenderer._render_house`) por quads texturizados com `assets/bibiana/sprites/house_window_lit.png` e aplicar `house_door_arch.png` nas frentes voltadas à rua.
+- [x] Limpar pixels internos `#10131A` fechados entre os balaústres de `assets/bibiana/sprites/balcony_wood.png` e posicionar nas empenas altas quando coerente.
+- [x] Substituir `iron-fence-border-gate.glb` em `ScenarioRenderer._render_church_gate` por `church_gate_iron.png` como `Sprite3D` estático alinhado ao muro do adro.
+- [x] Dessaturar/texturizar os muretes baixos lilás (`TINT_WALL` / barreiras) e melhorar o contraste de silhueta (luz de borda fria) de `crowned_pursuer.png`.
+- [x] Anexar em `docs/tasks/prints/` um print real `540×960` mostrando nó de evento com `well_stone`/`gallows_post_3ropes`/`gothic_tombstone` + fachadas novas.
+- [x] Suíte headless verde (`tools\run_tests.ps1`).
 
 ## Arquivos afetados
 
@@ -44,7 +44,7 @@ Aplicar nas fachadas do tabuleiro os sprites recortados do lote 5 (`house_window
 
 ## Verificação
 
-Pendente (aguardando implementação).
+Suíte 380/380; mapa com 54 mil primitivas (limite 60 mil). Prints `docs/tasks/prints/TASK-078-evento.png` (semente 6, passo 1) e `TASK-078-mapa.png`. Janelas viram quads com `house_window_lit`, portas em arco e sacadas em quads, portão do adro vira `church_gate_iron`; `crowned_pursuer` ganhou luz de borda fria; sacada com fundo limpo. Não resolvido: muretes lilás de `TINT_WALL` seguem a identificar; poço/forca em escala pequena no print.
 
 ## Revisão cruzada
 

@@ -24,6 +24,11 @@ const TINT_FENCE: Color = Color(0.18, 0.19, 0.23)
 ## Assets com múltiplos MeshInstance3D internos devem ser colocados como Node3D e não em MultiMesh.
 ## Chave reservada em `batches` para as janelas acesas das casas (quads emissivos).
 const WINDOWS_KEY: String = "_windows"
+## Decalques de fachada e portão como quads texturizados com os sprites do lote 5 (TASK-078).
+const DOORS_KEY: String = "_doors"
+const BALCONY_KEY: String = "_balconies"
+const GATE_KEY: String = "_gate"
+const SPRITE_DIR: String = "res://assets/bibiana/sprites/"
 ## Linhas de Z por pedaço de MultiMesh: o mapa é grande e a câmera vê uma faixa dele; em pedaços
 ## o Godot descarta o que está fora da tela (orçamento de primitivas, GDD §18).
 const CHUNK_ROWS: float = 12.0
@@ -47,6 +52,12 @@ static func render(parent: Node3D, bp: ScenarioBlueprint, include_focal_lights: 
 	_flush_batches(parent, batches)
 	if batches.has(WINDOWS_KEY):
 		_build_window_quads(parent, batches[WINDOWS_KEY] as Array[Transform3D])
+	if batches.has(DOORS_KEY):
+		_build_decal_quads(parent, batches[DOORS_KEY] as Array[Transform3D], "house_door_arch.png", Vector2(0.5, 0.68), false)
+	if batches.has(BALCONY_KEY):
+		_build_decal_quads(parent, batches[BALCONY_KEY] as Array[Transform3D], "balcony_wood.png", Vector2(0.9, 0.78), false)
+	if batches.has(GATE_KEY):
+		_build_decal_quads(parent, batches[GATE_KEY] as Array[Transform3D], "church_gate_iron.png", Vector2(2.7, 2.37), false)
 	if include_focal_lights:
 		for light_def: Dictionary in bp.focal_lights:
 			_spawn_light(
@@ -69,7 +80,7 @@ static func _batch_add(batches: Dictionary, path: String, pos: Vector3, yaw: flo
 
 static func _flush_batches(parent: Node3D, batches: Dictionary) -> void:
 	for key: Variant in batches.keys():
-		if str(key) == WINDOWS_KEY:
+		if str(key) == WINDOWS_KEY or str(key) == DOORS_KEY or str(key) == BALCONY_KEY or str(key) == GATE_KEY:
 			continue
 		var bucket: Dictionary = batches[key]
 		_build_multimesh(
@@ -508,6 +519,12 @@ static func _render_house(batches: Dictionary, _bp: ScenarioBlueprint, comp: Dic
 	var windows: Array[Transform3D] = []
 	if batches.has(WINDOWS_KEY):
 		windows = batches[WINDOWS_KEY] as Array[Transform3D]
+	var doors: Array[Transform3D] = []
+	if batches.has(DOORS_KEY):
+		doors = batches[DOORS_KEY] as Array[Transform3D]
+	var balconies: Array[Transform3D] = []
+	if batches.has(BALCONY_KEY):
+		balconies = batches[BALCONY_KEY] as Array[Transform3D]
 	for m: int in modules:
 		var local_x: float = (float(m) - float(modules - 1) * 0.5) * module_w
 		var pos: Vector3 = center + ScenarioBlueprint.rotate_offset_deg(Vector3(local_x, 0.0, 0.0), face_yaw)
@@ -518,7 +535,16 @@ static func _render_house(batches: Dictionary, _bp: ScenarioBlueprint, comp: Dic
 		for side: float in [-0.62, 0.62]:
 			var wpos: Vector3 = pos + ScenarioBlueprint.rotate_offset_deg(Vector3(side * module_w * 0.5, 0.95, facade_z), face_yaw)
 			windows.append(Transform3D(Basis(Vector3.UP, deg_to_rad(face_yaw)).scaled(Vector3(1.0, 1.15, 1.0)), wpos))
+		# Porta em arco no centro da frente, voltada para a rua (a porta de toda casa dá para rua ou praça).
+		var door_pos: Vector3 = pos + ScenarioBlueprint.rotate_offset_deg(Vector3(0.0, 0.36, facade_z + 0.01), face_yaw)
+		doors.append(Transform3D(Basis(Vector3.UP, deg_to_rad(face_yaw)), door_pos))
+		# Sacada de madeira nas casas altas de variante 1, sobre a porta.
+		if not cottage and variant % 3 == 1:
+			var balcony_pos: Vector3 = pos + ScenarioBlueprint.rotate_offset_deg(Vector3(0.0, sy * 0.62, facade_z + 0.06), face_yaw)
+			balconies.append(Transform3D(Basis(Vector3.UP, deg_to_rad(face_yaw)), balcony_pos))
 	batches[WINDOWS_KEY] = windows
+	batches[DOORS_KEY] = doors
+	batches[BALCONY_KEY] = balconies
 	if variant % 3 == 0 and not cottage:
 		var top: Vector3 = center + ScenarioBlueprint.rotate_offset_deg(Vector3(0.0, sy + 0.8, float(depth) * -0.25), face_yaw)
 		_batch_add(batches, K_SCENERY + "spire.glb", top, 0.0, Vector3(0.18, 0.2, 0.18), TINT_HOUSE_ROOF, false)
@@ -532,7 +558,12 @@ static func _render_church_gate(batches: Dictionary, bp: ScenarioBlueprint, orig
 		var pos: Vector3 = bp.world_of(cell)
 		var off: int = absi(cell.x - mid_x)
 		if off == 0:
-			_batch_add(batches, K_GRAVE + "iron-fence-border-gate.glb", pos, 0.0, Vector3(1.0, 1.9, 1.7), TINT_FENCE, false)
+			# Portão pintado de duas folhas, alinhado ao muro do adro e ao eixo da igreja (TASK-078).
+			var gate: Array[Transform3D] = []
+			if batches.has(GATE_KEY):
+				gate = batches[GATE_KEY] as Array[Transform3D]
+			gate.append(Transform3D(Basis.IDENTITY, pos + Vector3(0.0, 1.2, 0.5)))
+			batches[GATE_KEY] = gate
 		elif off == 1:
 			_batch_add(batches, K_GRAVE + "iron-fence-border.glb", pos, 0.0, Vector3(1.0, 1.9, 1.7), TINT_FENCE, false)
 		elif off == 2:
@@ -587,20 +618,33 @@ static func _render_dress(bp: ScenarioBlueprint, batches: Dictionary) -> void:
 
 
 static func _build_window_quads(parent: Node3D, windows: Array[Transform3D]) -> void:
-	if windows.is_empty():
+	_build_decal_quads(parent, windows, "house_window_lit.png", Vector2(0.27, 0.6), true)
+
+
+## Quads com a textura de um sprite recortado (alfa recortado, sem sombra), em MultiMesh.
+## `glow` os deixa sem luz própria da cena (janela acesa); os demais recebem a luz da cena.
+static func _build_decal_quads(parent: Node3D, transforms: Array[Transform3D], file_name: String, size: Vector2, glow: bool) -> void:
+	if transforms.is_empty():
 		return
+	var path: String = SPRITE_DIR + file_name
 	var quad: QuadMesh = QuadMesh.new()
-	quad.size = Vector2(0.26, 0.5)
+	quad.size = size
 	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = WINDOW_COLOR
+	if ResourceLoader.exists(path):
+		mat.albedo_texture = load(path) as Texture2D
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	mat.alpha_scissor_threshold = 0.5
+	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+	mat.cull_mode = BaseMaterial3D.CULL_BACK
+	if glow:
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	quad.material = mat
 	var multi: MultiMesh = MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	multi.mesh = quad
-	multi.instance_count = windows.size()
-	for i: int in windows.size():
-		multi.set_instance_transform(i, windows[i])
+	multi.instance_count = transforms.size()
+	for i: int in transforms.size():
+		multi.set_instance_transform(i, transforms[i])
 	var holder: MultiMeshInstance3D = MultiMeshInstance3D.new()
 	holder.multimesh = multi
 	holder.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
