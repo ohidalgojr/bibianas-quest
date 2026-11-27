@@ -47,3 +47,8 @@ Suíte completa em headless: 380 testes passando (2026-11-27). Prints em `docs/t
 ## Revisão cruzada
 
 Agente de arte (`docs/design/critica-diretor/REVISAO-LOTE-5.md`): APROVA sem P0 (tabuleiro 6,0 para 7,5). Aplicado: menos repetição da textura em muros e pátios, telhado menos azul. Pendente: print de um nó de evento (poço, forca, lápide) e de luta com inimigo novo (sem dados ainda); muretes lilás lisos e `crowned_pursuer` quase preto (luz de borda).
+
+Adendo de revisão técnica (`Gemini`, 2026-11-27, sobre `1b876fb` e `90019be`):
+- **`trench_crawler` já está em jogo:** `trench_crawler` já possuía ficha (`ENEMY-17-rastejador-da-vala.md`) e entrada em `enemies.json`/`scenarios.json`, então o sprite novo já está ativo; apenas `lipless_choir`, `calcified_knight` (`TASK-079`) e `crowned_pursuer` (`TASK-080`) dependem de ficha/regras novas.
+- **Peças sem uso separadas por viabilidade:** `house_window_lit.png`, `house_door_arch.png` e `balcony_wood.png` (que precisa remover `#10131A` interno fechado entre os balaústres) vão para as fachadas na `TASK-078`, junto com `church_gate_iron.png` como `Sprite3D` estático no adro; já `stone_bridge_arch.png` não deve substituir a ponte 3D modular (`_render_bridges`, que rotaciona em 4 direções).
+- **`map-strip-04-canal.jpg`:** íntegra em `docs/design/refs/arenas/` (reservada para mapas de canal / Cenário 3), e duplicata `Gemini_Generated_Image_*` confirmada removida.

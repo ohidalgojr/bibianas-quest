@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 | --- | --- |
-| Atualizado em | 2026-11-26 |
-| Total organizado | 75 pranchas (1 Bibiana retrato + 7 pranchas Bibiana 4 poses `16:9` + 14 Inimigos Cenário 1 + 5 Inimigos Estudo + 2 NPCs + 5 Props + 12 Arenas/Cenários `9:16` + 3 Sobreposições/Estrada de Mapa + 7 Folhas de Ícones `4×4` + 2 Moedas + 8 Peças/Texturas UI + 6 Folhas VFX + 3 Ilustrações de Eventos) |
+| Atualizado em | 2026-11-27 |
+| Total organizado | 94 pranchas (75 anteriores + lote 5 completo da `TASK-077`: 3 eventos restantes, 4 inimigos/Roaming Boss, 4 texturas de cenário, 7 props arquitetônicos e faixa `map-strip-04-canal.jpg`) |
 | Origem | Arquivos brutos sem nome movidos de `assets/` (zero sobras soltas em `assets/`) e pranchas geradas pelo Guia de Arte (`docs/design/GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md`) |
 | Mecha colorida | Removida (`F-024`); toda prancha da Bibiana usa cabelo castanho-escuro natural |
 
@@ -213,17 +213,10 @@ python tools/make_sprite.py docs/design/refs/props/campfire-props.jpg assets/bib
 
 ## 3. O que ainda falta gerar (para completar 100% do lote)
 
-Apenas **7 itens P1/estudo** seguem pendentes após o bloqueio semanal de cota (`HTTP 429 RESOURCE_EXHAUSTED`, reset estimado em `~2026-11-30T18:27Z` em `gemini-3.1-flash-image`):
+As `19` peças do lote 5 (`event-fountain-of-ash`, `event-gallows-tree`, `event-abandoned-armory`, `lipless_choir`, `calcified_knight`, `trench_crawler`, `crowned_pursuer_sprite`, as `4` texturas de cenário, os `7` props arquitetônicos e `map-strip-04-canal.jpg`) **já foram geradas e entregues na `TASK-077`**. Faltam gerar apenas as **2 pranchas dedicadas de animação da Bibiana (`F-025`, `ADR-0061`)**:
 
 | Arquivo alvo | Tipo / Formato | Fundo / Direção | Fonte do prompt | Âncora de referência |
 | --- | --- | --- | --- | --- |
-| `docs/design/refs/events/event-fountain-of-ash.jpg` | Evento `16:9` (`1376×768`) | Cenário completo | `GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` §11.1 | `arena-cidade-rua.jpg` |
-| `docs/design/refs/events/event-gallows-tree.jpg` | Evento `16:9` (`1376×768`) | Cenário (3 cordas vazias, sem corpos) | `GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` §11.1 | `arena-cidade-rua.jpg` |
-| `docs/design/refs/events/event-abandoned-armory.jpg` | Evento `16:9` (`1376×768`) | Cenário completo | `GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` §11.1 | `arena-cidade-rua.jpg` |
-| `docs/design/refs/inimigos/lipless_choir.jpg` | Inimigo Estudo #06 (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §30 | `09-o-coveiro.jpg` + `reliquary_lady.jpg` (conceito: `06-coro-sem-labios.jpg`) |
-| `docs/design/refs/inimigos/calcified_knight.jpg` | Inimigo Estudo #07 (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §31 | `09-o-coveiro.jpg` + `reliquary_lady.jpg` (conceito: `07-cavaleiro-calcificado.jpg`) |
-| `docs/design/refs/inimigos/trench_crawler.jpg` | Inimigo Estudo #08 (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §32 | `09-o-coveiro.jpg` + `reliquary_lady.jpg` (conceito: `08-rastejador-da-vala.jpg`) |
-| `docs/design/refs/roaming-boss/crowned_pursuer_sprite.jpg` | Roaming Boss `TASK-054` (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §33 | `docs/design/refs/roaming-boss/01-perseguidor-coroado-key-art.jpg` + `09-o-coveiro.jpg` |
 | `docs/design/refs/bibiana/bibiana-guerreira-walk-v2-sheet.jpg` | Bibiana Guerreira Costas — Marcha alternada (`16:9`, 4 colunas `hframes=4`) | 4 colunas iguais, `#10131A` liso, costas | `PROMPTS-LOTE-HD2D.md` §34 | `bibiana-guerreira-sheet.jpg` (F-025) |
 | `docs/design/refs/bibiana/bibiana-guerreira-strike-sheet.jpg` | Bibiana Guerreira Costas — Sequência de golpe (`16:9`, 4 colunas `hframes=4`) | 4 colunas iguais, `#10131A` liso, costas | `PROMPTS-LOTE-HD2D.md` §35 | `bibiana-guerreira-combat-sheet.jpg` (F-025) |
 
