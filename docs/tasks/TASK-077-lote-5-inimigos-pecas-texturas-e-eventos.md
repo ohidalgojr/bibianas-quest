@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Em verificação (aguarda revisão do agente de arte) |
+| Status | Concluída com ressalvas (revisada pelo agente de arte) |
 | Aberta em | 2026-11-27 |
 | Fase | 1, identidade visual |
 | GDD | 17, 18 |
@@ -46,4 +46,4 @@ Suíte completa em headless: 380 testes passando (2026-11-27). Prints em `docs/t
 
 ## Revisão cruzada
 
-Pendente (agente de arte).
+Agente de arte (`docs/design/critica-diretor/REVISAO-LOTE-5.md`): APROVA sem P0 (tabuleiro 6,0 para 7,5). Aplicado: menos repetição da textura em muros e pátios, telhado menos azul. Pendente: print de um nó de evento (poço, forca, lápide) e de luta com inimigo novo (sem dados ainda); muretes lilás lisos e `crowned_pursuer` quase preto (luz de borda).

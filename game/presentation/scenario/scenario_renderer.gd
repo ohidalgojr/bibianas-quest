@@ -185,16 +185,16 @@ static func _piece_texture(tint: Color) -> Dictionary:
 		scale_f = 0.34
 	elif tint == TINT_HOUSE_ROOF or tint == TINT_ROOF:
 		file_name = "roof_slate.jpg"
-		paint = Color(0.78, 0.8, 0.88)
-		scale_f = 0.55
+		paint = Color(0.8, 0.8, 0.84)
+		scale_f = 0.5
 	elif tint == TINT_WALL:
 		file_name = "stone_retaining_wall.jpg"
 		paint = Color(0.86, 0.84, 0.86)
-		scale_f = 0.36
+		scale_f = 0.24
 	elif tint == TINT_COURT_TILE:
 		file_name = "ground_rubble.jpg"
 		paint = Color(0.8, 0.78, 0.82)
-		scale_f = 0.26
+		scale_f = 0.17
 	if file_name.is_empty() or not ResourceLoader.exists(TEX_DIR + file_name):
 		return {}
 	return {"texture": load(TEX_DIR + file_name) as Texture2D, "tint": paint, "scale": scale_f}
