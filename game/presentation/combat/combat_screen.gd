@@ -214,8 +214,9 @@ func _play(events: Array[CombatEvent]) -> void:
 	_busy = true
 	_refresh_buttons()
 	for event: CombatEvent in events:
-		# Golpe da Bibiana: caminha até o inimigo e só aplica o dano no instante do impacto (TASK-071).
-		if _stage != null and _is_player_swing(event):
+		# Golpe da Bibiana: caminha até o inimigo e só aplica o dano no instante do impacto (TASK-071 / TASK-074).
+		var swing: bool = _stage != null and _is_player_swing(event)
+		if swing:
 			await _stage.hero_strike(event.type == CombatEvent.Type.DAMAGE and event.flag)
 		_apply(event)
 		if event.type == CombatEvent.Type.COIN:
@@ -226,7 +227,7 @@ func _play(events: Array[CombatEvent]) -> void:
 		var line: String = session.describe(event)
 		if not line.is_empty():
 			_push_log(line)
-			await _wait(EVENT_DELAY)
+			await _wait(EVENT_DELAY + (0.32 if swing else 0.0))
 	_busy = false
 	_now_side = Combatant.PLAYER
 	_refresh_timeline()

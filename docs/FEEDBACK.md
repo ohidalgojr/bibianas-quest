@@ -264,3 +264,16 @@ Tudo abaixo está **implementado e testado, mas ainda não jogado pelo Orlando**
   2. Remoção da mecha: *"A mecha verde no cabelo da Bibiana ficou bem tosca. Vamos retirar e remover por completo essa mecanica de cor do cabelo."* A prancha de teste com mecha verde foi descartada; Bibiana passa a ter cabelo castanho-escuro natural gasto de sobrevivente, sem mecha colorida em nenhum estágio de Poder.
   3. Geração em lote: *"Crie prompts completos de todas as imagens que você quer gerar. Eu vou gerá-las em outro algoritmo a parte. Além disso, a arte não deveria acompanhar o estilo dos jogos de referencia que definimos? Defina os prompts o mais completo possíveis e AI-friendly pra eu gerar as imagens em lote."*
 - **Correção de estilo aplicada nos prompts:** trocado o descritor anterior *"3D character concept"* (que gerava CGI liso) por **ilustração/sprite tático 2.5D artesanal de alta densidade pictórica/pixel-painterly com contorno de silhueta sutil, pincelada tátil, chiaroscuro gótico e zero brilho plástico 3D**, traduzido 100% em descritores originais sem citar nomes de jogos ou artistas (`GDD §18`, `ADR-0042`).
+
+## 2026-11-27, sensação das animações de combate e caminhada
+
+### F-025: animação de ataque muito rápida/estranha e falta de caminhada visível até o inimigo
+
+- **Status:** Em TASK-074 (ADR-0061).
+- **Fala do Orlando:** *"O jogo tá ficando legal, finalmente. Porém, a animação de ataque tá muito rápida e ficou estranha. O personagem não tem animação nenhuma de caminhar até o inimigo, me parece que será necessário criar (se for o caso, anote para o gemini criar)."*
+- **Diagnóstico técnico:**
+  - `Combat3DStage` usava `STRIKE_APPROACH = 0.2s`, `STRIKE_WINDUP = 0.05s` e `STRIKE_RECOVER = 0.06s`, sem fase de bote/golpe nem peso de passada — o movimento até o inimigo e o retorno ocorriam rápidos demais para leitura.
+  - Os 4 quadros em `assets/bibiana/sprites/bibiana_warrior_walk_0..3.png` tinham postura quase estática de pernas/capa, fazendo o sprite parecer deslizar no lugar (no combate e no `Map3DScreen`, que ainda só tocava `ModelRegistry.play(..., "walk")`, sem efeito em `Sprite3D`).
+- **Direção:**
+  1. Ajustar a cadência no código (`STRIKE_APPROACH`, `STRIKE_WINDUP`, novo `STRIKE_LUNGE`, `STRIKE_RECOVER`, `STRIKE_RETURN`) com passada procedural em `_hero_sprite` (balanço vertical de passo, inclinação, squash/stretch na pisada e poeira nos pés) tanto no combate quanto no tabuleiro 3D (`Map3DScreen`).
+  2. Anotar duas novas pranchas de animação em `docs/design/PROMPTS-LOTE-HD2D.md` (§34–35) e `docs/design/CATALOGO-ASSETS-HD2D.md` para geração no Gemini assim que a cota semanal destravar (`bibiana-guerreira-walk-v2-sheet.jpg` e `bibiana-guerreira-strike-sheet.jpg`).

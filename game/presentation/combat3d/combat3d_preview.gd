@@ -10,6 +10,7 @@ func _ready() -> void:
 	var enemy_id: String = "infected_citizen"
 	var kind: int = -1
 	var level: int = 3
+	var pose: String = ""
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("inimigo="):
 			enemy_id = arg.trim_prefix("inimigo=")
@@ -17,8 +18,12 @@ func _ready() -> void:
 			kind = int(arg.trim_prefix("no="))
 		elif arg.begins_with("nivel="):
 			level = int(arg.trim_prefix("nivel="))
+		elif arg.begins_with("pose="):
+			pose = arg.trim_prefix("pose=")
 	var screen: CombatScreen = CombatScreen.new()
 	screen.data = DataLoader.load_all()
 	screen.stage_kind = kind
 	add_child(screen)
-	screen.start_fight(enemy_id, level, float(level), 42)
+	await screen.start_fight(enemy_id, level, float(level), 42)
+	if not pose.is_empty() and screen._stage != null:
+		screen._stage.hero_pose(pose)

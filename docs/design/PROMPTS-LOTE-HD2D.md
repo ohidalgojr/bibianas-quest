@@ -527,3 +527,47 @@ FORMAT (STRICT FOR AUTOMATED SPRITE CUTOUT): SINGLE FULL-BODY FIGURE ONLY, stand
 
 SUBJECT: A colossal, terrifying 2.75-meter undead-corrupted dark warlord standing in imposing three-quarter combat stance facing left. Wears a tall vertical 5-spired blackened wrought-iron gothic crown-helm with pitch-black T-visor void and corroded cheek flaps exposing a rotting greyish-green jaw and sinewy neck. Clad in pitch-black fluted gothic plate armor encrusted with sculpted human skulls (massive twin-horned skull left pauldron, carved skull right pauldron, skull collar, waist chain of skulls, skull kneeguard), actively crumbling, rusted, and splitting apart across the torso and limbs to expose oozing greyish-green rotting necrotic flesh, broken pale ribs, dark tendons, and shredded black funeral cloth. Right gauntlet grips a colossal brutal six-flanged blackened-iron war mace with chained haft; left gauntlet grips a heavy broadsword VIOLENTLY BROKEN IN HALF AT MID-BLADE with a jagged diagonal fracture and gleaming razor-sharp silver steel cutting edge.
 ```
+
+---
+
+## Prioridade 6 — Animações dedicadas de caminhada e golpe da Bibiana (`F-025`, `ADR-0061`)
+
+### 34. Bibiana Guerreira Costas — Ciclo Real de Caminhada/Marcha (`bibiana_warrior_walk_v2`)
+
+- **Salvar em:** `docs/design/refs/bibiana/bibiana-guerreira-walk-v2-sheet.jpg`
+- **Formato:** `16:9` (`1792x1008`, 4 colunas iguais de `448 px`, `hframes = 4`) | **Direção:** `de costas (3/4 para cima-direita)`
+- **Âncora obrigatória:** anexar `docs/design/refs/bibiana/bibiana-guerreira-sheet.jpg` e `bibiana-guerreira-combat-sheet.jpg`.
+- **Integração (`make_sprite.py --thresh 8`):** quadros `0..3` -> `assets/bibiana/sprites/bibiana_warrior_walk_{0..3}.png` (`--height 240`).
+
+```text
+Masterpiece hand-crafted 2.5D dark-fantasy tactical RPG character sprite animation sheet, rich painterly brushwork with crisp subtle dark ink-outlined silhouette and fine tactile grain (NOT smooth 3D CGI, NOT glossy plastic render, NOT anime, NOT chibi, NOT cartoon). Grounded adult proportions, dramatic chiaroscuro lighting with cold pale slate-blue moonlight rim light from upper-right and muted desaturated soot black, tarnished steel, wet umber leather and faded dark crimson-grey cloth.
+GODOT SPRITE SHEET LAYOUT (STRICT — 16:9 WIDESCREEN, 1 ROW x 4 EQUAL HORIZONTAL COLUMNS):
+Four separate full-body animation frames of the EXACT SAME armored female survivor seen from BEHIND in three-quarter back view facing toward the upper-right, aligned side-by-side in four equal vertical columns on one consistent horizontal baseline, generous empty margin around each pose. COMPLETELY FLAT SOLID UNIFORM DARK BLUE-BLACK BACKGROUND (#10131A) everywhere — NO grid lines, NO borders, NO ground, NO shadow, NO mist, NO text.
+CHARACTER CONSISTENCY: Same adult woman warrior from reference: short messy natural dark chestnut-brown hair (ZERO dyed streaks), blackened-steel pauldrons and cuirass back-plate, tattered charcoal-black travel cloak torn at the hem, battered round dark-oak iron-rimmed shield strapped to left arm, notched steel longsword held in right hand, muddy leather-and-iron greaves.
+EXACT 4-FRAME ALTERNATING WALK CYCLE (LEFT TO RIGHT — DISTINCT LEG & CLOAK SILHOUETTES IN EVERY COLUMN):
+1. Column 1 (Contact A): Left leg striding noticeably forward with knee bent, right back heel lifted high off the ground showing the boot sole, torso leaning forward slightly, right sword arm swung forward low, cloak swinging backward-left.
+2. Column 2 (Passing A): Body rising slightly higher over the planted left foot while the right knee bends sharply forward in mid-swing past the calf, cloak trailing tighter behind.
+3. Column 3 (Contact B): Mirror stride — RIGHT leg striding noticeably forward with knee bent, left heel lifted high off the ground behind, left shield arm pushed forward slightly while right sword arm swings back, cloak billowing to the right.
+4. Column 4 (Passing B): Body rising slightly higher over the planted right foot while the left knee bends forward in mid-swing past the shin, cloak settling back into rhythm.
+Negative: identical leg pose across frames, static feet, sliding pose, grid lines, dividing lines, floor, cast shadow, text, dyed hair, chibi, cartoon, glossy 3D plastic.
+```
+
+### 35. Bibiana Guerreira Costas — Sequência de Golpe em Arco (`bibiana_warrior_strike`)
+
+- **Salvar em:** `docs/design/refs/bibiana/bibiana-guerreira-strike-sheet.jpg`
+- **Formato:** `16:9` (`1792x1008`, 4 colunas iguais de `448 px`, `hframes = 4`) | **Direção:** `de costas (3/4 para cima-direita)`
+- **Âncora obrigatória:** anexar `docs/design/refs/bibiana/bibiana-guerreira-combat-sheet.jpg`.
+- **Integração (`make_sprite.py --thresh 8`):** quadros `0..3` -> `bibiana_warrior_dash.png`, `bibiana_warrior_windup.png`, `bibiana_warrior_cleave.png`, `bibiana_warrior_recover.png` (`--height 240`).
+
+```text
+Masterpiece hand-crafted 2.5D dark-fantasy tactical RPG character sprite animation sheet, rich painterly brushwork with crisp subtle dark ink-outlined silhouette and fine tactile grain (NOT smooth 3D CGI, NOT glossy plastic render, NOT anime, NOT chibi, NOT cartoon). Grounded adult proportions, dramatic chiaroscuro lighting with cold pale slate-blue moonlight rim light and muted soot black, tarnished steel, wet umber leather and faded dark crimson-grey cloth.
+GODOT SPRITE SHEET LAYOUT (STRICT — 16:9 WIDESCREEN, 1 ROW x 4 EQUAL HORIZONTAL COLUMNS):
+Four separate full-body melee strike keyframes of the EXACT SAME armored female survivor seen from BEHIND in three-quarter back view facing upper-right, aligned side-by-side in four equal vertical columns on one consistent baseline, generous empty margin around blades and cloak. COMPLETELY FLAT SOLID UNIFORM DARK BLUE-BLACK BACKGROUND (#10131A) everywhere — NO slash VFX trails, NO grid lines, NO borders, NO ground, NO shadow, NO mist, NO text.
+CHARACTER CONSISTENCY: Same adult woman warrior from reference: short messy natural dark chestnut-brown hair (ZERO dyed streaks), blackened-steel armor, tattered charcoal cloak, battered round wooden shield on left arm, steel longsword in right hand.
+EXACT 4-FRAME MELEE ATTACK SEQUENCE (LEFT TO RIGHT):
+1. Column 1 (Dash / Step-In): Low aggressive sprint lunge forward, torso crouched forward, left knee driving hard, sword pulled tightly back beside right hip, cloak streaming horizontally behind.
+2. Column 2 (High Windup): Front foot planted wide, torso coiled back slightly to the right, BOTH shoulders twisted, longsword raised high above right shoulder poised to strike down.
+3. Column 3 (Follow-Through Cleave): Explosive forward diagonal lunge with full shoulder rotation, right arm extended far upper-left after a heavy downward-left diagonal slash, shield flared behind for counterweight, cloak whipping sideways.
+4. Column 4 (Braced Recovery): Pulling weight back onto rear leg, sword sweeping down into low diagonal guard ready to step back.
+Negative: sword slash FX arcs, energy trails, front view, duplicate poses, cropped sword tip, grid lines, dividing lines, floor, cast shadow, text, dyed hair, chibi, cartoon, glossy 3D plastic.
+```

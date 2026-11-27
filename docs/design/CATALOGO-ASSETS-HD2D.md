@@ -224,6 +224,8 @@ Apenas **7 itens P1/estudo** seguem pendentes após o bloqueio semanal de cota (
 | `docs/design/refs/inimigos/calcified_knight.jpg` | Inimigo Estudo #07 (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §31 | `09-o-coveiro.jpg` + `reliquary_lady.jpg` (conceito: `07-cavaleiro-calcificado.jpg`) |
 | `docs/design/refs/inimigos/trench_crawler.jpg` | Inimigo Estudo #08 (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §32 | `09-o-coveiro.jpg` + `reliquary_lady.jpg` (conceito: `08-rastejador-da-vala.jpg`) |
 | `docs/design/refs/roaming-boss/crowned_pursuer_sprite.jpg` | Roaming Boss `TASK-054` (`16:9`) | Figura única, `#10131A` liso, **ESQUERDA** | `PROMPTS-LOTE-HD2D.md` §33 | `docs/design/refs/roaming-boss/01-perseguidor-coroado-key-art.jpg` + `09-o-coveiro.jpg` |
+| `docs/design/refs/bibiana/bibiana-guerreira-walk-v2-sheet.jpg` | Bibiana Guerreira Costas — Marcha alternada (`16:9`, 4 colunas `hframes=4`) | 4 colunas iguais, `#10131A` liso, costas | `PROMPTS-LOTE-HD2D.md` §34 | `bibiana-guerreira-sheet.jpg` (F-025) |
+| `docs/design/refs/bibiana/bibiana-guerreira-strike-sheet.jpg` | Bibiana Guerreira Costas — Sequência de golpe (`16:9`, 4 colunas `hframes=4`) | 4 colunas iguais, `#10131A` liso, costas | `PROMPTS-LOTE-HD2D.md` §35 | `bibiana-guerreira-combat-sheet.jpg` (F-025) |
 
 Entregáveis P0 de **script (sem IA)** previstos em `GUIA-DE-ARTE-DARK-FANTASY-MOBILE.md` (§11.1 e §13 #2), a cargo do código/ferramentas:
 - `enemy_bust_<id>` (17 bustos `96×96` / `192` via `tools/make_sprite.py --bust`).

@@ -130,6 +130,9 @@ func test_walk_animation_reaches_the_destination_then_emits() -> void:
 	assert_signal_emitted_with_parameters(screen, "node_chosen", [target])
 	var goal: Vector3 = screen.layout.node_world(target)
 	assert_lt(screen._hero.position.distance_to(goal), 0.05, "a Bibiana chegou à praça")
+	if screen._hero_sprite != null:
+		assert_eq(screen._hero_sprite.position, Vector3.ZERO, "sprite de caminhada volta à origem após o passo")
+		assert_eq(screen._hero_sprite.rotation_degrees, Vector3.ZERO, "rotação de passada restaurada ao chegar")
 
 
 ## ADR-0048 (D-UI-3): com a prévia ligada, o primeiro toque só abre o mini-card do destino.

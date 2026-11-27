@@ -42,6 +42,7 @@ var _viewport: SubViewport
 var _world: Node3D
 var _node_root: Node3D
 var _hero: Node3D
+var _hero_sprite: Sprite3D
 var _hero_cell: Vector2i
 var _fog: MultiMeshInstance3D
 var _fog_now: PackedFloat32Array = PackedFloat32Array()
@@ -424,13 +425,38 @@ func _add_diamond(at: Vector3, color: Color, size: float, filled_only: bool = fa
 func _build_hero() -> void:
 	if _hero != null:
 		_hero.queue_free()
+	_hero_sprite = null
 	_hero_cell = layout.node_cells[view.run.current_node_id]
 	_hero = ModelRegistry.spawn(ModelRegistry.hero_id())
 	_hero.position = layout.world_of(_hero_cell)
 	_hero.rotation_degrees.y = 180.0
 	_hero.scale = Vector3.ONE * 2.9
 	_world.add_child(_hero)
+	for found: Node in _hero.find_children("*", "Sprite3D", true, false):
+		_hero_sprite = found as Sprite3D
+		break
 	ModelRegistry.play(_hero, ModelRegistry.hero_id(), "idle")
+
+
+func _set_hero_pose(pose: String) -> void:
+	if _hero_sprite == null:
+		return
+	var id: String = ModelRegistry.hero_id() if pose == "back" else "bibiana_warrior_%s" % pose
+	if not ModelRegistry.has_sprite(id):
+		return
+	var tex: Texture2D = ModelRegistry.sprite_texture(id)
+	_hero_sprite.texture = tex
+	_hero_sprite.pixel_size = 1.0 / 240.0
+	_hero_sprite.offset = Vector2(0.0, float(tex.get_height()) * 0.5)
+
+
+func _apply_map_walk_stride(elapsed: float) -> void:
+	if _hero_sprite == null:
+		return
+	_set_hero_pose("walk_%d" % (int(elapsed / 0.11) % 4))
+	var phase: float = elapsed / 0.11
+	_hero_sprite.position = Vector3(0.0, absf(sin(phase * PI)) * 0.16, 0.0)
+	_hero_sprite.rotation_degrees = Vector3(0.0, 0.0, sin(phase * PI) * 4.0)
 
 
 ## Bolhas de número (nível em vermelho, recompensa em dourado) e áreas de toque dos destinos.
@@ -532,18 +558,24 @@ func _on_pick(node_id: int) -> void:
 	_walking = true
 	var cells: Array[Vector2i] = layout.path_cells(from_cell, to_cell)
 	ModelRegistry.play(_hero, ModelRegistry.hero_id(), "walk")
-	var duration: float = STEP_SECONDS * float(cells.size()) / time_scale
+	var steps: int = maxi(cells.size() - 1, 1)
+	var duration: float = STEP_SECONDS * float(steps) / time_scale
 	var tween: Tween = create_tween()
 	tween.set_parallel(true)
-	var last: Vector3 = _hero.position
 	for i: int in range(1, cells.size()):
 		var target: Vector3 = layout.world_of(cells[i])
 		tween.tween_property(_hero, "position", target, STEP_SECONDS / time_scale).set_delay(STEP_SECONDS / time_scale * float(i - 1))
-		last = target
+	if _hero_sprite != null:
+		tween.tween_method(func(t: float) -> void:
+			_apply_map_walk_stride(t), 0.0, duration, duration)
 	var start: Vector3 = _cam_target
 	var finish: Vector3 = _aim_point(node_id)
 	tween.tween_method(func(t: float) -> void: _set_camera_target(start.lerp(finish, t)), 0.0, 1.0, duration)
 	tween.chain().tween_callback(func() -> void:
+		if _hero_sprite != null:
+			_hero_sprite.position = Vector3.ZERO
+			_hero_sprite.rotation_degrees = Vector3.ZERO
+			_set_hero_pose("back")
 		_walking = false
 		node_chosen.emit(node_id))
 

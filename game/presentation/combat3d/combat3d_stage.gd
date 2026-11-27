@@ -31,14 +31,15 @@ const ARENA_HALF: int = 5
 const HERO_REF_HEIGHT: float = 240.0
 const WALK_FRAMES: int = 4
 const FX_PATH: String = "res://assets/bibiana/fx/"
-## Linha do tempo do golpe (s): caminhada até o inimigo, preparação com a espada no alto, volta.
-const STRIKE_APPROACH: float = 0.2
-const STRIKE_WINDUP: float = 0.05
-const STRIKE_RECOVER: float = 0.06
-const STRIKE_RETURN: float = 0.3
-const WALK_FRAME_SECONDS: float = 0.07
+## Linha do tempo do golpe (s): caminhada até o inimigo, preparação com a espada no alto, bote, volta.
+const STRIKE_APPROACH: float = 0.44
+const STRIKE_WINDUP: float = 0.18
+const STRIKE_LUNGE: float = 0.08
+const STRIKE_RECOVER: float = 0.22
+const STRIKE_RETURN: float = 0.38
+const WALK_FRAME_SECONDS: float = 0.11
 ## Distância (unidades) do inimigo em que a Bibiana para para bater (crítica de UX, seção 5).
-const STRIKE_REACH: float = 1.15
+const STRIKE_REACH: float = 1.2
 const ARENA_COMMON: String = "res://assets/bibiana/arenas/arena-cidade-rua.jpg"
 const ARENA_ELITE: String = "res://assets/bibiana/arenas/arena-cidade-praca.jpg"
 ## Cemitério e capela do Coveiro: só o chefe final (TASK-072).
@@ -293,11 +294,70 @@ func _idle_pose() -> String:
 ## Escolhe a guarda: ao agir, a Bibiana sai da defesa; ao defender, fica com o escudo à frente.
 func set_defending(on: bool) -> void:
 	_defending = on
+	_reset_hero_visual()
 	hero_pose(_idle_pose())
 
 
-## Golpe da Bibiana: caminha até o inimigo, ergue a espada e devolve o controle no instante do impacto
-## (a tela aplica dano e números nessa hora). A volta corre sozinha em seguida. Sem tempo, não anima.
+func _reset_hero_visual() -> void:
+	if _hero_sprite == null:
+		return
+	_hero_sprite.position = Vector3.ZERO
+	_hero_sprite.rotation_degrees = Vector3.ZERO
+	_hero_sprite.scale = Vector3.ONE
+
+
+## Aplica cinemática de passada nos quadros de caminhada (passo alternado, inclinação e pisada).
+func _apply_walk_stride(elapsed: float, forward: bool) -> void:
+	if _hero_sprite == null:
+		return
+	hero_pose("walk_%d" % (int(elapsed / WALK_FRAME_SECONDS) % WALK_FRAMES))
+	var phase: float = elapsed / WALK_FRAME_SECONDS
+	_hero_sprite.position = Vector3(sin(phase * PI) * 0.04, absf(sin(phase * PI)) * (0.14 if forward else 0.09), 0.0)
+	_hero_sprite.rotation_degrees = Vector3(0.0, 0.0, (5.5 if forward else -3.5) + sin(phase * PI) * 2.5)
+	_hero_sprite.scale = Vector3(1.0 + 0.035 * cos(phase * TAU), 1.0 - 0.035 * cos(phase * TAU), 1.0)
+
+
+static var _step_dust_tex: Texture2D
+
+
+## Poeira leve sob as botas durante a caminhada até o inimigo.
+func _spawn_step_dust(at: Vector3) -> void:
+	if time_scale <= 0.0 or not is_inside_tree():
+		return
+	if _step_dust_tex == null:
+		var grad: Gradient = Gradient.new()
+		grad.colors = PackedColorArray([Color(0.62, 0.6, 0.56, 0.55), Color(0.62, 0.6, 0.56, 0.0)])
+		grad.offsets = PackedFloat32Array([0.0, 1.0])
+		var gtex: GradientTexture2D = GradientTexture2D.new()
+		gtex.gradient = grad
+		gtex.fill = GradientTexture2D.FILL_RADIAL
+		gtex.fill_from = Vector2(0.5, 0.5)
+		gtex.fill_to = Vector2(1.0, 0.5)
+		gtex.width = 64
+		gtex.height = 64
+		_step_dust_tex = gtex
+	var puff: Sprite3D = Sprite3D.new()
+	puff.texture = _step_dust_tex
+	puff.pixel_size = 0.7 / 64.0
+	puff.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	puff.shaded = false
+	puff.transparent = true
+	puff.no_depth_test = true
+	puff.render_priority = 4
+	puff.position = at + Vector3(0.0, 0.12, 0.0)
+	_scene_root.add_child(puff)
+	var dur: float = 0.26 * time_scale
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.tween_property(puff, "scale", Vector3.ONE * 1.9, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(puff, "position:y", at.y + 0.28, dur)
+	tween.tween_property(puff, "modulate:a", 0.0, dur)
+	tween.chain().tween_callback(func() -> void:
+		if is_instance_valid(puff):
+			puff.queue_free())
+
+
+## Golpe da Bibiana: caminha até o inimigo, ergue a espada com antecipação, dá o bote no impacto e volta.
+## A volta corre sozinha após o impacto para sincronizar com dano, hit-stop e número na tela.
 func hero_strike(crit: bool = false) -> void:
 	if _hero_sprite == null or enemy_node == null or time_scale <= 0.0 or not is_inside_tree():
 		return
@@ -306,21 +366,49 @@ func hero_strike(crit: bool = false) -> void:
 	var token: int = _hero_token
 	var toward: Vector3 = (PLAYER_POS - ENEMY_POS).normalized()
 	var spot: Vector3 = ENEMY_POS + toward * STRIKE_REACH
-	var tween: Tween = create_tween().set_parallel(true)
-	tween.tween_property(player_node, "position", spot, STRIKE_APPROACH * time_scale).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tween.tween_method(func(t: float) -> void:
-		if token == _hero_token:
-			hero_pose("walk_%d" % (int(t / WALK_FRAME_SECONDS) % WALK_FRAMES)), 0.0, STRIKE_APPROACH * time_scale, STRIKE_APPROACH * time_scale)
-	await tween.finished
+	var approach_dur: float = STRIKE_APPROACH * time_scale
+	var dust_a: bool = false
+	var dust_b: bool = false
+	var walk_tween: Tween = create_tween().set_parallel(true)
+	walk_tween.tween_property(player_node, "position", spot, approach_dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	walk_tween.tween_method(func(t: float) -> void:
+		if token != _hero_token:
+			return
+		_apply_walk_stride(t, true)
+		var frac: float = t / maxf(approach_dur, 0.001)
+		if not dust_a and frac >= 0.25:
+			dust_a = true
+			_spawn_step_dust(player_node.position)
+		if not dust_b and frac >= 0.7:
+			dust_b = true
+			_spawn_step_dust(player_node.position), 0.0, approach_dur, approach_dur)
+	await walk_tween.finished
 	if token != _hero_token:
 		return
+	# Tempo 2 — Preparação visível: ergue a espada e recua um passo para carregar o golpe.
 	hero_pose("attack")
-	await get_tree().create_timer(STRIKE_WINDUP * time_scale).timeout
+	var windup_dur: float = STRIKE_WINDUP * time_scale
+	var windup_tween: Tween = create_tween().set_parallel(true)
+	windup_tween.tween_property(player_node, "position", spot + toward * 0.14, windup_dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	windup_tween.tween_property(_hero_sprite, "position", Vector3(0.0, 0.04, 0.0), windup_dur)
+	windup_tween.tween_property(_hero_sprite, "rotation_degrees:z", -7.0, windup_dur)
+	windup_tween.tween_property(_hero_sprite, "scale", Vector3(0.95, 1.07, 1.0), windup_dur)
+	await windup_tween.finished
 	if token != _hero_token:
 		return
-	_spawn_fx("slash", enemy_node.position + Vector3(0.0, _enemy_height * 0.5, 0.0), 6, 2.2 if not crit else 2.8, 0.15)
+	# Tempo 3 — Bote do golpe: projeta o tronco à frente e acerta o alvo no fim do arco.
+	var lunge_dur: float = STRIKE_LUNGE * time_scale
+	var lunge_tween: Tween = create_tween().set_parallel(true)
+	lunge_tween.tween_property(player_node, "position", spot - toward * 0.24, lunge_dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	lunge_tween.tween_property(_hero_sprite, "position", Vector3.ZERO, lunge_dur)
+	lunge_tween.tween_property(_hero_sprite, "rotation_degrees:z", 13.0, lunge_dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	lunge_tween.tween_property(_hero_sprite, "scale", Vector3(1.09, 0.93, 1.0), lunge_dur)
+	await lunge_tween.finished
+	if token != _hero_token:
+		return
+	_spawn_fx("slash", enemy_node.position + Vector3(0.0, _enemy_height * 0.5, 0.0), 6, 2.4 if not crit else 3.0, 0.22)
 	if crit:
-		_spawn_fx("crit", enemy_node.position + Vector3(0.0, _enemy_height * 0.5, 0.0), 1, 2.4, 0.25)
+		_spawn_fx("crit", enemy_node.position + Vector3(0.0, _enemy_height * 0.5, 0.0), 1, 2.6, 0.32)
 	_hero_return(token)
 
 
@@ -328,13 +416,15 @@ func _hero_return(token: int) -> void:
 	await get_tree().create_timer(STRIKE_RECOVER * time_scale).timeout
 	if token != _hero_token or player_node == null:
 		return
+	var return_dur: float = STRIKE_RETURN * time_scale
 	var tween: Tween = create_tween().set_parallel(true)
-	tween.tween_property(player_node, "position", PLAYER_POS, STRIKE_RETURN * time_scale).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(player_node, "position", PLAYER_POS, return_dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_method(func(t: float) -> void:
 		if token == _hero_token:
-			hero_pose("walk_%d" % (int(t / WALK_FRAME_SECONDS) % WALK_FRAMES)), 0.0, STRIKE_RETURN * time_scale, STRIKE_RETURN * time_scale)
+			_apply_walk_stride(t, false), 0.0, return_dur, return_dur)
 	await tween.finished
 	if token == _hero_token:
+		_reset_hero_visual()
 		hero_pose(_idle_pose())
 
 
@@ -344,6 +434,7 @@ func hero_react(damage_taken: bool = true) -> void:
 		return
 	_hero_token += 1
 	var token: int = _hero_token
+	_reset_hero_visual()
 	var at: Vector3 = PLAYER_POS + Vector3(0.0, 1.1, 0.0)
 	if _defending:
 		hero_pose("defend")
@@ -353,6 +444,7 @@ func hero_react(damage_taken: bool = true) -> void:
 		_spawn_fx("slash", at, 6, 2.2, 0.26)
 	await get_tree().create_timer(0.38 * time_scale).timeout
 	if token == _hero_token:
+		_reset_hero_visual()
 		hero_pose(_idle_pose())
 
 
@@ -363,6 +455,7 @@ func hero_use_item() -> void:
 	_defending = false
 	_hero_token += 1
 	var token: int = _hero_token
+	_reset_hero_visual()
 	hero_pose("item")
 	await get_tree().create_timer(0.7 * time_scale).timeout
 	if token == _hero_token:
@@ -371,11 +464,13 @@ func hero_use_item() -> void:
 
 func hero_victory() -> void:
 	_hero_token += 1
+	_reset_hero_visual()
 	hero_pose("victory")
 
 
 func hero_defeat() -> void:
 	_hero_token += 1
+	_reset_hero_visual()
 	hero_pose("defeat")
 
 
@@ -425,8 +520,9 @@ func play(on_enemy: bool, key: String) -> void:
 	var tween: Tween = create_tween()
 	match key:
 		"attack":
-			tween.tween_property(node, "position", home + toward * 0.9, 0.12 * time_scale)
-			tween.tween_property(node, "position", home, 0.22 * time_scale)
+			tween.tween_property(node, "position", home - toward * 0.25, 0.14 * time_scale).set_trans(Tween.TRANS_SINE)
+			tween.tween_property(node, "position", home + toward * 0.95, 0.12 * time_scale).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			tween.tween_property(node, "position", home, 0.28 * time_scale).set_trans(Tween.TRANS_SINE)
 		"hit":
 			_shake = 0.3
 			_flash(node)
@@ -619,16 +715,3 @@ func hit_stop(seconds: float = 0.08) -> void:
 	Engine.time_scale = 0.02
 	await get_tree().create_timer(seconds, true, false, true).timeout
 	Engine.time_scale = 1.0
-	return
-	var players: Array[AnimationPlayer] = []
-	for node: Node3D in [player_node, enemy_node]:
-		if node == null:
-			continue
-		for found: Node in node.find_children("*", "AnimationPlayer", true, false):
-			var player: AnimationPlayer = found as AnimationPlayer
-			players.append(player)
-			player.speed_scale = 0.0
-	await get_tree().create_timer(seconds, true, false, true).timeout
-	for player: AnimationPlayer in players:
-		if is_instance_valid(player):
-			player.speed_scale = 1.0
