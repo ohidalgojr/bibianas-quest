@@ -726,7 +726,7 @@ Cada cenário é um tabuleiro isométrico gerado a partir do grafo do mapa, semp
 
 | # | Cenário | Camadas | Nível dos inimigos | Inimigos típicos | Clima possível | Chefe |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Cidade Abandonada | 5 | 1 a 6 | Cidadãos infectados, ratos grandes, corvos, cães de peste, sineiros penados, ossadas errantes, lodo de esgoto, sanguessugas de beco (ADR-0038) | Chuva, Névoa | O Coveiro |
+| 1 | Cidade Abandonada | 5 | 1 a 6 | Cidadãos infectados, ratos grandes, corvos, cães de peste, sineiros penados, ossadas errantes, lodo de esgoto, sanguessugas de beco (ADR-0038), coro sem lábios e cavaleiros calcificados (ADR-0065) | Chuva, Névoa | O Coveiro |
 | 2 | Catacumbas | 6 | 5 a 11 | Esqueletos, cultistas, ghouls, médicos da peste | Névoa, Eclipse | A Viúva de Ossos |
 | 3 | Brejo Doente | 7 | 9 a 16 | Sanguessugas gigantes, lenhadores febris, bruxos | Chuva, Tempestade, Lua de Sangue | A Mãe do Brejo |
 | 4 | Catedral dos Sinos | 8 | 14 a 22 | Fanáticos, gárgulas, coro de vozes | Eclipse, Vento de Cinzas | O Bispo Cego |

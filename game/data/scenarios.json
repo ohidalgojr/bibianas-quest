@@ -8,7 +8,7 @@
 			"min_level": 1,
 			"max_level": 6,
 			"winnable_target": 60,
-			"common_enemies": ["infected_citizen", "giant_rat", "carrion_crow", "plague_hound", "bell_ghost", "wandering_bones", "sewer_slime", "alley_leech", "hanged_man", "stitched_horror", "blind_censer_bearer", "wax_physician", "trench_crawler"],
+			"common_enemies": ["infected_citizen", "giant_rat", "carrion_crow", "plague_hound", "bell_ghost", "wandering_bones", "sewer_slime", "alley_leech", "hanged_man", "stitched_horror", "blind_censer_bearer", "wax_physician", "trench_crawler", "lipless_choir", "calcified_knight"],
 			"elite_enemies": ["rotten_executioner", "rat_mother"],
 			"mini_bosses": ["bell_warden"],
 			"boss": "gravedigger",

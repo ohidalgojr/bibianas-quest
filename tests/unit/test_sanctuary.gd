@@ -81,7 +81,7 @@ func test_bestiary_records_kills_and_deaths_for_all_enemies() -> void:
 	var defeated: Array[String] = ["infected_citizen", "giant_rat", "infected_citizen", "bell_warden"]
 	bestiary = SanctuaryRules.record_run_in_bestiary(bestiary, defeated, "gravedigger")
 	var entries: Array[Dictionary] = SanctuaryRules.bestiary_entries(_data, bestiary)
-	assert_eq(entries.size(), 17, "todos os 17 inimigos aparecem no Códice")
+	assert_eq(entries.size(), 19, "todos os 19 inimigos aparecem no Códice")
 
 	var by_id: Dictionary = {}
 	for entry: Dictionary in entries:

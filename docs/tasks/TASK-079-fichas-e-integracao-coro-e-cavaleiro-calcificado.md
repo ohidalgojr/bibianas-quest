@@ -2,11 +2,11 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aberta |
+| Status | Em verificação (revisão cruzada pendente no fechamento do lote) |
 | Aberta em | 2026-11-27 |
 | Fase | 1, conteúdo de inimigos |
 | GDD | 6, 7, 11, 21 |
-| ADRs | Novo ADR obrigatório (incrementa `RULES_VERSION`) |
+| ADRs | ADR-0065 (`RULES_VERSION` 22) |
 
 ## Objetivo
 
@@ -18,11 +18,11 @@ Criar as fichas de design obrigatórias em `docs/enemies/` e integrar ao jogo os
 
 ## Critérios de aceite
 
-- [ ] Criar `docs/enemies/ENEMY-18-coro-sem-labios.md` (`lipless_choir`) e `docs/enemies/ENEMY-19-cavaleiro-calcificado.md` (`calcified_knight`) com fantasia, golpes de moeda temáticos, reações e auditoria de justiça (`CLAUDE.md` regra 10).
-- [ ] Cadastrar ambos em `game/data/enemies.json` e `game/data/scenarios.json`, e incluir na ordem do Códice (`SanctuaryRules.ENEMY_ORDER`).
-- [ ] Criar ADR próprio, atualizar `docs/GDD.md` se aplicável e incrementar `CoreVersion.RULES_VERSION` + `docs/HANDOFF.md`.
-- [ ] Validar `combat3d_preview.tscn` com `inimigo=lipless_choir` e `inimigo=calcified_knight`, anexando prints `540×960` em `docs/tasks/prints/`.
-- [ ] Suíte headless verde (`test_project_standards.gd`, `test_game_data.gd`, `test_sanctuary.gd`).
+- [x] Criar `docs/enemies/ENEMY-18-coro-sem-labios.md` (`lipless_choir`) e `docs/enemies/ENEMY-19-cavaleiro-calcificado.md` (`calcified_knight`) com fantasia, golpes de moeda temáticos, reações e auditoria de justiça (`CLAUDE.md` regra 10).
+- [x] Cadastrar ambos em `game/data/enemies.json` e `game/data/scenarios.json`, e incluir na ordem do Códice (`SanctuaryRules.ENEMY_ORDER`).
+- [x] Criar ADR próprio, atualizar `docs/GDD.md` se aplicável e incrementar `CoreVersion.RULES_VERSION` + `docs/HANDOFF.md`.
+- [x] Validar `combat3d_preview.tscn` com `inimigo=lipless_choir` e `inimigo=calcified_knight`, anexando prints `540×960` em `docs/tasks/prints/`.
+- [x] Suíte headless verde (`test_project_standards.gd`, `test_game_data.gd`, `test_sanctuary.gd`).
 
 ## Arquivos afetados
 
@@ -43,7 +43,7 @@ Criar as fichas de design obrigatórias em `docs/enemies/` e integrar ao jogo os
 
 ## Verificação
 
-Pendente (aguardando implementação).
+Suíte 380/380 (`RULES_VERSION` = 22). Testes que fixavam o nº de inimigos mudaram de propósito (15 comuns, 19 no total; ADR-0065). Prints `docs/tasks/prints/TASK-079-lipless_choir.png` e `TASK-079-calcified_knight.png`. Não rodei o simulador (CLAUDE.md regra 9): HP/DEF do Cavaleiro sem calibração.
 
 ## Revisão cruzada
 

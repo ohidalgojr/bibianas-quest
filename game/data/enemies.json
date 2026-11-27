@@ -171,6 +171,112 @@
 			"reactions": [{"when": "player_hp_below", "value": 60, "move": "inverted_bite"}]
 		},
 		{
+			"id": "lipless_choir",
+			"name": "Coro Sem Lábios",
+			"type": "common",
+			"base_level": 1,
+			"mutation": "phantom",
+			"stats": {
+				"hp": 44,
+				"strength": 9,
+				"defense": 3,
+				"resistance": 8,
+				"speed": 9,
+				"evasion": 6
+			},
+			"element_mults": {
+				"holy": 1.25,
+				"shadow": 0.5
+			},
+			"tags": [
+				"undead"
+			],
+			"phases": [
+				{
+					"below_hp_percent": 100,
+					"moves": [
+						{
+							"id": "attack",
+							"kind": "attack"
+						},
+						{
+							"id": "mute_hymn",
+							"kind": "heavy",
+							"fail_effect": "weakened"
+						},
+						{
+							"id": "attack",
+							"kind": "attack"
+						},
+						{
+							"id": "discord_wail",
+							"kind": "strong",
+							"power": 1.3
+						}
+					]
+				}
+			],
+			"reactions": [
+				{
+					"when": "player_buffed",
+					"move": "discord_wail"
+				}
+			]
+		},
+		{
+			"id": "calcified_knight",
+			"name": "Cavaleiro Calcificado",
+			"type": "common",
+			"base_level": 1,
+			"mutation": "bloated",
+			"stats": {
+				"hp": 70,
+				"strength": 12,
+				"defense": 10,
+				"resistance": 3,
+				"speed": 4,
+				"evasion": 2
+			},
+			"element_mults": {
+				"holy": 1.25,
+				"fire": 0.75
+			},
+			"tags": [
+				"undead"
+			],
+			"phases": [
+				{
+					"below_hp_percent": 100,
+					"moves": [
+						{
+							"id": "attack",
+							"kind": "attack"
+						},
+						{
+							"id": "calcified_charge",
+							"kind": "heavy",
+							"fail_effect": "slowed"
+						},
+						{
+							"id": "attack",
+							"kind": "attack"
+						},
+						{
+							"id": "bone_cleave",
+							"kind": "strong",
+							"power": 1.4
+						}
+					]
+				}
+			],
+			"reactions": [
+				{
+					"when": "player_defended_twice",
+					"move": "bone_cleave"
+				}
+			]
+		},
+		{
 			"id": "rotten_executioner", "name": "Carrasco Apodrecido", "type": "elite", "base_level": 2,
 			"stats": {"hp": 95, "strength": 15, "defense": 9, "resistance": 4, "speed": 5, "evasion": 2},
 			"element_mults": {"holy": 1.5, "shadow": 0.5}, "tags": ["undead"],
