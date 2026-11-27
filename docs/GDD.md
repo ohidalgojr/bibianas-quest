@@ -534,7 +534,7 @@ A fogueira é o respiro do jogo: um nó seguro onde a Bibiana gasta Brasas limit
 - Cada fogueira dá 6 Brasas (valor inicial). Ao entrar, o jogador escolhe ações até gastar as Brasas ou sair.
 - **Armar a fogueira gasta Galhos Secos (ADR-0028).** O nó de fogueira abre apagado: sem armá-la não há Brasas, e as Brasas seguem sendo o recurso das ações do acampamento. Cada mapa garante os Galhos Secos de **uma** fogueira. Para armar mais, o jogador precisa de Galhos extras, que são raros: inimigos comuns 5%, elites 20%, baús 15% (mais SORTE), o mini boss sempre 1 e o chefe sempre 1, ou a loja a 120 moedas. Entrar no nó e sair sem armar não gasta nada, então o jogador pode guardar os Galhos para a fogueira de antes do chefe: é a escolha de estratégia, sacrificar ouro e coleta por mais uma fogueira, ou usar o recurso em outra coisa.
 - O número de fogueiras acompanha a profundidade do mapa (ADR-0028): 1 até 5 camadas; de 6 em diante, uma a cada 3 camadas, com ao menos 2 (6 e 7 camadas: 2; 8 a 10: 3; 11 e 12: 4). A penúltima camada sempre oferece uma, e as outras ficam a pelo menos 2 camadas de qualquer fogueira, para nunca ficarem ligadas. Sempre há, portanto, mais de um lugar para armar.
-- Roaming bosses não entram em fogueiras, mas o tempo continua passando (seção 13).
+- Roaming bosses não entram em fogueiras: a perseguição fica pausada enquanto a Bibiana está no acampamento e não avança ao entrar nele (seção 13, ADR-0066).
 
 **Cena (ADR-0036):** a fogueira é uma cena própria, como o acampamento de Darkest Dungeon: a Bibiana sentada junto ao fogo, luz quente oscilando, brasas, ruína ao fundo, e as ações em cartões na parte de baixo (`docs/ART-DIRECTION.md` §5).
 

@@ -296,7 +296,7 @@ func choose_node(node_id: int) -> void:
 
 func _show_fight() -> void:
 	var fight_kind: int = run.current_node().kind
-	music.play_track("boss" if fight_kind == MapNode.Kind.BOSS or fight_kind == MapNode.Kind.MINI_BOSS or fight_kind == MapNode.Kind.ELITE else "combat")
+	music.play_track("boss" if run.roaming_fight or fight_kind == MapNode.Kind.BOSS or fight_kind == MapNode.Kind.MINI_BOSS or fight_kind == MapNode.Kind.ELITE else "combat")
 	ambience.set_mood("combat")
 	_clear()
 	_combat = CombatScreen.new()
@@ -312,7 +312,9 @@ func _show_fight() -> void:
 func _on_fight_done() -> void:
 	if run.combat != null:
 		var node: MapNode = run.current_node()
-		_telemetry.write(Telemetry.fight_lines(run.combat, node.enemy_id, node.level))
+		var enemy_id: String = RoamingRules.ENEMY_ID if run.roaming_fight else node.enemy_id
+		var enemy_level: int = run.roaming_level if run.roaming_fight else node.level
+		_telemetry.write(Telemetry.fight_lines(run.combat, enemy_id, enemy_level))
 	run.finish_fight()
 	# Depois de uma vitória com loja, a recompensa vem antes dela (TASK-010).
 	_reward_pending = run.phase == RunState.Phase.SHOP

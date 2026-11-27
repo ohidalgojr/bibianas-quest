@@ -117,3 +117,19 @@ func test_save_round_trip_keeps_the_pursuit() -> void:
 	assert_not_null(restored)
 	assert_eq(restored.alarm, 2)
 	assert_eq(restored.pursuer_distance, 2)
+
+
+func test_forced_fight_session_uses_the_pursuer_not_the_previous_node() -> void:
+	var run: RunState = _run(5)
+	# vai a um nó de luta qualquer e vence, para o nó atual ter outro inimigo
+	run.choose_node(run.options()[0].id)
+	if run.phase == RunState.Phase.FIGHT:
+		run.combat.debug_kill_enemy()
+		run.finish_fight()
+		run.leave_shop()
+	run.pursuer_pending = true
+	run.choose_node(run.options()[0].id)
+	assert_true(run.roaming_fight)
+	var session: CombatSession = CombatSession.for_run(run)
+	assert_eq(session.enemy_id, RoamingRules.ENEMY_ID, "a sessão mostra o Perseguidor, não o nó anterior")
+	assert_eq(session.level, run.roaming_level)

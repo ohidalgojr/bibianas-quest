@@ -53,10 +53,12 @@ func _init(game_data: GameData, fight_enemy: String, fight_level: int, fight_pow
 ## Sessão da luta em andamento na Descida (já começada pelo [RunState]).
 static func for_run(run_state: RunState) -> CombatSession:
 	var node: MapNode = run_state.current_node()
-	var session: CombatSession = CombatSession.new(run_state.data, "", node.level, run_state.power,
-		run_state.streams.run_seed)
+	# Luta forçada do Perseguidor: o inimigo e o nível não são os do nó atual (ADR-0066).
+	var roaming: bool = run_state.roaming_fight
+	var session: CombatSession = CombatSession.new(run_state.data, "", run_state.roaming_level if roaming else node.level,
+		run_state.power, run_state.streams.run_seed)
 	session.run = run_state
-	session.enemy_id = node.enemy_id
+	session.enemy_id = RoamingRules.ENEMY_ID if roaming else node.enemy_id
 	session.combat = run_state.combat
 	session.skills = run_state.skills()
 	session._learn_moves(run_state.combat.enemy)

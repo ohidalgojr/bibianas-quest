@@ -675,6 +675,10 @@ func _begin_roaming_fight() -> void:
 ## Fim da luta contra o roaming boss: Poder ×3, ouro, drop e Moeda da Sorte; derrota encerra a Descida.
 func _finish_roaming_fight(outcome: Combat.Outcome, enemy_hp_pct: int, fatal_move: String) -> bool:
 	roaming_fight = false
+	if outcome == Combat.Outcome.FLED:
+		# Inalcançável (sem fuga), mas nunca conta como vitória.
+		phase = Phase.CHOOSING
+		return true
 	if outcome == Combat.Outcome.DEFEAT:
 		defeated_by_id = RoamingRules.ENEMY_ID
 		defeated_by_level = roaming_level

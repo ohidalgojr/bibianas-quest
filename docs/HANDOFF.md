@@ -11,7 +11,7 @@ Atualizado em 2026-11-27. **TASK-078, 079 e 080 executadas (ADR-0064/0065/0066, 
 | Jogo | RPG tático de turnos roguelite, Godot 4.7. **Visual atual = tabuleiro isométrico gótico 3D texturizado (`TASK-070`/`073`/`077`) + combate e telas em HD-2D com arenas pintadas `9:16`, sprites recortados, UI kit pintado (`UiKit`), 102 ícones, 6/6 eventos e animações com passada/FX (`ADR-0052` a `ADR-0064`, `TASK-066`..`077`).** Áudio procedural (`SoundFx`) e menu com Santuário (Biblioteca, Arsenal e Códice com miniaturas). |
 | Classe | só o Guerreiro (Bibiana); 3 skills iniciais, 3 à venda, 5 espaços (pranchas das 4 classes prontas em `docs/design/refs/bibiana/`) |
 | Cenário | só a Cidade Abandonada: 4 inimigos comuns (+ elenco completo do cenário 1 incluindo `trench_crawler` novo, com mutações temáticas Inchado, Voraz, Fantasma e Espinhoso), 1 elite (Carrasco Apodrecido), 1 mini boss anunciado (Carcereiro do Sino), chefe O Coveiro (2 fases), 6 eventos temáticos; cada inimigo com ficha em `docs/enemies/` |
-| Regras | `RULES_VERSION` = 23 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0064 |
+| Regras | `RULES_VERSION` = 23 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0066 |
 | Equilíbrio (simulador, regras v15) | bot mediano vence 66,0% (meta 55% a 65%), cuidadoso 72,0%, 1ª Descida 49,3% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 13,7% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,28 s para criar a Descida |
 | Testes | `380/380` em `52` scripts (`tools\run_tests.ps1`) |
 | Git | `main` sincronizado com `origin/main` |
@@ -33,9 +33,9 @@ Todas as peças do lote anterior e do `ESTRUTURA-TABULEIRO-GOTICO.md §7.2` já 
 
 ### 3. Próximas tarefas abertas e pendências técnicas
 
-- **`TASK-078` (aberta):** trocar retângulos laranja de `_build_window_quads` por `house_window_lit.png` + `house_door_arch.png`, limpar `#10131A` interno de `balcony_wood.png`, aplicar `church_gate_iron.png` como `Sprite3D` estático no adro, dessaturar muretes lilás (`TINT_WALL`), melhorar contraste de borda de `crowned_pursuer.png`, anexar print real de nó de evento (`REVISAO-LOTE-5.md`). *(Manter ponte 3D modular recebendo textura em vez de forçar `stone_bridge_arch.png` 3/4 plano.)*
-- **`TASK-079` (aberta):** criar fichas `ENEMY-18-coro-sem-labios.md` e `ENEMY-19-cavaleiro-calcificado.md`, cadastrar `lipless_choir` e `calcified_knight` em `enemies.json`/`scenarios.json`/Códice com ADR e incremento de `RULES_VERSION`.
-- **`TASK-080` (aberta):** implementar o Roaming Boss `crowned_pursuer` (`ENEMY-20`, perseguição determinística no `game/core/run/`, combate e prints, ADR + `RULES_VERSION`).
+- **`TASK-078` (concluída, em verificação):** fachadas pintadas e portão aplicados (ADR-0064). **Sobra:** muretes lilás de `TINT_WALL`, janelas pequenas, discretas, e textura ausente vira quad branco em `scenario_renderer.gd` (revisão `REVISAO-TASK-078-080.md`).
+- **`TASK-079` (concluída, em verificação):** fichas `ENEMY-18` e `ENEMY-19`, dados, Códice e `RULES_VERSION` 22 (ADR-0065). **Sobra:** calibrar HP 70 e DEF 10 do Cavaleiro Calcificado no tutorial (simulador suspenso).
+- **`TASK-080` (concluída, em verificação):** Perseguidor Coroado com alarme, perseguição e encontro forçado, ligado só por flag `roaming_boss` (cenário 1 desligado), `RULES_VERSION` 23 (ADR-0066). **Sobra:** patentes e Cemitério de Rivais, Incenso de Cinzas, Alma; no mapa de 4 camadas o encontro pendente se perde ao escolher o BOSS; ativar a flag só depois de testar `choose_node` do alarme à luta de ponta a ponta.
 - **Demais pendências:** integrar `walk-v2`/`strike` após geração; reexportar `*_2x` dos inimigos a partir dos masters `2752×1536` (`GUIA §0.4`); LOD/redução de triângulos nas casas (`< 60 mil` primitivas); apagar `.glb` antigos após OK visual; seleção de classe (Clérigo/Ladino/Mago); bairros 8+ camadas; nó `"?"` (`TASK-041`); revisão cruzada das `TASK-074`..`076`; exportação/celular real (`TASK-014`) e `telemetry.log` (`TASK-032`/`033`/`040`).
 
 ## Como retomar (qualquer agente)

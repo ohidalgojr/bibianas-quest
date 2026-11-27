@@ -393,7 +393,9 @@ func _build_pursuer() -> void:
 		_pursuer_text.text = "O Perseguidor está a %d nós" % run.pursuer_distance
 	if run.pursuer_distance == RoamingRules.START_DISTANCE and _last_pursuer_distance != run.pursuer_distance and time_scale > 0.0:
 		SoundFx.play(self, "bell")
-		get_tree().create_timer(0.9).timeout.connect(func() -> void: SoundFx.play(self, "bell"))
+		get_tree().create_timer(0.9).timeout.connect(func() -> void:
+			if is_inside_tree():
+				SoundFx.play(self, "bell"))
 	_last_pursuer_distance = run.pursuer_distance
 	# Sprite no caminho percorrido, a `distance` camadas atrás do nó atual.
 	var layer_back: int = run.current_node().layer - maxi(run.pursuer_distance, 0)
