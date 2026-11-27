@@ -29,7 +29,7 @@ static func generate(config: MapConfig, rng: Pcg32) -> MapGraph:
 
 ## GDD §5 (ADR-0067): nenhuma rota do início ao chefe passa por menos de 2 lutas. Sem isso, a Descida só
 ## de baú, fogueira e evento chegava ao chefe sem desafio nem Poder. Reparo determinístico, sem sorteio:
-## enquanto a rota mais pobre em lutas tiver menos de [constant MIN_FIGHTS_PER_ROUTE], o primeiro baú ou
+## enquanto a rota mais pobre em lutas tiver menos de [constant MIN_FIGHTS_PER_ROUTE], o último baú ou
 ## evento dela vira batalha comum (fogueiras ficam como estão).
 const MIN_FIGHTS_PER_ROUTE: int = 2
 

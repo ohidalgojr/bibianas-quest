@@ -37,7 +37,7 @@ func test_repair_keeps_bonfires_and_only_turns_chests_and_events_into_battles() 
 
 ## Revisão cruzada da TASK-081: a garantia vale na Descida real (RunState), inclusive na 1ª Descida,
 ## depois de atribuir inimigos e de aplicar as garantias e a suavização.
-func _run_min_fights(seed_value: int, first: bool, layers: int) -> int:
+func _run_min_fights(seed_value: int, first: bool) -> int:
 	var data: GameData = DataLoader.load_all()
 	var run: RunState = RunState.new(data, seed_value, "warrior", [], 0, null, first, [])
 	return int(MapGenerator.poorest_route(run.map)["fights"])
@@ -46,7 +46,7 @@ func _run_min_fights(seed_value: int, first: bool, layers: int) -> int:
 func test_real_runs_keep_two_fights_per_route_including_the_first_descent() -> void:
 	for first: bool in [true, false]:
 		for seed_value: int in range(1, 41):
-			assert_gte(_run_min_fights(seed_value, first, 4), MapGenerator.MIN_FIGHTS_PER_ROUTE,
+			assert_gte(_run_min_fights(seed_value, first), MapGenerator.MIN_FIGHTS_PER_ROUTE,
 				"semente %d, 1ª Descida=%s: rota com menos de 2 lutas" % [seed_value, str(first)])
 
 

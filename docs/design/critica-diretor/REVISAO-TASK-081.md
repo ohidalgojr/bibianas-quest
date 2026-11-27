@@ -1,50 +1,35 @@
 # Revisão cruzada da TASK-081 (ADR-0067): lutas mínimas por rota
 
-Revisor: outro modelo. Commit `3047c73`, 2026-11-27. Suíte 393/393 verde (lida nesta rodada). Script de apoio: `/tmp/claude-0/rv_scripts/rv.gd` (Descidas reais com `RunState.new`, rota mais pobre de `run.map`).
+Revisor: outro modelo. Rodada 1: commit `3047c73` (reprovado). Rodada 2 (final): commit `69adff0`, 2026-11-27. Script de apoio: `/tmp/claude-0/rv_scripts/rv.gd` (Descidas reais com `RunState.new`, rota mais pobre de `run.map`, `MapRules` conferido).
 
-## Veredito: NÃO APROVA PARA PUBLICAR
+## Veredito final: APROVA PARA PUBLICAR = SIM
 
-A garantia central do ADR-0067 falha na 1ª Descida (`first_run = true`), que é justamente o caso do P0 (jogador novo, sem Poder). Medição com `RunState.new(...)` e rota mais pobre de `run.map`:
+A falha P0 da rodada 1 está corrigida e confirmada por medição. O que sustenta o sim:
+- Suíte 395/395 verde (`--import` + GUT headless, lida nesta rodada).
+- 100 sementes por combinação, com a checagem de vencibilidade de 200 simulações como no jogo: 0 rotas com menos de 2 lutas e 0 violações de `MapRules` em todas as combinações abaixo.
 
-| Cenário | first_run | Sementes com rota de 1 luta |
-| --- | --- | --- |
-| 4 camadas, sem checagem | sim / não | 43 de 100 / 0 de 100 |
-| 4 camadas, checagem de 200 simulações (como no jogo) | sim | sementes 1, 3, 4... (falha logo nas primeiras) |
-| 6 camadas | sim / não | 21 de 100 / 0 de 100 |
-| 10 camadas | sim / não | 1 de 100 / 0 de 100 |
+| Camadas | first_run | Rota mais pobre (lutas: sementes) | Falhas |
+| --- | --- | --- | --- |
+| 4 | sim | 2: 100 | 0 |
+| 4 | não | 2: 93, 3: 7 | 0 |
+| 6 | sim / não | 2 a 4 / 2 a 4 | 0 / 0 |
+| 10 | sim / não | 2 a 6 / 2 a 6 | 0 / 0 |
 
-Rotas típicas: `S B C F C`, `S B C F V`, `S B C V C` (batalha, baú, fogueira, baú/vazio): 1 luta antes do chefe. Fora da 1ª Descida a garantia vale (0 falhas em 100 sementes de 4, 6 e 10 camadas; 0 violações de `MapRules`).
+Sem a checagem (0 simulações) o resultado é o mesmo: 0 falhas em 600 Descidas. Na rodada 1 eram 43 de 100 sementes de 4 camadas na 1ª Descida.
 
-## P0
+## Correções conferidas
 
-- **P0-1** `game/core/run/run_state.gd:1069-1070` e `:1099-1117` (`_apply_first_run_guarantees`). O gerador repara o mapa em `generate()`, mas depois `_assign_enemies` e `_apply_first_run_guarantees` mexem nele: a camada 1 vira toda batalha e um nó da camada 2 vira baú à força (linha 1115), sem checar `_poorest_route`. Resultado: `batalha, baú, fogueira, baú` = 1 luta. A checagem só foi acrescentada em `Winnability.smooth`, não aqui. Correção: ao trocar o nó da camada 2 por baú, reverter se `MapGenerator._poorest_route(map)["fights"] < MIN_FIGHTS_PER_ROUTE` (como em `winnability.gd:130`); se nenhum candidato servir, manter o baú e converter o último baú/evento das rotas pobres (camadas 3 a 4), não o primeiro. Tornar `_poorest_route` e `_ensure_fights_on_every_route` públicos (`poorest_route`, `ensure_fights_on_every_route`), hoje são chamados de fora da classe como privados (`winnability.gd:131`, testes).
-- **P0-2** `tests/unit/test_map_fights.gd`. Só testa `MapGenerator.generate`. Falta teste com `RunState.new(data, seed, ..., is_first_run=true/false)` em 4, 6 e 10 camadas, que teria pego o P0-1 (o teste atual passa e dá falsa segurança). Acrescentar também teste de `smooth` que não deixa rota abaixo de 2.
-## P1
+- `map_generator.gd`: `poorest_route` e `ensure_fights_on_every_route` públicos; o reparo converte o ÚLTIMO baú/evento da rota e aceita nós protegidos.
+- `run_state.gd:1071,1086`: `_restore_route_fights` reaplica a regra depois das garantias da 1ª Descida, protege os baús da camada 2 e dá ao nó convertido o Cidadão Infectado no nível da camada (teste confirma que nenhuma batalha fica sem inimigo).
+- `winnability.gd:131`: usa a API pública; a troca por baú segue revertendo se quebrar regra ou mínimo.
+- `test_map_fights.gd`: testes com `RunState` real (1ª Descida e normal, 40 sementes) e de nó convertido com inimigo. Falta só teste em 6 e 10 camadas (hoje só 4, o único cenário existente).
+- Fora do P0: dica da 1ª Descida (fecha ao tocar, só na 1ª Descida), `end_summary` (camada limitada, `unlock_line`) e carga sem texto técnico continuam corretos.
 
-- **P1-1** `docs/tasks/TASK-081-*.md`, critério 1 marcado `[x]` e "Verificação" sem a medição pós-`_assign_enemies`: o critério ("gerador e suavização") ficou cumprido só no gerador. Reabrir até o P0-1 fechar. A seção "Revisão cruzada" deve apontar este arquivo.
-- **P1-2** `docs/HANDOFF.md` (linha 3): trechos históricos foram reescritos por substituição em massa: "TASK-078, 079 e 080 ... (`RULES_VERSION` = 24)" e "Suíte `380/380` (`RULES_VERSION` = 24)" estavam em 23 naquele momento. Restaurar para 23. A tabela ainda diz "Testes `380/380` em `52` scripts" e "Equilíbrio (simulador, regras v15)" sem avisar que o equilíbrio mudou na v24 e não foi medido (ADR-0067 diz isso, o HANDOFF deveria repetir na linha de Equilíbrio).
-## P2
+## Pendências menores (não bloqueiam)
 
-- **P2-1** `game/presentation/map3d/map3d_screen.gd:441` (dica em y=126) e `:373` (banner do Perseguidor em y=82, ~42 px de altura): ficam a ~2 px um do outro, sem sobreposição. Hoje não conflitam: a dica só aparece na 1ª Descida (`run.first_run`, `nodes_cleared < 4`) e o Perseguidor está desligado no cenário 1 (`roaming_boss: false`). Se o cenário 1 ganhar a flag ou `roaming_override` for usado, a folga some; mover a dica para y=132 ou empilhar na mesma coluna.
-- **P2-2** Dica: `mouse_filter = STOP` no painel (linha 444) bloqueia toques sob ele (y 126 a ~190). No print as bolhas ficam abaixo (y>=342), mas `_update_overlay` aceita bolhas a partir de y=76; em mapas com opção alta a dica engole o toque até ser fechada. Aceitável, mas anotar. Fecha ao tocar e reaparece no mesmo passo se `Map3DScreen` for recriada (`_tip_hidden_step` é da instância; `_show_map` cria uma nova a cada retorno). Hoje passo (`nodes_cleared`) muda a cada nó, então só reaparece se o jogador voltar ao mapa sem resolver nó (ex.: após carregar save). Sem teste dessa volta.
-- **P2-3** `game/presentation/game_screen.gd:519-536`: a página com cenário agora é um `ScrollContainer` ancorado em 42% do topo, sem centralizar; em telas curtas (carga, "Gerando o mapa...") o painel fica colado no topo da faixa. Na tela de fim o 3º botão ("Início") fica fora da vista (print: "Santuário" já cortado); depende de arrastar. Não verificado em celular: arrastar sobre `Button` dentro de `ScrollContainer` com toque pode não rolar no Godot (labels têm `mouse_filter` IGNORE, ok). Considerar colocar os botões fora da rolagem.
-- **P2-4** `run_state.gd` `end_summary`: `unlock_line` usa `meta_unlocks` do início da Descida (ok), "camada X de Y" limitada por `mini(reached_layer, total_layers)` (ok), frase do algoz correta. Sem texto "?" na derrota se `defeated_by_id` vazio (`killer_name = "?"`), caso raro; sem teste novo de `end_summary` (`unlock_line`).
-## O que está certo (conferido)
-
-- `_poorest_route` (`map_generator.gd:43-69`): a programação dinâmica cobre todos os `next_ids`, ignora o chefe (último nível termina em `layer_count`), conta a camada 0 como 0 e nós inalcançáveis só entram no cálculo sem afetar o início. Correta para o grafo atual (janela de 3 destinos).
-- Reparo (`:72-85`): só converte baú/evento (nunca fogueira, elite ou mini boss) em batalha; isso não viola `MapRules` (elites, calma, `CHEST_CHAIN`, fogueira): 0 violações em 600 mapas. Determinístico, sem sorteio. Pode deixar o mapa com <2 se a rota tiver só fogueira/nós fixos (não ocorreu; sem aviso se acontecer).
-- `Winnability.smooth` (`:130-131`): reverte troca por baú que quebre regra ou o mínimo. Correto. Mini boss, mutação e emboscada de `_assign_enemies` só trocam batalha/emboscada: mantêm a contagem.
-- Pureza do núcleo (`test_core_purity`), tipagem, `RULES_VERSION` 24 em `core_version.gd`, ADR-0067 e GDD "Garantia de lutas por rota" coerentes entre si. Sem simulador (regra 9 do projeto): aceito.
-
-## Resumo (10 linhas)
-
-1. Suíte 393/393 verde; pureza e tipagem ok; `RULES_VERSION` 24 coerente com ADR e GDD.
-2. Gerador e `smooth` corretos e determinísticos; 0 falhas em 100 sementes sem `first_run` (4, 6 e 10 camadas).
-3. P0: com `first_run=true` (a 1ª Descida) 43% das sementes de 4 camadas ainda têm rota de 1 luta (`S B C F C`).
-4. Causa: `_apply_first_run_guarantees` (`run_state.gd:1115`) troca um nó da camada 2 por baú sem checar o mínimo.
-5. Os testes atuais só cobrem o gerador, por isso passaram. Falta teste com `RunState` e `first_run`.
-6. Correção: checar `_poorest_route` ao criar o baú (reverter) ou reparar depois pelo último baú/evento da rota.
-7. P1: HANDOFF com `RULES_VERSION` histórico trocado para 24 por engano e linhas de testes/equilíbrio velhas.
-8. P2: dica e banner do Perseguidor sem conflito hoje (y=126 vs 82); rolagem da tela de fim não validada em toque.
-9. Dica fecha ao tocar e só aparece na 1ª Descida (código e print conferidos).
-10. APROVA PARA PUBLICAR: NÃO, até corrigir P0-1 e P0-2.
+- **P2** `map_generator.gd:30-33`: o comentário de `MIN_FIGHTS_PER_ROUTE` ainda diz "o primeiro baú ou evento"; agora é o último. Corrigir o texto.
+- **P2** `docs/HANDOFF.md`: tabela diz "394/394"; a suíte tem 395. Restam "RULES_VERSION = 24" nos trechos históricos de TASK-078 a 080 (eram 23) e "Equilíbrio (simulador, regras v15)" sem aviso de que a v24 não foi medida.
+- **P2** `test_map_fights.gd`: o parâmetro `layers` de `_run_min_fights` não é usado (código morto); o nome promete 4, 6 e 10 camadas mas só roda 4.
+- **P2** `map3d_screen.gd:373,441`: banner do Perseguidor (y=82) e dica (y=126) a ~2 px; sem conflito hoje (Perseguidor desligado no cenário 1).
+- **P2** `game_screen.gd:519-536`: rolagem da tela de fim não validada em toque; "Início" fica fora da vista. A dica bloqueia toques sob ela até ser fechada.
+- **P2** Simulador de equilíbrio não rodado (regra 9 do CLAUDE.md): o efeito da garantia nas metas de vitória da 1ª Descida (35% a 55%) é desconhecido. Tempo de criação com 200 simulações foi ~3 s por Descida em CPU compartilhada com 3 processos (não é medida de celular).

@@ -13,7 +13,7 @@ Atualizado em 2026-11-27. **TASK-081 (ADR-0067, `RULES_VERSION` = 24):** nenhuma
 | Cenário | só a Cidade Abandonada: 4 inimigos comuns (+ elenco completo do cenário 1 incluindo `trench_crawler` novo, com mutações temáticas Inchado, Voraz, Fantasma e Espinhoso), 1 elite (Carrasco Apodrecido), 1 mini boss anunciado (Carcereiro do Sino), chefe O Coveiro (2 fases), 6 eventos temáticos; cada inimigo com ficha em `docs/enemies/` |
 | Regras | `RULES_VERSION` = 24 (histórico em `game/core/core_version.gd`); GDD em `docs/GDD.md`; ADR-0001 a ADR-0067 |
 | Equilíbrio (simulador, regras v15; DESATUALIZADO: não reexecutado desde a v16, simulador suspenso pela regra 9) | bot mediano vence 66,0% (meta 55% a 65%), cuidadoso 72,0%, 1ª Descida 49,3% (meta 35% a 55%, 98,0% chegam ao chefe), mortes por moeda 13,7% (meta até 25%), 0 de 40 mapas sem rota vencível, 1,28 s para criar a Descida |
-| Testes | `394/394` em `52` scripts (`tools\run_tests.ps1`) |
+| Testes | `395/395` em `52` scripts (`tools\run_tests.ps1`) |
 | Git | `main` sincronizado com `origin/main` |
 | Executável Windows | `build\windows\BibianasQuest.exe` atualizado em 2026-11-27 (`tools\build_windows.ps1`, anterior à `TASK-077` — regerar após `TASK-078`) |
 | Nunca testado por pessoa | tudo depois da TASK-009 foi jogado só por bots e testes; o Orlando jogou uma Descida na TASK-020 e deu os feedbacks de `docs/FEEDBACK.md` (F-025 registrado em 2026-11-27) |
