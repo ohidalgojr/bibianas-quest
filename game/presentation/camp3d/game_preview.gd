@@ -21,8 +21,16 @@ func _ready() -> void:
 	if screen_name == "home":
 		return
 	var run: RunState = RunState.new(game.data, 7, "warrior", [], 0, null, false, [])
+	if screen_name == "event":
+		for candidate: int in [7, 11, 13, 17, 19, 23, 29, 31, 37, 41]:
+			var probe: RunState = RunState.new(game.data, candidate, "warrior", [], 0, null, false, [])
+			_advance(probe, screen_name)
+			if probe.phase == RunState.Phase.EVENT:
+				run = probe
+				break
+	else:
+		_advance(run, screen_name)
 	game.run = run
-	_advance(run, screen_name)
 	if screen_name == "result":
 		run.phase = RunState.Phase.VICTORY
 	game._reward_pending = screen_name == "reward"
@@ -48,8 +56,6 @@ func _advance(run: RunState, screen_name: String) -> void:
 		guard += 1
 		if run.phase == RunState.Phase.CHOOSING:
 			if screen_name == "chest" and not run.last_chest.is_empty():
-				return
-			if screen_name == "event" and not run.last_event_result.is_empty():
 				return
 			var pick: MapNode = run.options()[0]
 			for option: MapNode in run.options():

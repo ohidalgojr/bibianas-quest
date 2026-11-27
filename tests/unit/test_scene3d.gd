@@ -36,3 +36,15 @@ func test_game_screen_home_and_result_use_the_3d_scene() -> void:
 	game.debug_enabled = false
 	add_child_autofree(game)
 	assert_eq(game.find_children("*", "Scene3DBackdrop", true, false).size(), 1, "menu com cenário")
+
+
+func test_campfire_animated_flame_toggles_with_fire_lit() -> void:
+	var backdrop: Scene3DBackdrop = Scene3DBackdrop.new()
+	backdrop.kind = "campfire"
+	backdrop.fire_lit = false
+	backdrop.time_scale = 0.0
+	add_child_autofree(backdrop)
+	assert_not_null(backdrop._fire_rect, "fogueira carrega folha de chama animada")
+	assert_false(backdrop._fire_rect.visible, "chama oculta quando apagada")
+	backdrop.set_fire_lit(true)
+	assert_true(backdrop._fire_rect.visible, "chama visível quando acesa")

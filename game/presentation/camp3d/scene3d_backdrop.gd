@@ -47,6 +47,9 @@ var _painted: bool = false
 var _painted_glows: Array[Control] = []
 var _painted_cover: ColorRect
 var _painted_rect: TextureRect
+var _fire_atlas: AtlasTexture
+var _fire_rect: TextureRect
+var _fire_time: float = 0.0
 
 
 func _ready() -> void:
@@ -111,7 +114,24 @@ func _build_painted() -> void:
 	if cfg.has("glow"):
 		_painted_glow(cfg["glow"] as Vector2, 110.0, Color(1.0, 0.7, 0.3), 0.6)
 	if kind == "campfire":
-		_painted_glow(Vector2(300.0, 330.0), 150.0, Color(1.0, 0.55, 0.2), 0.45)
+		_painted_glow(Vector2(271.0, 240.0), 150.0, Color(1.0, 0.55, 0.2), 0.45)
+		var flame_path: String = "res://assets/bibiana/fx/flame.png"
+		if ResourceLoader.exists(flame_path):
+			_fire_atlas = AtlasTexture.new()
+			_fire_atlas.atlas = load(flame_path) as Texture2D
+			_fire_atlas.region = Rect2(0.0, 0.0, 256.0, 256.0)
+			_fire_rect = TextureRect.new()
+			_fire_rect.texture = _fire_atlas
+			_fire_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			_fire_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			_fire_rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			_fire_rect.size = Vector2(110.0, 110.0)
+			_fire_rect.position = Vector2(216.0, 180.0)
+			_fire_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var fire_mat: CanvasItemMaterial = CanvasItemMaterial.new()
+			fire_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+			_fire_rect.material = fire_mat
+			add_child(_fire_rect)
 	var pose: String = str(cfg.get("pose", ""))
 	var hero_sprite: String = ModelRegistry.hero_id("warrior", pose) if not pose.is_empty() else "bibiana"
 	hero = _painted_sprite(hero_sprite, cfg["hero"] as Vector2, float(cfg["hero_h"]), bool(cfg.get("flip", false)))
@@ -488,6 +508,8 @@ func set_fire_lit(lit: bool) -> void:
 			_painted_cover.color = Color(0.03, 0.04, 0.08, 0.0 if lit else 0.55)
 		for glow: Control in _painted_glows:
 			glow.visible = lit
+		if _fire_rect != null:
+			_fire_rect.visible = lit
 		return
 	for part: Node3D in _fire_parts:
 		part.visible = lit
@@ -506,9 +528,13 @@ func _process(delta: float) -> void:
 	if time_scale <= 0.0:
 		return
 	if _painted:
+		_fire_time += delta
 		var k: float = 0.78 + 0.2 * sin(Time.get_ticks_msec() * 0.011)
 		for glow: Control in _painted_glows:
 			glow.modulate.a = k
+		if _fire_atlas != null and _fire_rect != null and _fire_rect.visible:
+			var frame: int = int(_fire_time * 10.0) % 8
+			_fire_atlas.region = Rect2(float(frame * 256), 0.0, 256.0, 256.0)
 		return
 	_flicker_time += delta
 	for i: int in _lights.size():

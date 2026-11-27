@@ -293,6 +293,8 @@ func _apply(event: CombatEvent) -> void:
 				_stage.play(on_enemy, "hit")
 				if not on_enemy:
 					_stage.hero_react(true)
+				if event.label == "poison":
+					_stage.spawn_poison_fx(on_enemy)
 				_stage.hit_stop(0.1 if event.flag else 0.07)
 			if on_enemy:
 				_enemy_hp = event.extra
@@ -317,6 +319,8 @@ func _apply(event: CombatEvent) -> void:
 				_enemy_hp += event.value
 		CombatEvent.Type.EFFECT_ON:
 			_effects[event.side][event.label] = event.value
+			if event.label == "poison" and _stage != null:
+				_stage.spawn_poison_fx(event.side != Combatant.PLAYER)
 		CombatEvent.Type.EFFECT_OFF:
 			_effects[event.side].erase(event.label)
 		CombatEvent.Type.STUN_SKIP:

@@ -474,6 +474,14 @@ func hero_defeat() -> void:
 	hero_pose("defeat")
 
 
+func spawn_poison_fx(on_enemy: bool) -> void:
+	var target: Node3D = enemy_node if on_enemy else player_node
+	if target == null:
+		return
+	var height: float = _enemy_height * 0.5 if on_enemy else 1.0
+	_spawn_fx("poison", target.position + Vector3(0.0, height, 0.0), 6, 1.9, 0.55)
+
+
 ## Animação de FX por quadros (folha em `assets/bibiana/fx/`), em pé na cena, sempre à frente.
 func _spawn_fx(fx_name: String, at: Vector3, frames: int, size: float, seconds: float) -> void:
 	var path: String = FX_PATH + fx_name + ".png"

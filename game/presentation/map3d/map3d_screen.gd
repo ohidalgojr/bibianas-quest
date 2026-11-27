@@ -63,6 +63,7 @@ var _gear_row: HBoxContainer
 var _pulse_lights: Array[OmniLight3D] = []
 var _pulse_time: float = 0.0
 var _diamonds: Array[MeshInstance3D] = []
+var _bonfire_flames: Array[Sprite3D] = []
 ## Seta e trilha da prévia do destino escolhido.
 var _selection: Array[Node] = []
 var _arrow: Label3D
@@ -301,6 +302,10 @@ func _process(delta: float) -> void:
 			((diamond.mesh as QuadMesh).material as ShaderMaterial).set_shader_parameter("pulse", beat)
 	if _mist != null:
 		_mist.position.x = -110.0 + 70.0 * sin(_pulse_time * 0.12)
+	var flame_frame: int = int(_pulse_time * 10.0) % 8
+	for flame: Sprite3D in _bonfire_flames:
+		if is_instance_valid(flame):
+			flame.frame = flame_frame
 	if _arrow != null and is_instance_valid(_arrow):
 		_arrow.position.y = _arrow_base_y + 0.35 * sin(_pulse_time * 5.0)
 	_update_overlay()
@@ -330,6 +335,7 @@ func refresh() -> void:
 		child.queue_free()
 	_pulse_lights.clear()
 	_diamonds.clear()
+	_bonfire_flames.clear()
 	_header.text = view.header()
 	_refresh_hud()
 	_fill_gear()
@@ -351,6 +357,18 @@ func _build_node(info: Dictionary) -> void:
 	var node: MapNode = view.run.map.node_by_id(int(info["id"]))
 	var at: Vector3 = layout.node_world(node.id)
 	var kind: int = int(info["kind"])
+	if state == MapView.State.OPTION or state == MapView.State.BOSS:
+		var disc_path: String = "res://assets/bibiana/ui/node_disc_%d.png" % (node.id % 5)
+		if ResourceLoader.exists(disc_path):
+			var disc: Sprite3D = Sprite3D.new()
+			var dtex: Texture2D = load(disc_path) as Texture2D
+			disc.texture = dtex
+			disc.axis = Vector3.AXIS_Y
+			disc.pixel_size = 2.6 / float(maxi(dtex.get_width(), 1))
+			disc.shaded = false
+			disc.transparent = true
+			disc.position = at + Vector3(0.0, 0.04, 0.0)
+			_node_root.add_child(disc)
 	if state == MapView.State.OPTION:
 		var diamond_color: Color = VisualTheme.COLOR_DANGER if bool(info.get("mini_boss", false)) else Color(1.0, 0.72, 0.28)
 		_diamonds.append(_add_diamond(at, diamond_color, 2.3))
@@ -382,6 +400,20 @@ func _build_node(info: Dictionary) -> void:
 			_place_sprite("iron_chest", at, 1.9)
 		MapNode.Kind.BONFIRE:
 			_place_sprite("campfire", at, 1.9)
+			var flame_path: String = "res://assets/bibiana/fx/flame.png"
+			if ResourceLoader.exists(flame_path):
+				var flame: Sprite3D = Sprite3D.new()
+				flame.texture = load(flame_path) as Texture2D
+				flame.hframes = 8
+				flame.frame = 0
+				flame.pixel_size = 1.05 / 256.0
+				flame.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+				flame.shaded = false
+				flame.transparent = true
+				flame.modulate = Color(1.0, 0.94, 0.82, 0.92)
+				flame.position = at + Vector3(0.0, 0.52, 0.0)
+				_node_root.add_child(flame)
+				_bonfire_flames.append(flame)
 			var fire: OmniLight3D = OmniLight3D.new()
 			fire.light_color = Color(1.0, 0.5, 0.18)
 			fire.light_energy = 3.6
@@ -490,6 +522,16 @@ func _make_bubble(node: MapNode, info: Dictionary) -> HBoxContainer:
 	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 3)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var node_icon_tex: Texture2D = IconRegistry.texture_for("node", str(node.kind))
+	if node_icon_tex != null:
+		var badge: TextureRect = TextureRect.new()
+		badge.texture = node_icon_tex
+		badge.custom_minimum_size = Vector2(18, 18)
+		badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		badge.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(badge)
 	if node.is_fight():
 		row.add_child(_pill("Nv %d" % node.level, VisualTheme.COLOR_DANGER.darkened(0.15)))
 	if node.is_mutated():
@@ -528,10 +570,17 @@ func _screen_of(world_pos: Vector3) -> Vector2:
 func _update_overlay() -> void:
 	if camera == null or _overlay == null:
 		return
+	var view_w: float = size.x if size.x > 16.0 else 540.0
+	var view_h: float = size.y if size.y > 16.0 else 960.0
 	for node_id: int in _bubbles.keys():
 		var bubble: Control = _bubbles[node_id]
 		var p: Vector2 = _screen_of(layout.node_world(node_id) + Vector3(0, 2.4, 0))
-		bubble.position = p - Vector2(bubble.size.x * 0.5, bubble.size.y)
+		var max_x: float = maxf(8.0, view_w - bubble.size.x - 8.0)
+		var max_y: float = maxf(76.0, view_h - bubble.size.y - 8.0)
+		bubble.position = Vector2(
+			clampf(p.x - bubble.size.x * 0.5, 8.0, max_x),
+			clampf(p.y - bubble.size.y, 76.0, max_y)
+		)
 	for node_id: int in _taps.keys():
 		var tap: Control = _taps[node_id]
 		tap.position = _screen_of(layout.node_world(node_id) + Vector3(0, 0.9, 0)) - tap.size * 0.5

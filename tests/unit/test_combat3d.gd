@@ -55,6 +55,8 @@ func test_strike_timing_and_walk_stride_cleanup() -> void:
 	await stage.hero_strike(false)
 	await wait_seconds(0.08)
 	assert_lt(stage.player_node.position.distance_to(Combat3DStage.PLAYER_POS), 0.1, "Bibiana retorna à base após o golpe")
+	stage.spawn_poison_fx(true)
+	stage.spawn_poison_fx(false)
 
 
 func test_combat_screen_with_stage_plays_a_fight_to_the_end() -> void:

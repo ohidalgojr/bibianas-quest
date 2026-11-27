@@ -157,3 +157,18 @@ func test_first_tap_opens_a_preview_and_caminhar_confirms() -> void:
 	assert_not_null(go)
 	go.pressed.emit()
 	assert_eq(chosen, [target], "Caminhar confirma o destino")
+
+
+func test_bubbles_include_node_icon_and_clamp_within_viewport() -> void:
+	var run: RunState = _run(7)
+	var screen: Map3DScreen = Map3DScreen.new()
+	screen.view = MapView.new(run)
+	screen.time_scale = 0.0
+	screen.size = Vector2(540, 960)
+	add_child_autofree(screen)
+	assert_gt(screen._bubbles.size(), 0, "destinos geram bolhas no mapa")
+	for node_id: int in screen._bubbles.keys():
+		var bubble: Control = screen._bubbles[node_id]
+		assert_gt(bubble.find_children("*", "TextureRect", true, false).size(), 0, "bolha traz ícone do nó")
+		assert_gte(bubble.position.x, 8.0, "bolha respeita margem esquerda")
+		assert_lte(bubble.position.x + bubble.size.x, 532.0, "bolha não vaza na direita")

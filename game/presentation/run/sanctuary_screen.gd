@@ -84,10 +84,24 @@ func _rebuild() -> void:
 	var title: Label = _label("Santuário das Cinzas", 26, HORIZONTAL_ALIGNMENT_CENTER)
 	title.add_theme_color_override("font_color", COLOR_GOLD)
 	root.add_child(title)
+	root.add_child(UiKit.divider(320.0))
 
+	var echoes_row: HBoxContainer = HBoxContainer.new()
+	echoes_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	echoes_row.add_theme_constant_override("separation", 6)
+	var echo_tex: Texture2D = IconRegistry.texture_for("ui", "echoes")
+	if echo_tex != null:
+		var echo_icon: TextureRect = TextureRect.new()
+		echo_icon.texture = echo_tex
+		echo_icon.custom_minimum_size = Vector2(22, 22)
+		echo_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		echo_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		echo_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		echoes_row.add_child(echo_icon)
 	echoes_label = _label("Ecos disponíveis: %d  |  Desbloqueios: %d/%d" % [
 		echoes, unlocks.size(), SanctuaryRules.UPGRADES.size()], 17, HORIZONTAL_ALIGNMENT_CENTER)
-	root.add_child(echoes_label)
+	echoes_row.add_child(echoes_label)
+	root.add_child(echoes_row)
 
 	var tabs: HBoxContainer = HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 8)
@@ -182,9 +196,27 @@ func _build_codex() -> void:
 		return
 	for entry: Dictionary in SanctuaryRules.bestiary_entries(data, bestiary):
 		var card: PanelContainer = _card()
+		var split: HBoxContainer = HBoxContainer.new()
+		split.add_theme_constant_override("separation", 10)
+		card.add_child(split)
+		var enemy_id: String = str(entry["id"])
+		if ModelRegistry.has_sprite(enemy_id):
+			var thumb_box: PanelContainer = PanelContainer.new()
+			thumb_box.add_theme_stylebox_override("panel", UiKit.slot("bronze", 4))
+			thumb_box.custom_minimum_size = Vector2(56, 56)
+			thumb_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			var thumb: TextureRect = TextureRect.new()
+			thumb.texture = ModelRegistry.sprite_texture(enemy_id)
+			thumb.custom_minimum_size = Vector2(48, 48)
+			thumb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			thumb.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			thumb_box.add_child(thumb)
+			split.add_child(thumb_box)
 		var box: VBoxContainer = VBoxContainer.new()
+		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		box.add_theme_constant_override("separation", 4)
-		card.add_child(box)
+		split.add_child(box)
 
 		var header: Label = _label("%s (%s, Nv. base %d)" % [
 			str(entry["name"]), str(entry["type_label"]), int(entry["base_level"])], 17)
@@ -202,16 +234,7 @@ func _build_codex() -> void:
 
 func _card() -> PanelContainer:
 	var panel: PanelContainer = PanelContainer.new()
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = COLOR_CARD
-	style.border_color = Color(0.28, 0.25, 0.2, 1.0)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(6)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
-	panel.add_theme_stylebox_override("panel", style)
+	panel.add_theme_stylebox_override("panel", UiKit.panel(16))
 	return panel
 
 
