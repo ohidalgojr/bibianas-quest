@@ -3,7 +3,7 @@ extends GutTest
 
 
 func _min_fights(graph: MapGraph) -> int:
-	return int(MapGenerator._poorest_route(graph)["fights"])
+	return int(MapGenerator.poorest_route(graph)["fights"])
 
 
 func test_every_route_crosses_at_least_two_fights_across_seeds_and_sizes() -> void:
@@ -33,3 +33,27 @@ func test_repair_keeps_bonfires_and_only_turns_chests_and_events_into_battles() 
 		if node.kind == MapNode.Kind.BONFIRE:
 			bonfires += 1
 	assert_gt(bonfires, 0, "a fogueira da penúltima camada continua lá")
+
+
+## Revisão cruzada da TASK-081: a garantia vale na Descida real (RunState), inclusive na 1ª Descida,
+## depois de atribuir inimigos e de aplicar as garantias e a suavização.
+func _run_min_fights(seed_value: int, first: bool, layers: int) -> int:
+	var data: GameData = DataLoader.load_all()
+	var run: RunState = RunState.new(data, seed_value, "warrior", [], 0, null, first, [])
+	return int(MapGenerator.poorest_route(run.map)["fights"])
+
+
+func test_real_runs_keep_two_fights_per_route_including_the_first_descent() -> void:
+	for first: bool in [true, false]:
+		for seed_value: int in range(1, 41):
+			assert_gte(_run_min_fights(seed_value, first, 4), MapGenerator.MIN_FIGHTS_PER_ROUTE,
+				"semente %d, 1ª Descida=%s: rota com menos de 2 lutas" % [seed_value, str(first)])
+
+
+func test_converted_nodes_in_a_real_run_have_an_enemy() -> void:
+	var data: GameData = DataLoader.load_all()
+	for seed_value: int in range(1, 41):
+		var run: RunState = RunState.new(data, seed_value, "warrior", [], 0, null, true, [])
+		for node: MapNode in run.map.nodes:
+			if node.kind == MapNode.Kind.BATTLE and node.layer > 0:
+				assert_ne(node.enemy_id, "", "batalha sem inimigo (semente %d, nó %d)" % [seed_value, node.id])

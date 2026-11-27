@@ -1068,6 +1068,7 @@ func _enter_scenario(index: int) -> void:
 		_assign_enemies(entry)
 		if first_run and index == 0:
 			_apply_first_run_guarantees(entry, config)
+			_restore_route_fights(entry)
 		current_node_id = map.start_id
 		if winnability_runs <= 0:
 			break
@@ -1077,6 +1078,21 @@ func _enter_scenario(index: int) -> void:
 		if attempt < Winnability.MAX_MAPS - 1:
 			map_check.maps_discarded += 1
 	_emit(RunEvent.Type.SCENARIO, scenario_ids[index], index)
+
+
+## Depois das garantias da 1ª Descida (que trocam nós por baú), reaplica a regra de 2 lutas por rota
+## (ADR-0067) convertendo nós tardios; o baú garantido da camada 2 fica protegido e cada nó convertido
+## recebe o Cidadão Infectado no nível da camada, como as outras garantias.
+func _restore_route_fights(entry: Dictionary) -> void:
+	var protected: PackedInt32Array = PackedInt32Array()
+	for node: MapNode in map.layer_nodes(2):
+		if node.kind == MapNode.Kind.CHEST:
+			protected.append(node.id)
+	for id: int in MapGenerator.ensure_fights_on_every_route(map, protected):
+		var node: MapNode = map.node_by_id(id)
+		node.enemy_id = RunRules.FIRST_RUN_FIRST_ENEMY
+		node.level = RunRules.layer_level(node.layer, map.layer_count, int(entry["min_level"]), int(entry["max_level"]))
+		node.mutation = ""
 
 
 ## Garantias da primeira Descida (F-019, ADR-0031): camada 1 sempre com Cidadão Infectado

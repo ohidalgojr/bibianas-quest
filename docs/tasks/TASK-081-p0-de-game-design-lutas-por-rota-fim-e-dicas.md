@@ -42,8 +42,8 @@ Resolver os P0 restantes de `docs/design/critica-diretor/CRITICA-GAME-DESIGN-MOB
 
 ## Verificação
 
-Suíte 393/393 (`RULES_VERSION` = 24). Prints `docs/tasks/prints/TASK-081-resultado.png` e `TASK-081-dica.png`. Simulador não rodado (CLAUDE.md regra 9): o efeito no equilíbrio é desconhecido; a assinatura fixa do mapa de teste mudou de propósito.
+Suíte 394/394 (`RULES_VERSION` = 24). Prints `docs/tasks/prints/TASK-081-resultado.png` e `TASK-081-dica.png`. Simulador não rodado (CLAUDE.md regra 9): o efeito no equilíbrio é desconhecido; a assinatura fixa do mapa de teste mudou de propósito.
 
 ## Revisão cruzada
 
-Pendente.
+Revisor cruzado reprovou a 1ª versão (garantia falhava em 43 de 100 sementes da 1ª Descida, porque as garantias dela trocam um nó por baú depois do reparo). Corrigido: o reparo converte o ÚLTIMO baú/evento da rota, é reaplicado depois das garantias da 1ª Descida protegendo o baú garantido, e o nó convertido recebe inimigo; testes com `RunState` real (1ª Descida e normal, 40 sementes) e de nó convertido com inimigo.

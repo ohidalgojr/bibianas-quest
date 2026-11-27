@@ -23,7 +23,7 @@ static func generate(config: MapConfig, rng: Pcg32) -> MapGraph:
 			node.kind = _draw_kind(graph, config, node, elites, rng)
 			if node.kind == MapNode.Kind.ELITE:
 				elites += 1
-	_ensure_fights_on_every_route(graph)
+	ensure_fights_on_every_route(graph)
 	return graph
 
 
@@ -40,7 +40,7 @@ static func _is_fight_kind(kind: MapNode.Kind) -> bool:
 
 
 ## Menor número de lutas (antes do chefe) entre as rotas do início ao chefe, e uma rota que o atinge.
-static func _poorest_route(graph: MapGraph) -> Dictionary:
+static func poorest_route(graph: MapGraph) -> Dictionary:
 	var best: Dictionary = {}
 	var route: Dictionary = {}
 	for layer: int in range(graph.layer_count, -1, -1):
@@ -69,20 +69,26 @@ static func _poorest_route(graph: MapGraph) -> Dictionary:
 	return {"fights": int(best.get(graph.start_id, 0)), "route": route.get(graph.start_id, [])}
 
 
-static func _ensure_fights_on_every_route(graph: MapGraph) -> void:
+## Devolve os ids convertidos. Converte o ÚLTIMO baú ou evento da rota (as primeiras camadas mantêm a
+## escolha e o que a 1ª Descida garante); `protected` lista nós que nunca mudam (baú garantido da 1ª Descida).
+static func ensure_fights_on_every_route(graph: MapGraph, protected: PackedInt32Array = PackedInt32Array()) -> PackedInt32Array:
+	var converted: PackedInt32Array = PackedInt32Array()
 	for attempt: int in graph.layer_count * graph.width:
-		var poorest: Dictionary = _poorest_route(graph)
+		var poorest: Dictionary = poorest_route(graph)
 		if int(poorest["fights"]) >= MIN_FIGHTS_PER_ROUTE:
-			return
+			return converted
 		var fixed: bool = false
-		for id: Variant in poorest["route"] as Array:
-			var node: MapNode = graph.node_by_id(int(id))
-			if node.layer > 0 and (node.kind == MapNode.Kind.CHEST or node.kind == MapNode.Kind.EVENT):
+		var route: Array = poorest["route"] as Array
+		for index: int in range(route.size() - 1, -1, -1):
+			var node: MapNode = graph.node_by_id(int(route[index]))
+			if node.layer > 0 and not protected.has(node.id) and (node.kind == MapNode.Kind.CHEST or node.kind == MapNode.Kind.EVENT):
 				node.kind = MapNode.Kind.BATTLE
+				converted.append(node.id)
 				fixed = true
 				break
 		if not fixed:
-			return
+			return converted
+	return converted
 
 
 ## A penúltima camada recebe uma fogueira em uma coluna que aparece nas 3 opções de

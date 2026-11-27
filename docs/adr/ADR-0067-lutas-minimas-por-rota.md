@@ -14,9 +14,10 @@ A revisão de game design jogou 12 Descidas e viu que a rota só de baú, foguei
 ## Decisão
 
 1. O gerador de mapa garante que a rota mais pobre em lutas (batalha, emboscada, elite, mini boss) tenha pelo menos 2 antes do chefe (`MapGenerator.MIN_FIGHTS_PER_ROUTE`).
-2. O reparo é determinístico, sem sorteio: enquanto a rota mais pobre tiver menos que o mínimo, o primeiro baú ou evento dela vira batalha comum. Fogueiras não mudam.
-3. A suavização da vencibilidade não pode trocar uma batalha por baú se isso deixar uma rota abaixo do mínimo.
-4. `RULES_VERSION` sobe para 24 (as sementes mudam). O mapa de 4 camadas do primeiro cenário continua curto.
+2. O reparo é determinístico, sem sorteio: enquanto a rota mais pobre tiver menos que o mínimo, o ÚLTIMO baú ou evento dela vira batalha comum (as primeiras camadas mantêm a escolha). Fogueiras não mudam.
+3. Na 1ª Descida, a regra é reaplicada depois das garantias dela, protegendo o baú garantido da camada 2; o nó convertido recebe o Cidadão Infectado no nível da camada.
+4. A suavização da vencibilidade não pode trocar uma batalha por baú se isso deixar uma rota abaixo do mínimo.
+5. `RULES_VERSION` sobe para 24 (as sementes mudam). O mapa de 4 camadas do primeiro cenário continua curto.
 
 ## Alternativas
 
