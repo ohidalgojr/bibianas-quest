@@ -161,7 +161,7 @@ func make_enemy(enemy_id: String, level: int, mutation_id: String = "") -> Comba
 		phases.append(EnemyPhase.make(int(phase["below_hp_percent"]), moves))
 	var boss: bool = str(entry["type"]) == "boss"
 	var unit: Combatant = Combatant.enemy(str(entry["name"]), enemy_stats(enemy_id, level), phases, boss)
-	if str(entry["type"]) == "mini_boss":
+	if str(entry["type"]) == "mini_boss" or str(entry["type"]) == "roaming_boss":
 		unit.can_flee = false
 	var mults: Dictionary = entry["element_mults"]
 	for element: Variant in mults:

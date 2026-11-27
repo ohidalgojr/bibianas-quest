@@ -592,6 +592,8 @@ Um roaming boss é uma ameaça móvel que atravessa o grafo atrás da Bibiana. A
 4. **Evitar.** Itens raros (Incenso de Cinzas, drop raro ou compra) afastam o roaming boss por 3 nós. Existem também escolhas de rota que o deixam para trás.
 5. **Memória.** Se o roaming boss mata a Bibiana, ele é promovido: ganha um nome, um título, uma mutação e +1 patente. Na Descida seguinte, ele pode voltar, mais forte e com recompensa maior. A lista fica no Cemitério de Rivais no Santuário.
 
+**Estado no código (ADR-0066):** alarme, perseguição a 3 nós, parada em fogueira e encontro forçado estão implementados e ligados por flag `roaming_boss` do cenário (desligada no cenário 1); promoção, Cemitério de Rivais, Incenso e Alma ficam para depois.
+
 A construção é barata: gerador de nomes por sílabas e epítetos, um conjunto de modelos-base com recolor e mutações, e cinco patentes.
 
 ### Almas e Forja

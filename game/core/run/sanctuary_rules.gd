@@ -64,6 +64,7 @@ const ENEMY_ORDER: Array[String] = [
 	"rat_mother",
 	"bell_warden",
 	"gravedigger",
+	"crowned_pursuer",
 ]
 
 
@@ -187,6 +188,10 @@ static func _coin_move_summary(raw: Dictionary) -> String:
 		"discord_wail": "Lamento Dissonante",
 		"calcified_charge": "Investida Calcificada",
 		"bone_cleave": "Talho de Osso",
+		"shattered_edge": "Gume Partido",
+		"mace_decree": "Decreto da Maça",
+		"rot_cleave": "Corte Podre",
+		"crushing_sweep": "Varredura de Ferro",
 		"wrecking_arm": "Braço Remendado",
 		"swarm_bite": "Mordida do Enxame",
 		"deafening_toll": "Badalo Ensurdecedor",

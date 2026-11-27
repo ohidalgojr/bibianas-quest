@@ -6,6 +6,8 @@ extends Control
 
 var steps: int = 0
 var run_seed: int = 7
+## Depuração: liga o Perseguidor a N nós (`perseguidor=N`) para conferir o aviso no mapa.
+var chase: int = -1
 
 
 func _ready() -> void:
@@ -13,6 +15,8 @@ func _ready() -> void:
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("passos="):
 			steps = int(arg.trim_prefix("passos="))
+		elif arg.begins_with("perseguidor="):
+			chase = int(arg.trim_prefix("perseguidor="))
 		elif arg.begins_with("semente="):
 			run_seed = int(arg.trim_prefix("semente="))
 	var data: GameData = DataLoader.load_all()
@@ -22,6 +26,9 @@ func _ready() -> void:
 		run.choose_node(run.options()[0].id)
 		taken += 1
 		_settle(run)
+	if chase >= 0:
+		run.roaming_override = true
+		run.pursuer_distance = chase
 	var screen: Map3DScreen = Map3DScreen.new()
 	screen.view = MapView.new(run)
 	screen.time_scale = 0.0

@@ -74,6 +74,17 @@ var is_probe: bool = false
 ## Resultado da checagem do mapa do cenário atual.
 var map_check: Winnability
 
+## Roaming boss (GDD §13, ADR-0066): medidor de alarme, distância em nós (-1 fora do mapa), encontro
+## pendente (intercepta o próximo movimento), já derrotado nesta Descida e luta em andamento.
+var alarm: int = 0
+var pursuer_distance: int = -1
+var pursuer_pending: bool = false
+var pursuer_defeated: bool = false
+var roaming_fight: bool = false
+var roaming_level: int = 0
+## Depuração e testes: liga o roaming boss mesmo em cenário sem a flag.
+var roaming_override: bool = false
+
 
 func _init(game_data: GameData, run_seed: int, run_class: String = "warrior", run_scenarios: Array[String] = [],
 		map_check_runs: int = 0, given_map: MapGraph = null, is_first_run: bool = false,
@@ -338,6 +349,11 @@ func choose_node(node_id: int) -> bool:
 			chosen = option
 	if chosen == null:
 		return false
+	# O Perseguidor alcançou a Bibiana: a luta é forçada antes de ela se mover (GDD §13, item 3).
+	if pursuer_pending:
+		_begin_roaming_fight()
+		return true
+	_advance_pursuer(chosen)
 	current_node_id = node_id
 	_emit(RunEvent.Type.NODE, MapNode.KIND_LETTERS[chosen.kind], node_id)
 	if chosen.is_fight():
@@ -572,6 +588,8 @@ func finish_fight() -> bool:
 	var outcome: Combat.Outcome = combat.outcome
 	combat = null
 	_emit(RunEvent.Type.FIGHT_ENDED, "", outcome)
+	if roaming_fight:
+		return _finish_roaming_fight(outcome, enemy_hp_pct, fatal_move)
 	nodes_cleared += 1
 	match outcome:
 		Combat.Outcome.DEFEAT:
@@ -583,6 +601,7 @@ func finish_fight() -> bool:
 		Combat.Outcome.FLED:
 			phase = Phase.CHOOSING
 			_apply_luck_to_layer(node.layer + 1)
+			_raise_alarm(RoamingRules.ALARM_FLEE)
 		Combat.Outcome.VICTORY:
 			var enemy_type: String = RunRules.enemy_type_for(node.kind, node.is_mutated())
 			var stats_before: Stats = player_stats()
@@ -592,6 +611,8 @@ func finish_fight() -> bool:
 			_gain_gold(RunRules.gold_drop(node.level, enemy_type, streams.loot()), "fight")
 			enemies_defeated += 1
 			defeated_enemy_ids.append(node.enemy_id)
+			if node.kind == MapNode.Kind.ELITE:
+				_raise_alarm(RoamingRules.ALARM_ELITE)
 			last_reward = {"enemy_id": node.enemy_id, "mutation": node.mutation, "level": node.level,
 				"power": power_gain, "gold": gold - gold_before, "before": stats_before, "after": player_stats()}
 			_roll_drops(enemy_type)
@@ -606,7 +627,83 @@ func finish_fight() -> bool:
 	return true
 
 
+# --- Roaming boss (GDD §13, ADR-0066) --------------------------------------------------
+
+func roaming_enabled() -> bool:
+	return (roaming_override or RoamingRules.enabled_for(scenario())) and data.enemies.has(RoamingRules.ENEMY_ID)
+
+
+func pursuer_active() -> bool:
+	return pursuer_distance >= 0 or pursuer_pending
+
+
+## Sobe o medidor; ao encher, o Perseguidor entra no mapa a [constant RoamingRules.START_DISTANCE] nós
+## e o sino toca duas vezes. Não sobe com o Perseguidor ativo ou já derrotado.
+func _raise_alarm(amount: int) -> void:
+	if not roaming_enabled() or pursuer_active() or pursuer_defeated or is_over():
+		return
+	alarm += amount
+	if alarm >= RoamingRules.ALARM_THRESHOLD and current_node().layer >= RoamingRules.MIN_LAYER:
+		alarm = 0
+		pursuer_distance = RoamingRules.START_DISTANCE
+		_emit(RunEvent.Type.PURSUER, "alarm", pursuer_distance)
+
+
+## A cada nó que o jogador escolhe, o Perseguidor avança 1; ele nunca entra em fogueira (não avança
+## quando o destino é uma fogueira). Ao chegar a 0, o encontro fica pendente.
+func _advance_pursuer(chosen: MapNode) -> void:
+	if pursuer_distance < 0 or chosen.kind == MapNode.Kind.BONFIRE:
+		return
+	pursuer_distance -= 1
+	_emit(RunEvent.Type.PURSUER, "step", pursuer_distance)
+	if pursuer_distance <= 0:
+		pursuer_distance = -1
+		pursuer_pending = true
+		_emit(RunEvent.Type.PURSUER, "caught", 0)
+
+
+func _begin_roaming_fight() -> void:
+	pursuer_pending = false
+	pursuer_distance = -1
+	roaming_fight = true
+	var node: MapNode = current_node()
+	roaming_level = RunRules.layer_level(node.layer, map.layer_count, int(scenario()["min_level"]),
+		int(scenario()["max_level"])) + RoamingRules.LEVEL_BONUS
+	_start_combat(RoamingRules.ENEMY_ID, roaming_level, "", false)
+
+
+## Fim da luta contra o roaming boss: Poder ×3, ouro, drop e Moeda da Sorte; derrota encerra a Descida.
+func _finish_roaming_fight(outcome: Combat.Outcome, enemy_hp_pct: int, fatal_move: String) -> bool:
+	roaming_fight = false
+	if outcome == Combat.Outcome.DEFEAT:
+		defeated_by_id = RoamingRules.ENEMY_ID
+		defeated_by_level = roaming_level
+		defeated_by_hp_percent = enemy_hp_pct
+		defeated_by_move = fatal_move
+		_end(false)
+		return true
+	var stats_before: Stats = player_stats()
+	var gold_before: int = gold
+	var power_gain: float = RunRules.power_gain(roaming_level, "roaming_boss")
+	_gain_power(power_gain)
+	_gain_gold(RunRules.gold_drop(roaming_level, "roaming_boss", streams.loot()), "fight")
+	enemies_defeated += 1
+	defeated_enemy_ids.append(RoamingRules.ENEMY_ID)
+	pursuer_defeated = true
+	last_reward = {"enemy_id": RoamingRules.ENEMY_ID, "mutation": "", "level": roaming_level,
+		"power": power_gain, "gold": gold - gold_before, "before": stats_before, "after": player_stats()}
+	_roll_drops("elite")
+	if total_consumables() < RunRules.MAX_CONSUMABLES:
+		_grant_lucky_coin()
+	_open_shop()
+	return true
+
+
 func _begin_fight(node: MapNode) -> void:
+	_start_combat(node.enemy_id, node.level, node.mutation, node.kind == MapNode.Kind.AMBUSH)
+
+
+func _start_combat(enemy_id: String, level: int, mutation: String, ambushed: bool) -> void:
 	var veteran: bool = str(data.classes[class_id]["passive"]) == "veteran"
 	var unit: Combatant = Combatant.player(PLAYER_NAME, player_stats(), veteran)
 	unit.hp = clampi(hp, 1, unit.stats.max_hp)
@@ -621,11 +718,11 @@ func _begin_fight(node: MapNode) -> void:
 		if event_crit_combats <= 0:
 			event_crit_bonus = 0
 	unit.diseases = diseases.duplicate()
-	combat = Combat.new(unit, data.make_enemy(node.enemy_id, node.level, node.mutation), streams, coin)
-	combat.ambushed = node.kind == MapNode.Kind.AMBUSH
+	combat = Combat.new(unit, data.make_enemy(enemy_id, level, mutation), streams, coin)
+	combat.ambushed = ambushed
 	combat.lucky_coins = consumable_count(RunRules.LUCKY_COIN_ID)
 	phase = Phase.FIGHT
-	_emit(RunEvent.Type.FIGHT_STARTED, node.enemy_id, node.level)
+	_emit(RunEvent.Type.FIGHT_STARTED, enemy_id, level)
 	combat.start()
 
 
@@ -687,6 +784,7 @@ func rest() -> bool:
 	hp = mini(stats.max_hp, hp + roundi(stats.max_hp * RunRules.REST_PERCENT / 100.0))
 	mp = mini(stats.max_mp, mp + roundi(stats.max_mp * RunRules.REST_PERCENT / 100.0))
 	_emit(RunEvent.Type.CAMPFIRE, "rest", embers)
+	_raise_alarm(RoamingRules.ALARM_REST)
 	return true
 
 
@@ -935,6 +1033,11 @@ func _enter_scenario(index: int) -> void:
 	consumables[RunRules.FIREWOOD_ID] = consumable_count(RunRules.FIREWOOD_ID) + RunRules.FIREWOOD_PER_MAP
 	_emit(RunEvent.Type.ITEM_GAINED, RunRules.FIREWOOD_ID, RunRules.FIREWOOD_PER_MAP)
 	scenario_index = index
+	# Cada cenário começa sem alarme e sem Perseguidor (GDD §13).
+	alarm = 0
+	pursuer_distance = -1
+	pursuer_pending = false
+	pursuer_defeated = false
 	var entry: Dictionary = scenario()
 	var config: MapConfig = MapConfig.for_layers(int(entry["layers"]))
 	config.weight_event = RunRules.PROTOTYPE_EVENT_WEIGHT

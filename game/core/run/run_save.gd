@@ -39,6 +39,10 @@ static func to_dict(run: RunState) -> Dictionary:
 		"event_crit_bonus": run.event_crit_bonus,
 		"event_crit_combats": run.event_crit_combats,
 		"meta_unlocks": run.meta_unlocks,
+		"alarm": run.alarm,
+		"pursuer_distance": run.pursuer_distance,
+		"pursuer_pending": run.pursuer_pending,
+		"pursuer_defeated": run.pursuer_defeated,
 		"defeated_enemy_ids": run.defeated_enemy_ids,
 		"streams": run.streams.snapshot(),
 		"coin": {"losses_in_row": run.coin.losses_in_row, "flips": run.coin.flips, "heads": run.coin.heads},
@@ -76,6 +80,10 @@ static func from_dict(data: GameData, saved: Dictionary) -> RunState:
 	run.nodes_cleared = int(saved["nodes_cleared"])
 	run.enemies_defeated = int(saved.get("enemies_defeated", 0))
 	run.first_chest_opened = bool(saved.get("first_chest_opened", false))
+	run.alarm = int(saved.get("alarm", 0))
+	run.pursuer_distance = int(saved.get("pursuer_distance", -1))
+	run.pursuer_pending = bool(saved.get("pursuer_pending", false))
+	run.pursuer_defeated = bool(saved.get("pursuer_defeated", false))
 	run.event_crit_bonus = int(saved.get("event_crit_bonus", 0))
 	run.event_crit_combats = int(saved.get("event_crit_combats", 0))
 	if saved.has("defeated_enemy_ids"):

@@ -169,7 +169,7 @@ func _begin(player_hp: int, player_mp: int, enemy_hp: int) -> void:
 	_enemy_shape.custom_minimum_size = Vector2(150, 150) if session.is_boss() else Vector2(110, 110)
 	if _stage != null:
 		_stage.time_scale = time_scale
-		_stage.setup(session.enemy_id, session.run.current_node().kind if session.run != null and session.run.current_node() != null else stage_kind, mut)
+		_stage.setup(session.enemy_id, MapNode.Kind.MINI_BOSS if (session.run != null and session.run.roaming_fight) else (session.run.current_node().kind if session.run != null and session.run.current_node() != null else stage_kind), mut)
 	var current_power: float = session.run.power if session.run != null else _power
 	_player_shape.configure_player(current_power)
 	if session.enemy_id == "bell_warden" and time_scale > 0.0:

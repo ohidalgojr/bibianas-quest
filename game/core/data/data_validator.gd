@@ -9,7 +9,7 @@ const DOCUMENTS: PackedStringArray = ["classes", "skills", "enemies", "items", "
 
 const STAT_KEYS: PackedStringArray = ["hp", "mp", "strength", "mind", "defense", "resistance",
 	"speed", "precision", "evasion", "crit", "luck"]
-const ENEMY_TYPES: PackedStringArray = ["common", "elite", "mini_boss", "boss"]
+const ENEMY_TYPES: PackedStringArray = ["common", "elite", "mini_boss", "roaming_boss", "boss"]
 const MOVE_KINDS: PackedStringArray = ["attack", "strong", "heavy", "cruel", "mortal", "heal", "debuff"]
 const DEBUFF_EFFECT_IDS: PackedStringArray = ["poison", "weakened"]
 ## Consequências de errar o lado e condições de reação dos inimigos (ADR-0030).

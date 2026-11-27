@@ -69,6 +69,9 @@ var _selection: Array[Node] = []
 var _arrow: Label3D
 var _arrow_base_y: float = 0.0
 var _mist: TextureRect
+var _pursuer_banner: PanelContainer
+var _pursuer_text: Label
+var _last_pursuer_distance: int = -1
 
 
 func _ready() -> void:
@@ -342,11 +345,69 @@ func refresh() -> void:
 	for node_view: Dictionary in view.nodes():
 		_build_node(node_view)
 	_build_hero()
+	_build_pursuer()
 	_fog_goal = _fog_alphas(view.run.current_node().layer, view.visible_layer())
 	if time_scale <= 0.0:
 		_fog_now = _fog_goal.duplicate()
 		_apply_fog(true)
 	_rebuild_overlay()
+
+
+## Aviso do Perseguidor (GDD §13): "está a N nós", sino duas vezes ao entrar e sprite no caminho atrás da
+## Bibiana, a N camadas do nó atual (ADR-0066). Sem Perseguidor ativo, nada aparece.
+func _build_pursuer() -> void:
+	var run: RunState = view.run
+	if _pursuer_banner == null:
+		_pursuer_banner = PanelContainer.new()
+		var box: StyleBoxFlat = StyleBoxFlat.new()
+		box.bg_color = Color(0.16, 0.04, 0.05, 0.92)
+		box.border_color = Color(0.72, 0.16, 0.14)
+		box.set_border_width_all(2)
+		box.set_corner_radius_all(6)
+		box.set_content_margin_all(6)
+		_pursuer_banner.add_theme_stylebox_override("panel", box)
+		_pursuer_banner.position = Vector2(10, 82)
+		_pursuer_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var row: HBoxContainer = HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		_pursuer_banner.add_child(row)
+		var icon: TextureRect = TextureRect.new()
+		icon.texture = load("res://assets/bibiana/icons/node/danger.png") as Texture2D
+		icon.custom_minimum_size = Vector2(30, 30)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		row.add_child(icon)
+		_pursuer_text = Label.new()
+		_pursuer_text.add_theme_font_size_override("font_size", 17)
+		_pursuer_text.add_theme_color_override("font_color", Color(0.96, 0.82, 0.78))
+		row.add_child(_pursuer_text)
+		add_child(_pursuer_banner)
+	var active: bool = run.pursuer_active()
+	_pursuer_banner.visible = active
+	if not active:
+		_last_pursuer_distance = -1
+		return
+	if run.pursuer_pending:
+		_pursuer_text.text = "O Perseguidor alcançou você!"
+	else:
+		_pursuer_text.text = "O Perseguidor está a %d nós" % run.pursuer_distance
+	if run.pursuer_distance == RoamingRules.START_DISTANCE and _last_pursuer_distance != run.pursuer_distance and time_scale > 0.0:
+		SoundFx.play(self, "bell")
+		get_tree().create_timer(0.9).timeout.connect(func() -> void: SoundFx.play(self, "bell"))
+	_last_pursuer_distance = run.pursuer_distance
+	# Sprite no caminho percorrido, a `distance` camadas atrás do nó atual.
+	var layer_back: int = run.current_node().layer - maxi(run.pursuer_distance, 0)
+	var spot: int = run.map.start_id
+	for id: int in view.visited_ids():
+		if run.map.node_by_id(id).layer == layer_back:
+			spot = id
+	_place_sprite("crowned_pursuer", layout.node_world(spot), 3.4)
+	var glow: OmniLight3D = OmniLight3D.new()
+	glow.light_color = Color(0.9, 0.2, 0.15)
+	glow.light_energy = 3.0
+	glow.omni_range = 5.0
+	glow.position = layout.node_world(spot) + Vector3(0, 1.8, 0)
+	_node_root.add_child(glow)
 
 
 func _build_node(info: Dictionary) -> void:

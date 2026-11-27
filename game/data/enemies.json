@@ -345,6 +345,60 @@
 				{"when": "player_buffed", "move": "curse"},
 				{"when": "player_buffed", "move": "rot"}
 			]
+		},
+		{
+			"id": "crowned_pursuer",
+			"name": "O Perseguidor Coroado",
+			"type": "roaming_boss",
+			"base_level": 3,
+			"stats": {
+				"hp": 170,
+				"strength": 18,
+				"defense": 11,
+				"resistance": 5,
+				"speed": 5,
+				"evasion": 3
+			},
+			"element_mults": {
+				"fire": 1.5,
+				"holy": 1.5
+			},
+			"tags": [
+				"undead"
+			],
+			"phases": [
+				{
+					"below_hp_percent": 100,
+					"moves": [
+						{
+							"id": "shattered_edge",
+							"kind": "attack"
+						},
+						{
+							"id": "mace_decree",
+							"kind": "cruel",
+							"fail_effect": "weakened"
+						},
+						{
+							"id": "rot_cleave",
+							"kind": "debuff",
+							"effect": "poison",
+							"effect_chance": 65
+						},
+						{
+							"id": "crushing_sweep",
+							"kind": "strong",
+							"power": 1.35
+						}
+					]
+				}
+			],
+			"reactions": [
+				{
+					"when": "player_buffed",
+					"move": "mace_decree"
+				}
+			]
 		}
 	]
 }

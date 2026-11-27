@@ -2,11 +2,11 @@
 
 | Campo | Valor |
 | --- | --- |
-| Status | Aberta |
+| Status | Em verificação (revisão cruzada pendente no fechamento do lote) |
 | Aberta em | 2026-11-27 |
 | Fase | 2, expansão pós-MVP (`TASK-054`) |
 | GDD | 5, 6, 7, 13, 21 |
-| ADRs | Novo ADR obrigatório (TASK-054, incrementa `RULES_VERSION`) |
+| ADRs | ADR-0066 (`RULES_VERSION` 23) |
 
 ## Objetivo
 
@@ -18,11 +18,11 @@ Levar o Roaming Boss `crowned_pursuer` (`docs/design/ROAMING-BOSS-perseguidor-co
 
 ## Critérios de aceite
 
-- [ ] Criar `docs/enemies/ENEMY-20-perseguidor-coroado.md` (`crowned_pursuer`) seguindo todas as regras de justiça (`CLAUDE.md` regra 10).
-- [ ] Cadastrar `crowned_pursuer` em `game/data/enemies.json` e implementar o deslocamento/encontro do Roaming Boss em `game/core/run/` usando exclusivamente os fluxos determinísticos de `RngStreams` (sem nós).
-- [ ] Exibir marcador/sprite do `crowned_pursuer` no `Map3DScreen` e no `Combat3DStage` (com contraste/borda legível sobre piso escuro).
-- [ ] Criar ADR próprio, atualizar `docs/GDD.md` e `docs/HANDOFF.md`, e incrementar `CoreVersion.RULES_VERSION`.
-- [ ] Testes unitários verdes cobrindo determinismo da perseguição, justiça de combate e prints `540×960` em `docs/tasks/prints/`.
+- [x] Criar `docs/enemies/ENEMY-20-perseguidor-coroado.md` (`crowned_pursuer`) seguindo todas as regras de justiça (`CLAUDE.md` regra 10).
+- [x] Cadastrar `crowned_pursuer` em `game/data/enemies.json` e implementar o deslocamento/encontro do Roaming Boss em `game/core/run/` usando exclusivamente os fluxos determinísticos de `RngStreams` (sem nós).
+- [x] Exibir marcador/sprite do `crowned_pursuer` no `Map3DScreen` e no `Combat3DStage` (com contraste/borda legível sobre piso escuro).
+- [x] Criar ADR próprio, atualizar `docs/GDD.md` e `docs/HANDOFF.md`, e incrementar `CoreVersion.RULES_VERSION`.
+- [x] Testes unitários verdes cobrindo determinismo da perseguição, justiça de combate e prints `540×960` em `docs/tasks/prints/`.
 
 ## Arquivos afetados
 
@@ -43,7 +43,7 @@ Levar o Roaming Boss `crowned_pursuer` (`docs/design/ROAMING-BOSS-perseguidor-co
 
 ## Verificação
 
-Pendente (aguardando implementação).
+Suíte 388/388 (`RULES_VERSION` = 23), 8 testes novos em `tests/unit/test_roaming_boss.gd` (cenário 1 sem a flag, alarme, avanço e parada em fogueira, encontro que intercepta o movimento, vitória sem retorno, derrota, determinismo, save). Prints `docs/tasks/prints/TASK-080-mapa.png` (aviso "a 2 nós") e `TASK-080-combate.png`. A flag `roaming_boss` está desligada no único cenário existente; a mecânica só aparece com cenário 2+ ou `roaming_override`. Não implementado: patentes, Cemitério de Rivais, Incenso de Cinzas, Alma. Sprite do Perseguidor no mapa fica atrás da Bibiana, fora da tela no print.
 
 ## Revisão cruzada
 

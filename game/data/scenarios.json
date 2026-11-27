@@ -5,6 +5,7 @@
 			"id": "abandoned_city",
 			"name": "Cidade Abandonada",
 			"layers": 4,
+			"roaming_boss": false,
 			"min_level": 1,
 			"max_level": 6,
 			"winnable_target": 60,
