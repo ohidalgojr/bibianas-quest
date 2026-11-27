@@ -284,7 +284,13 @@ class CoinMedallion extends Control:
 	var spin_angle: float = 0.0
 
 	func _init() -> void:
-		custom_minimum_size = Vector2(96, 96)
+		custom_minimum_size = Vector2(176, 176)
+
+	## A moeda gira de verdade enquanto `spinning` (antes o ângulo nunca avançava).
+	func _process(delta: float) -> void:
+		if spinning:
+			spin_angle += delta * 15.0
+			queue_redraw()
 
 	func show_call_prompt() -> void:
 		spinning = false
@@ -301,6 +307,21 @@ class CoinMedallion extends Control:
 		var c: Vector2 = size * 0.5
 		var r: float = minf(size.x, size.y) * 0.42
 		if r <= 4.0:
+			return
+		# Moedas pintadas (Cara dourada, Coroa prateada): giram achatando a largura e trocando de face (TASK-072).
+		var heads_tex: Texture2D = UiKit.texture("coin_heads.png")
+		var tails_tex: Texture2D = UiKit.texture("coin_tails.png")
+		if heads_tex != null and tails_tex != null:
+			var face: int = shown_side
+			var squash: float = 1.0
+			if spinning:
+				squash = maxf(absf(cos(spin_angle)), 0.05)
+				face = CoinRules.HEADS if cos(spin_angle) >= 0.0 else CoinRules.TAILS
+			var tex: Texture2D = heads_tex if face == CoinRules.HEADS else tails_tex
+			var half: float = minf(size.x, size.y) * 0.48
+			draw_set_transform(c, 0.0, Vector2(squash, 1.0))
+			draw_texture_rect(tex, Rect2(Vector2(-half, -half), Vector2(half * 2.0, half * 2.0)), false)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			return
 		var rim_color: Color = VisualTheme.COLOR_GOLD if shown_side == CoinRules.HEADS else Color(0.75, 0.58, 0.34)
 		var fill_color: Color = Color(0.32, 0.25, 0.12) if shown_side == CoinRules.HEADS else Color(0.22, 0.14, 0.16)

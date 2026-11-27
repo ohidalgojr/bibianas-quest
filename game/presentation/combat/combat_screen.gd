@@ -12,7 +12,7 @@ signal run_fight_done
 signal coin_called(side: int)
 
 ## Pausa por evento, em segundos, na velocidade 1x.
-const EVENT_DELAY: float = 0.35
+const EVENT_DELAY: float = 0.22
 ## GDD §7: animação do lance com cerca de 1,2 s.
 const COIN_DELAY: float = 1.2
 const TIMELINE_SIZE: int = 6
@@ -69,6 +69,9 @@ var _intent_style: StyleBoxFlat
 var _ticker: Label
 var _ticker_tween: Tween
 var _intent_icon: Label
+var _intent_art: TextureRect
+## Quem decide ou executa agora (a linha do tempo mostra o AGORA e os próximos).
+var _now_side: int = Combatant.PLAYER
 var _intent_detail: Label
 var _log_label: Label
 var _player_hp_bar: ProgressBar
@@ -81,8 +84,11 @@ var _drawer_tabs: Dictionary = {}
 var _open_drawer: String = ""
 var _sheet: PanelContainer
 var _sheet_holder: VBoxContainer
+var _sheet_stats: Label
+var _sheet_forecast: Label
+var _sheet_confirm: Button
 ## Folha das gavetas: altura e distância do rodapé (acima da fileira de abas).
-const SHEET_HEIGHT: float = 270.0
+const SHEET_HEIGHT: float = 372.0
 const SHEET_BOTTOM: float = 78.0
 var _selected_action: String = ""
 ## Skill, item e Fugir pedem um segundo toque (D-UI-1); desligado nos testes e na depuração 2D.
@@ -220,6 +226,7 @@ func _play(events: Array[CombatEvent]) -> void:
 			_push_log(line)
 			await _wait(EVENT_DELAY)
 	_busy = false
+	_now_side = Combatant.PLAYER
 	_refresh_timeline()
 	_refresh_buttons()
 	if session.is_over():
@@ -258,6 +265,9 @@ func _is_player_swing(event: CombatEvent) -> bool:
 ## Atualiza o estado da tela a partir do evento, sem consultar regras.
 func _apply(event: CombatEvent) -> void:
 	match event.type:
+		CombatEvent.Type.TURN:
+			_now_side = event.side
+			_refresh_timeline()
 		CombatEvent.Type.INTENT:
 			_show_intent(event.label, event.extra)
 		CombatEvent.Type.ACTION:
@@ -270,9 +280,8 @@ func _apply(event: CombatEvent) -> void:
 				if event.label == "defend" and time_scale > 0.0:
 					SoundFx.play(self, "defend")
 			else:
-				_intent_icon.text = "..."
-				_intent_detail.text = ""
-				_set_intent_tone(COLOR_CALM)
+				# O selo continua aceso com o golpe em execução (nunca "..."): só fecha o detalhe.
+				_intent_detail.visible = false
 		CombatEvent.Type.DAMAGE:
 			var on_enemy: bool = event.side != Combatant.PLAYER
 			if _stage != null:
@@ -288,7 +297,7 @@ func _apply(event: CombatEvent) -> void:
 				_player_hp = event.extra
 			if time_scale > 0.0:
 				SoundFx.play(self, "crit" if event.flag else "hit")
-			_pop_text("-%d%s" % [event.value, " CRÍTICO!" if event.flag else ""], COLOR_COIN if event.flag else COLOR_DANGER, on_enemy, 44 if event.flag else 30)
+			_pop_text("-%d%s" % [event.value, " CRÍTICO!" if event.flag else ""], COLOR_COIN if event.flag else (Color(1.0, 0.95, 0.84) if on_enemy else Color(0.9, 0.4, 0.37)), on_enemy, 64 if event.flag else 44)
 			if on_enemy and event.extra <= 0:
 				_play_defeat()
 		CombatEvent.Type.MISS:
@@ -322,16 +331,21 @@ func _pop_text(text: String, color: Color, on_enemy: bool, size: int = 30) -> vo
 	label.add_theme_font_size_override("font_size", size)
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", Color.BLACK)
-	label.add_theme_constant_override("outline_size", 6)
+	label.add_theme_constant_override("outline_size", 5)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.z_index = 50
 	add_child(label)
+	label.reset_size()
+	label.pivot_offset = label.size * 0.5
+	label.scale = Vector2(0.6, 0.6)
 	label.position = target.global_position - global_position + Vector2(target.size.x * 0.3, -10)
 	if _stage != null:
 		label.position = _stage.global_position - global_position + _stage.screen_pos(on_enemy) - Vector2(40, 30)
 	var tween: Tween = create_tween().set_parallel(true)
-	tween.tween_property(label, "position:y", label.position.y - 70.0, 0.9 * time_scale)
-	tween.tween_property(label, "modulate:a", 0.0, 0.9 * time_scale).set_delay(0.3 * time_scale)
+	tween.tween_property(label, "scale", Vector2(1.15, 1.15), 0.09 * time_scale).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "scale", Vector2.ONE, 0.06 * time_scale).set_delay(0.09 * time_scale)
+	tween.tween_property(label, "position:y", label.position.y - 40.0, 0.75 * time_scale).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 0.0, 0.2 * time_scale).set_delay(0.55 * time_scale)
 	tween.chain().tween_callback(label.queue_free)
 
 
@@ -363,7 +377,17 @@ func _show_intent(move_id: String, reason: int = 0) -> void:
 	# "ATAQUE  Ataque" era texto duplicado (IDENTIDADE-VISUAL §A.1): só repete se o nome diz algo novo.
 	_intent_icon.text = icon_text if icon_text.to_lower() == name_text.to_lower() else "%s  %s" % [icon_text, name_text]
 	_intent_detail.text = str(view["detail"])
-	_intent_detail.visible = not _intent_detail.text.is_empty()
+	# No palco o selo é só ícone e nome; o detalhe abre ao tocar no selo.
+	_intent_detail.visible = _stage == null and not _intent_detail.text.is_empty()
+	if _intent_art != null:
+		var kind_id: String = "attack"
+		if bool(view["coin"]):
+			kind_id = "coin"
+		elif bool(view["debuff"]):
+			kind_id = "debuff"
+		elif bool(view["dangerous"]):
+			kind_id = "heavy"
+		_intent_art.texture = IconRegistry.texture_for("intent", kind_id)
 	if bool(view["coin"]):
 		_set_intent_tone(COLOR_COIN)
 	elif bool(view["debuff"]):
@@ -413,7 +437,9 @@ func _show_coin(event: CombatEvent) -> void:
 func _ask_call(chance: int, odds: String = "") -> int:
 	if time_scale <= 0.0 or not is_inside_tree():
 		return auto_call
-	_coin_label.text = "Escolha o lado da moeda\n%s" % odds
+	# A consequência do erro fica na tela na hora de escolher (o selo de intenção já não a mostra).
+	var stakes: String = _intent_detail.text.trim_prefix("Escolha Cara ou Coroa. ")
+	_coin_label.text = "Escolha o lado da moeda\n%s\n%s" % [stakes, odds]
 	_call_row.visible = true
 	var side: int = await coin_called
 	_call_row.visible = false
@@ -437,6 +463,8 @@ func _refresh_bars() -> void:
 	_player_mp_bar.value = _player_mp
 	_set_bar_text(_player_mp_bar, "MP %d / %d" % [_player_mp, int(_player_mp_bar.max_value)])
 	_fill_status_icons()
+	if _sheet_stats != null:
+		_sheet_stats.text = "HP %d / %d      MP %d / %d" % [_player_hp, int(_player_hp_bar.max_value), _player_mp, int(_player_mp_bar.max_value)]
 	_player_stats.text = "HP %d / %d    MP %d / %d" % [_player_hp, int(_player_hp_bar.max_value),
 		_player_mp, int(_player_mp_bar.max_value)]
 	_player_effects.text = _effects_text(Combatant.PLAYER)
@@ -630,7 +658,17 @@ func _build() -> void:
 	column.add_child(_intent_panel)
 	var intent_box: VBoxContainer = VBoxContainer.new()
 	_intent_panel.add_child(intent_box)
+	# Selo de intenção: ícone pintado de 44 px sobre o nome curto (TASK-072, crítica de UX P0 4).
+	_intent_art = TextureRect.new()
+	_intent_art.custom_minimum_size = Vector2(44, 44)
+	_intent_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_intent_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_intent_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_intent_art.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_intent_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	intent_box.add_child(_intent_art)
 	_intent_icon = Label.new()
+	_intent_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_intent_icon.add_theme_font_size_override("font_size", 26)
 	_intent_icon.add_theme_color_override("font_color", Color.BLACK)
 	intent_box.add_child(_intent_icon)
@@ -695,7 +733,7 @@ func _build() -> void:
 	# Gavetas como folha sobreposta (TASK-067, crítica do diretor): sobem sobre o log e as ações sem
 	# redimensionar o palco, que fica fixo.
 	_sheet = PanelContainer.new()
-	_sheet.add_theme_stylebox_override("panel", UiKit.panel(40))
+	_sheet.add_theme_stylebox_override("panel", UiKit.panel(36))
 	_sheet.anchor_left = 0.0
 	_sheet.anchor_right = 1.0
 	_sheet.anchor_top = 1.0
@@ -709,6 +747,12 @@ func _build() -> void:
 	sheet_box.add_theme_constant_override("separation", 8)
 	_sheet.add_child(sheet_box)
 	_sheet_holder = sheet_box
+	# Cabeçalho com HP/MP vivos: a folha cobre as barras de baixo (crítica de UX, P0 2).
+	_sheet_stats = Label.new()
+	_sheet_stats.add_theme_font_size_override("font_size", 16)
+	_sheet_stats.add_theme_color_override("font_color", Color(0.86, 0.8, 0.66))
+	_sheet_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sheet_box.add_child(_sheet_stats)
 	add_child(_sheet)
 	for tab: String in DRAWER_ORDER:
 		var tab_button: Button = Button.new()
@@ -716,7 +760,13 @@ func _build() -> void:
 		tab_button.toggle_mode = true
 		tab_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tab_button.custom_minimum_size = Vector2(0, 52)
-		tab_button.add_theme_font_size_override("font_size", 15)
+		tab_button.add_theme_font_size_override("font_size", 16)
+		var tab_icon: Texture2D = IconRegistry.texture_for("action", tab)
+		if tab_icon != null:
+			tab_button.icon = tab_icon
+			tab_button.expand_icon = true
+			tab_button.add_theme_constant_override("icon_max_width", 28)
+			tab_button.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		tab_button.pressed.connect(_select_drawer.bind(tab))
 		tab_row.add_child(tab_button)
 		_drawer_tabs[tab] = tab_button
@@ -727,6 +777,26 @@ func _build() -> void:
 		drawer.visible = false
 		_sheet_holder.add_child(drawer)
 		_drawers[tab] = drawer
+		if tab == DRAWER_ORDER[DRAWER_ORDER.size() - 1]:
+			# Rodapé fixo: previsão da ação escolhida e CONFIRMAR (primeiro toque seleciona, o botão executa).
+			_sheet_forecast = Label.new()
+			_sheet_forecast.add_theme_font_size_override("font_size", 16)
+			_sheet_forecast.add_theme_color_override("font_color", Color(0.93, 0.84, 0.58))
+			_sheet_forecast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			_sheet_forecast.text = "Toque numa opção para ver a previsão."
+			_sheet_forecast.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			_sheet_forecast.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+			_sheet_holder.add_child(_sheet_forecast)
+			_sheet_confirm = Button.new()
+			_sheet_confirm.text = "CONFIRMAR"
+			_sheet_confirm.custom_minimum_size = Vector2(0, 52)
+			_sheet_confirm.add_theme_font_size_override("font_size", 20)
+			_sheet_confirm.add_theme_color_override("font_color", Color("E5B84A"))
+			_sheet_confirm.visible = false
+			_sheet_confirm.pressed.connect(func() -> void:
+				if not _selected_action.is_empty():
+					_on_action_pressed(_selected_action))
+			_sheet_holder.add_child(_sheet_confirm)
 	for entry: Array in [["attack", "Atacar"], ["defend", "Defender"], ["skill_0", "Skill"], ["skill_1", "Skill"],
 			["skill_2", "Skill"], ["skill_3", "Skill"], ["skill_4", "Skill"], ["potion", "Poção"], ["ether", "Éter Sujo"],
 			["luck", "Moeda da Sorte (0)"], ["flee", "Fugir"], ["speed", "Velocidade 1x"]]:
@@ -736,7 +806,7 @@ func _build() -> void:
 		button.text = str(entry[1])
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(0, (62 if use_stage else 76) if main_action else (64 if action.begins_with("skill_") else 56))
+		button.custom_minimum_size = Vector2(0, (62 if use_stage else 76) if main_action else (56 if action.begins_with("skill_") else 52))
 		button.add_theme_font_size_override("font_size", 16)
 		var ui_icon: Texture2D = IconRegistry.texture_for("ui", action if action != "luck" else "luck")
 		if action == "potion":
@@ -762,7 +832,7 @@ func _build() -> void:
 	_coin_medallion = VisualTheme.CoinMedallion.new()
 	coin_center.add_child(_coin_medallion)
 	_coin_label = Label.new()
-	_coin_label.add_theme_font_size_override("font_size", 30)
+	_coin_label.add_theme_font_size_override("font_size", 22)
 	_coin_label.add_theme_color_override("font_color", COLOR_COIN)
 	_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_coin_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -774,7 +844,15 @@ func _build() -> void:
 	for side: int in [CoinRules.HEADS, CoinRules.TAILS]:
 		var call_button: Button = Button.new()
 		call_button.text = CombatTexts.side_name(side)
-		call_button.custom_minimum_size = Vector2(0, 80)
+		call_button.custom_minimum_size = Vector2(0, 96)
+		call_button.add_theme_font_size_override("font_size", 22)
+		var coin_icon: Texture2D = UiKit.texture("coin_heads.png" if side == CoinRules.HEADS else "coin_tails.png")
+		if coin_icon != null:
+			call_button.icon = coin_icon
+			call_button.expand_icon = true
+			call_button.add_theme_constant_override("icon_max_width", 56)
+			call_button.add_theme_constant_override("h_separation", 12)
+			call_button.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		call_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		call_button.pressed.connect(func() -> void: coin_called.emit(side))
 		_call_row.add_child(call_button)
@@ -873,6 +951,9 @@ func _on_action_pressed(action: String) -> void:
 	_selected_action = action
 	(_buttons[action] as Button).modulate = Color(1.35, 1.2, 0.85)
 	_set_forecast(_forecast_for(action) + "   (toque de novo para confirmar)")
+	if _sheet_forecast != null:
+		_sheet_forecast.text = _forecast_for(action)
+		_sheet_confirm.visible = true
 
 
 func _clear_selection() -> void:
@@ -881,6 +962,9 @@ func _clear_selection() -> void:
 		if _forecast != null and session != null:
 			_set_forecast(_forecast_for("attack"))
 	_selected_action = ""
+	if _sheet_confirm != null:
+		_sheet_confirm.visible = false
+		_sheet_forecast.text = "Toque numa opção para ver a previsão."
 
 
 ## Arma ou desarma a Moeda da Sorte para o próximo lance errado (ADR-0026).
@@ -897,11 +981,11 @@ func _toggle_speed() -> void:
 
 func _overlay() -> PanelContainer:
 	var overlay: PanelContainer = PanelContainer.new()
-	overlay.add_theme_stylebox_override("panel", _box(Color(0.03, 0.03, 0.05, 0.92)))
+	overlay.add_theme_stylebox_override("panel", _box(Color(0.03, 0.03, 0.05, 0.4)))
 	overlay.anchor_left = 0.05
 	overlay.anchor_right = 0.95
-	overlay.anchor_top = 0.25
-	overlay.anchor_bottom = 0.75
+	overlay.anchor_top = 0.13
+	overlay.anchor_bottom = 0.8
 	overlay.offset_left = 0
 	overlay.offset_right = 0
 	overlay.offset_top = 0
@@ -984,7 +1068,7 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> PanelContainer:
 	_timeline_col = VBoxContainer.new()
 	_timeline_col.add_theme_constant_override("separation", 3)
 	_timeline_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_timeline_col.position = Vector2(4, 56)
+	_timeline_col.position = Vector2(6, 52)
 	_stage.add_child(_timeline_col)
 	var forecast_panel: PanelContainer = PanelContainer.new()
 	forecast_panel.add_theme_stylebox_override("panel", _box(Color(0.082, 0.09, 0.11, 0.92)))
@@ -998,8 +1082,12 @@ func _move_hud_into_stage(log_panel: PanelContainer) -> PanelContainer:
 		var hover_button: Button = _buttons[action]
 		hover_button.mouse_entered.connect(func() -> void: _set_forecast(_forecast_for(action)))
 		hover_button.focus_entered.connect(func() -> void: _set_forecast(_forecast_for(action)))
-	_intent_icon.add_theme_font_size_override("font_size", 20)
+	_intent_icon.add_theme_font_size_override("font_size", 16)
 	_intent_detail.add_theme_font_size_override("font_size", 13)
+	_intent_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_intent_panel.gui_input.connect(func(input_event: InputEvent) -> void:
+		if input_event is InputEventMouseButton and (input_event as InputEventMouseButton).pressed and not _intent_detail.text.is_empty():
+			_intent_detail.visible = not _intent_detail.visible)
 	# Aviso do inimigo como cartão escuro com borda de ameaça (vermelho, ouro, roxo), não faixa cinza.
 	_intent_style = StyleBoxFlat.new()
 	_intent_style.bg_color = Color(0.027, 0.03, 0.043, 0.82)
@@ -1041,34 +1129,48 @@ func _fill_timeline_column() -> void:
 		child.queue_free()
 	if session == null or session.is_over():
 		return
-	var order: Array[int] = session.timeline(5)
+	# AGORA (quem decide ou executa) em destaque e 4 futuros que esmaecem (crítica de UX, seção 4).
+	_timeline_col.add_child(_timeline_slot(_now_side, 60.0, 1.0, true))
+	var now_label: Label = Label.new()
+	now_label.text = "AGORA"
+	now_label.add_theme_font_size_override("font_size", 13)
+	now_label.add_theme_color_override("font_color", Color(0.9, 0.75, 0.3))
+	now_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	now_label.add_theme_constant_override("outline_size", 4)
+	now_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_timeline_col.add_child(now_label)
+	var order: Array[int] = session.timeline(4)
+	var fades: Array[float] = [1.0, 0.85, 0.7, 0.55]
 	for index: int in order.size():
-		var side: int = order[index]
-		var chip: PanelContainer = PanelContainer.new()
-		var box: StyleBoxFlat = StyleBoxFlat.new()
-		box.bg_color = Color(0.05, 0.06, 0.09, 0.85)
-		box.set_border_width_all(3 if index == 0 else 2)
-		box.border_color = (Color(0.35, 0.55, 0.95) if side == Combatant.PLAYER else VisualTheme.COLOR_DANGER)
-		if index == 0:
-			box.border_color = box.border_color.lightened(0.35)
-		box.set_content_margin_all(2)
-		chip.add_theme_stylebox_override("panel", box)
-		var row: HBoxContainer = HBoxContainer.new()
-		row.add_theme_constant_override("separation", 2)
-		chip.add_child(row)
-		var number: Label = Label.new()
-		number.text = str(index + 1)
-		number.add_theme_font_size_override("font_size", 14)
-		number.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95))
-		row.add_child(number)
-		var portrait: TextureRect = TextureRect.new()
-		portrait.texture = _stage.portrait(side != Combatant.PLAYER) if _stage != null else null
-		portrait.custom_minimum_size = Vector2(46, 46)
-		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		portrait.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-		row.add_child(portrait)
-		_timeline_col.add_child(chip)
+		_timeline_col.add_child(_timeline_slot(order[index], 44.0, fades[index], false))
+
+
+## Um retrato da linha do tempo: busto nítido na moldura da facção (aliada azul-aço, inimiga carmesim);
+## só o AGORA leva a borda dourada.
+func _timeline_slot(side: int, px: float, opacity: float, now: bool) -> Control:
+	var chip: PanelContainer = PanelContainer.new()
+	var box: StyleBoxFlat = StyleBoxFlat.new()
+	box.bg_color = Color(0.043, 0.047, 0.063, 0.9)
+	box.set_border_width_all(3 if now else 2)
+	box.set_corner_radius_all(4)
+	box.set_content_margin_all(2)
+	var faction: Color = Color("5B7FA6") if side == Combatant.PLAYER else Color("B82824")
+	box.border_color = Color("E5B84A") if now else faction
+	if now:
+		box.shadow_color = Color(0.9, 0.7, 0.2, 0.45)
+		box.shadow_size = 6
+	chip.add_theme_stylebox_override("panel", box)
+	chip.modulate = Color(1, 1, 1, opacity)
+	var portrait: TextureRect = TextureRect.new()
+	portrait.texture = _stage.portrait(side != Combatant.PLAYER) if _stage != null else null
+	portrait.custom_minimum_size = Vector2(px, px)
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.add_child(portrait)
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return chip
 
 
 ## Painel de previsão (FFT): dano, acerto e crítico da ação sob o dedo, entre os dois lados.

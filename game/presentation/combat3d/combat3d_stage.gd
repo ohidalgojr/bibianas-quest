@@ -32,11 +32,13 @@ const HERO_REF_HEIGHT: float = 240.0
 const WALK_FRAMES: int = 4
 const FX_PATH: String = "res://assets/bibiana/fx/"
 ## Linha do tempo do golpe (s): caminhada até o inimigo, preparação com a espada no alto, volta.
-const STRIKE_APPROACH: float = 0.38
-const STRIKE_WINDUP: float = 0.16
-const STRIKE_RECOVER: float = 0.2
-const STRIKE_RETURN: float = 0.34
-const WALK_FRAME_SECONDS: float = 0.09
+const STRIKE_APPROACH: float = 0.2
+const STRIKE_WINDUP: float = 0.05
+const STRIKE_RECOVER: float = 0.06
+const STRIKE_RETURN: float = 0.3
+const WALK_FRAME_SECONDS: float = 0.07
+## Distância (unidades) do inimigo em que a Bibiana para para bater (crítica de UX, seção 5).
+const STRIKE_REACH: float = 1.15
 const ARENA_COMMON: String = "res://assets/bibiana/arenas/arena-cidade-rua.jpg"
 const ARENA_ELITE: String = "res://assets/bibiana/arenas/arena-cidade-praca.jpg"
 ## Cemitério e capela do Coveiro: só o chefe final (TASK-072).
@@ -303,7 +305,7 @@ func hero_strike(crit: bool = false) -> void:
 	_hero_token += 1
 	var token: int = _hero_token
 	var toward: Vector3 = (PLAYER_POS - ENEMY_POS).normalized()
-	var spot: Vector3 = ENEMY_POS + toward * 1.55
+	var spot: Vector3 = ENEMY_POS + toward * STRIKE_REACH
 	var tween: Tween = create_tween().set_parallel(true)
 	tween.tween_property(player_node, "position", spot, STRIKE_APPROACH * time_scale).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_method(func(t: float) -> void:
@@ -316,9 +318,9 @@ func hero_strike(crit: bool = false) -> void:
 	await get_tree().create_timer(STRIKE_WINDUP * time_scale).timeout
 	if token != _hero_token:
 		return
-	_spawn_fx("slash", enemy_node.position + Vector3(0.0, _enemy_height * 0.55, 0.0), 6, 3.2 if not crit else 4.0, 0.3)
+	_spawn_fx("slash", enemy_node.position + Vector3(0.0, _enemy_height * 0.5, 0.0), 6, 2.2 if not crit else 2.8, 0.15)
 	if crit:
-		_spawn_fx("crit", enemy_node.position + Vector3(0.0, _enemy_height * 0.55, 0.0), 1, 2.8, 0.35)
+		_spawn_fx("crit", enemy_node.position + Vector3(0.0, _enemy_height * 0.5, 0.0), 1, 2.4, 0.25)
 	_hero_return(token)
 
 
@@ -426,9 +428,10 @@ func play(on_enemy: bool, key: String) -> void:
 			tween.tween_property(node, "position", home + toward * 0.9, 0.12 * time_scale)
 			tween.tween_property(node, "position", home, 0.22 * time_scale)
 		"hit":
-			_shake = 0.18
-			tween.tween_property(node, "position", home - toward * 0.35, 0.07 * time_scale)
-			tween.tween_property(node, "position", home, 0.2 * time_scale)
+			_shake = 0.3
+			_flash(node)
+			tween.tween_property(node, "position", home - toward * 0.3, 0.07 * time_scale)
+			tween.tween_property(node, "position", home, 0.18 * time_scale)
 		"death":
 			tween.tween_property(node, "scale", node.scale * 0.01, 0.7 * time_scale).set_delay(0.3 * time_scale)
 	tween.finished.connect(func() -> void:
@@ -597,10 +600,26 @@ func set_focus(on: bool) -> void:
 	tween.tween_property(camera, "size", CAM_SIZE * (0.8 if on else 1.0), 0.35 * time_scale)
 
 
-## Hit-stop (GDD §19): congela as animações por um instante no acerto, para dar peso.
+## Pisca o ator atingido: tinta vermelho-clara que volta ao normal em 200 ms (sprite ou modelo).
+func _flash(node: Node3D) -> void:
+	for found: Node in node.find_children("*", "Sprite3D", true, false):
+		var sprite: Sprite3D = found as Sprite3D
+		if sprite.name == "ContactShadow":
+			continue
+		sprite.modulate = Color(1.0, 0.45, 0.4)
+		var tween: Tween = create_tween()
+		tween.tween_property(sprite, "modulate", Color.WHITE, 0.2 * time_scale)
+
+
+## Hit-stop (GDD §19): congela tudo por um instante no acerto, para dar peso. Usa a escala de tempo do
+## motor (funciona com sprites, tweens e partículas) e restaura sozinho, mesmo se a cena sumir.
 func hit_stop(seconds: float = 0.08) -> void:
 	if time_scale <= 0.0 or not is_inside_tree():
 		return
+	Engine.time_scale = 0.02
+	await get_tree().create_timer(seconds, true, false, true).timeout
+	Engine.time_scale = 1.0
+	return
 	var players: Array[AnimationPlayer] = []
 	for node: Node3D in [player_node, enemy_node]:
 		if node == null:
